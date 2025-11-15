@@ -1,0 +1,17 @@
+key,ja,en
+customer.title,取引先管理,Customer Management
+customer.description,顧客・仕入先情報を一元管理し、案件履歴を確認します。,Centrally manage customer and vendor information and view quote history.
+customer.load_failed,データの読み込みに失敗しました。,Failed to load data.
+customer.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+customer.delete_confirm,顧客ID「{id}」を削除しますか？この操作は元に戻せません。,Are you sure you want to delete customer ID "{id}"? This operation cannot be undone.
+customer.delete_failed,サーバーからの削除に失敗しました:,Failed to delete from server:
+customer.all_groups,すべて,All
+customer.default_group,一般,General
+customer.status_active,アクティブ,Active
+customer.status_inactive,休眠,Inactive
+customer.status_suspended,取引停止,Suspended
+customer.vendor,仕入先,Vendor
+customer.edit,編集,Edit
+customer.delete,削除,Delete
+customer.search_placeholder,検索...,Search...
+

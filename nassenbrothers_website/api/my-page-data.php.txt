@@ -1,0 +1,155 @@
+<?php
+// api/my-page-data.php
+// Authenticated endpoint to fetch all data required for the My Page dashboard.
+
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+require_once __DIR__ . '/db_connect.php';
+
+try {
+    // --- 1. Authentication ---
+    $auth_header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    if (empty($auth_header) || !preg_match('/^Bearer\s+(.*)$/i', $auth_header, $matches)) {
+        throw new Exception("Authorization token not provided.", 401);
+    }
+    $token = $matches[1];
+
+    // TODO: Replace this with real token validation logic
+    // For now, if token is 'dev-mock-token', we use customer_id = 1
+    if ($token !== 'dev-mock-token') {
+         throw new Exception("Invalid token.", 401);
+    }
+    $customer_id_from_token = 1;
+
+    $pdo = get_db_connection();
+
+    // --- 2. Fetch Customer Info ---
+    $stmt = $pdo->prepare("SELECT * FROM customers WHERE id = ?");
+    $stmt->execute([$customer_id_from_token]);
+    $customerInfo_raw = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$customerInfo_raw) {
+        throw new Exception("Customer not found.", 404);
+    }
+    
+    // Convert keys to camelCase and boolean fields for frontend
+    $customerInfo = [
+        'id' => (string)$customerInfo_raw['id'],
+        'companyName' => $customerInfo_raw['company_name'],
+        'nameKanji' => $customerInfo_raw['name_kanji'],
+        'nameKana' => $customerInfo_raw['name_kana'],
+        'email' => $customerInfo_raw['email'],
+        'phone' => $customerInfo_raw['phone'],
+        'zipCode' => $customerInfo_raw['zip_code'],
+        'address1' => $customerInfo_raw['address1'],
+        'address2' => $customerInfo_raw['address2'],
+        'hasSeparateShippingAddress' => (bool)$customerInfo_raw['has_separate_shipping_address'],
+        'shippingName' => $customerInfo_raw['shipping_name'],
+        'shippingPhone' => $customerInfo_raw['shipping_phone'],
+        'shippingZipCode' => $customerInfo_raw['shipping_zip_code'],
+        'shippingAddress1' => $customerInfo_raw['shipping_address1'],
+        'shippingAddress2' => $customerInfo_raw['shipping_address2'],
+        'notes' => '', // These are not stored in the customers table.
+        'quoteSubject' => ''
+    ];
+
+    // --- 3. Fetch Shipping Addresses ---
+    $stmt = $pdo->prepare("SELECT id, customer_id, name, zip_code AS zipCode, address1, address2, phone FROM shipping_addresses WHERE customer_id = ? ORDER BY name");
+    $stmt->execute([$customer_id_from_token]);
+    $addresses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // --- 4. Fetch Orders/Quotes ---
+    $stmt = $pdo->prepare("
+        SELECT 
+            q.*,
+            (SELECT COUNT(*) FROM quote_items qi WHERE qi.quote_id = q.id) as totalItems
+        FROM quotes q
+        WHERE q.customer_id = ? 
+        ORDER BY q.created_at DESC
+    ");
+    $stmt->execute([$customer_id_from_token]);
+    $quotes_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $orders = [];
+    foreach($quotes_raw as $quote) {
+        // Map database status to frontend 'mainStatus'
+        $mainStatus = '見積もり中';
+        if ($quote['quote_status'] === '受注') {
+             $mainStatus = ($quote['shipping_status'] === '発送完了') ? '完了' : '製作中';
+        }
+
+        // --- Build status steps ---
+        $steps = null;
+        if ($mainStatus !== '見積もり中') {
+            $steps = [
+                ['name' => '注文受付', 'status' => 'complete', 'date' => $quote['ordered_at'] ? date('Y/m/d', strtotime($quote['ordered_at'])) : null ],
+                ['name' => 'ご入金確認', 'status' => ($quote['payment_status'] === '入金済') ? 'complete' : ($mainStatus === '製作中' ? 'current' : 'upcoming'), 'date' => ($quote['payment_status'] === '入金済') ? date('Y/m/d') : null ], // TODO: Add payment_date column
+                ['name' => '作業中', 'status' => ($quote['production_status'] !== '未着手') ? (($quote['production_status'] === '完了') ? 'complete' : 'current') : 'upcoming', 'date' => ($quote['production_status'] !== '未着手') ? date('Y/m/d') : null ], // TODO: Add production_start_date
+                ['name' => '発送', 'status' => ($quote['shipping_status'] === '発送完了') ? 'complete' : 'upcoming', 'date' => $quote['shipping_date'] ? date('Y/m/d', strtotime($quote['shipping_date'])) : null ],
+            ];
+        }
+
+        // --- Build invoice ---
+        $invoice = null;
+        if ($mainStatus !== '見積もり中') {
+            $invoice = [
+                'id' => 'INV-' . $quote['quote_code'],
+                'date' => $quote['ordered_at'] ? date('Y/m/d', strtotime($quote['ordered_at'])) : '',
+                'totalCost' => (int)$quote['total_cost_in_tax'],
+                'status' => $quote['payment_status'],
+                'paymentDueDate' => $quote['payment_due_date'] ? date('Y/m/d', strtotime($quote['payment_due_date'])) : null,
+            ];
+        }
+
+        // --- Build shipping ---
+        $shipping = null;
+        if ($mainStatus !== '見積もり中') {
+            $shipping = [
+                'shippingDate' => $quote['shipping_date'] ? date('Y/m/d', strtotime($quote['shipping_date'])) : ($quote['estimated_delivery_date'] ? date('Y/m/d', strtotime($quote['estimated_delivery_date'])) . ' (予定)' : '未定'),
+                'carrier' => $quote['shipping_carrier'] ?? '未定',
+                'trackingNumber' => $quote['tracking_number'] ?? '未発行',
+                'status' => $quote['shipping_status'],
+            ];
+        }
+
+        $orders[] = [
+            'id' => $quote['quote_code'],
+            'date' => date('Y/m/d', strtotime($quote['created_at'])),
+            'totalItems' => (int)$quote['totalItems'],
+            'totalCost' => (int)$quote['total_cost_in_tax'],
+            'mainStatus' => $mainStatus,
+            'quoteStatus' => $quote['data_confirmation_status'],
+            'quoteSubject' => $quote['subject'],
+            'steps' => $steps,
+            'invoice' => $invoice,
+            'shipping' => $shipping,
+        ];
+    }
+    
+    // --- 5. Assemble and Return Response ---
+    $response = [
+        'customerInfo' => $customerInfo,
+        'orders' => $orders,
+        'addresses' => $addresses,
+    ];
+
+    http_response_code(200);
+    echo json_encode($response, JSON_UNESCAPED_UNICODE);
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("My Page Data Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'マイページデータの取得に失敗しました。', 'error' => $e->getMessage()]);
+}
+?>

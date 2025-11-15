@@ -1,0 +1,33 @@
+key,ja,en
+product.title,商品データ管理,Product Management
+product.description,商品詳細情報を管理します,Manage product details
+product.manufacturer,メーカー,Manufacturer
+product.select_manufacturer,メーカーを選択,Select Manufacturer
+product.select_manufacturer_first,メーカーを選択してください,Please select a manufacturer
+product.search_placeholder,品番・商品名・ブランドで検索,Search by code, name, or brand
+product.no_products,商品が登録されていません,No products registered
+product.no_search_results,検索結果がありません,No search results
+product.code,品番,Product Code
+product.name,商品名,Product Name
+product.name_short,商品名（略称）,Product Name (Short)
+product.brand,ブランド,Brand
+product.description_text,説明,Description
+product.images,画像URL（カンマ区切り）,Image URLs (comma-separated)
+product.tags,タグ（カンマ区切り）,Tags (comma-separated)
+product.delete,削除,Delete
+product.delete_confirm,品番「{0}」とその在庫データを削除しますか？,Delete product code "{0}" and its stock data?
+product.delete_failed,削除に失敗しました,Failed to delete
+product.edit_title,商品詳細編集,Edit Product Details
+product.save,保存,Save
+product.saving,保存中...,Saving...
+product.save_failed,保存に失敗しました,Failed to save
+product.cancel,キャンセル,Cancel
+product.load_failed,データの読み込みに失敗しました,Failed to load data
+product.error,エラーが発生しました,An error occurred
+product.seo_settings,SEO設定,SEO Settings
+product.meta_title,メタタイトル,Meta Title
+product.meta_description,メタ説明,Meta Description
+product.og_settings,OG設定,OG Settings
+product.og_image_url,OG画像URL,OG Image URL
+product.og_title,OGタイトル,OG Title
+product.og_description,OG説明,OG Description

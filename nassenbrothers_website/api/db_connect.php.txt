@@ -1,0 +1,88 @@
+<?php
+// api/db_connect.php.txt
+
+// --- ERROR HANDLING (for production) ---
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+/**
+ * サーバー設定ファイルを読み込み、定数を定義します。
+ * この関数は複数回呼び出されても、設定の読み込みは一度しか実行されません。
+ * @throws Exception 設定ファイルが見つからないか読み取れない場合にスローされます。
+ */
+function load_server_config() {
+    static $config_loaded = false;
+    if ($config_loaded) {
+        return;
+    }
+
+    $config_path = __DIR__ . '/../templates/server_config.csv';
+
+    if (!file_exists($config_path) || !is_readable($config_path)) {
+        throw new Exception("サーバー設定ファイルが見つからないか、読み取れません。: {$config_path}");
+    }
+
+    $config = [];
+    if (($handle = fopen($config_path, "r")) !== FALSE) {
+        fgetcsv($handle); // ヘッダー行をスキップ
+        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+            if (count($data) == 2) {
+                $config[trim($data[0])] = trim($data[1]);
+            }
+        }
+        fclose($handle);
+    } else {
+        throw new Exception("サーバー設定ファイルを開けませんでした。: {$config_path}");
+    }
+    
+    // データベース接続情報の定数を定義
+    define('DB_HOST', $config['DB_HOST'] ?? 'localhost');
+    define('DB_NAME', $config['DB_NAME'] ?? '');
+    define('DB_USER', $config['DB_USER'] ?? '');
+    define('DB_PASSWORD', $config['DB_PASSWORD'] ?? '');
+    define('DB_TYPE', $config['DB_TYPE'] ?? 'mysql');
+    
+    // Gemini APIキーの定数を定義
+    define('GEMINI_API_KEY', $config['GEMINI_API_KEY'] ?? '');
+
+    $config_loaded = true;
+}
+
+
+/**
+ * PDOデータベース接続オブジェクトを取得します。
+ * @return PDO データベース接続オブジェクト
+ * @throws PDOException 接続に失敗した場合にスローされます。
+ */
+function get_db_connection() {
+    // 設定を読み込む
+    load_server_config();
+
+    $host = DB_HOST;
+    $db   = DB_NAME;
+    $user = DB_USER;
+    $pass = DB_PASSWORD;
+    // MariaDB and MySQL both use the 'mysql' PDO driver.
+    $driver = 'mysql';
+    $charset = 'utf8mb4';
+
+    // DSN (Data Source Name) を作成
+    $dsn = "$driver:host=$host;dbname=$db;charset=$charset";
+    
+    $options = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // エラーモードを例外に設定
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,       // フェッチモードを連想配列に設定
+        PDO::ATTR_EMULATE_PREPARES   => false,                  // プリペアドステートメントのエミュレーションを無効化
+    ];
+
+    try {
+        $pdo = new PDO($dsn, $user, $pass, $options);
+        return $pdo;
+    } catch (PDOException $e) {
+        // エラーログに詳細を記録
+        error_log("Database connection failed: " . $e->getMessage());
+        // フロントエンドには一般的なエラーメッセージを返す
+        throw new PDOException("データベース接続に失敗しました。", (int)$e->getCode());
+    }
+}
+?>

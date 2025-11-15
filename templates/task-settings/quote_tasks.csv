@@ -1,0 +1,6 @@
+﻿id,quote_id,task_master_id,status,completed_at,due_date,assignee_id
+qtask_000001,quot_00000001,task_001,進行中,,2024-08-05,user_0001
+qtask_000002,quot_00000001,task_003,未着手,,2024-08-10,user_0002
+qtask_000003,quot_00000002,task_002,完了,2024-07-15T10:00:00Z,2024-07-14,user_0003
+qtask_000004,quot_00000002,task_003,進行中,,2024-07-28,user_0004
+qtask_000005,quot_00000003,task_005,完了,2024-06-18T09:00:00Z,2024-06-18,user_0002

@@ -1,0 +1,6 @@
+id,name,tracking_url_template
+1,ヤマト運輸,"https://toi.kuronekoyamato.co.jp/cgi-bin/tneko?&barcodeNo={tracking_number}"
+2,佐川急便,"http://k2k.sagawa-exp.co.jp/p/sagawa/web/okurijoinput.jsp?okurijoNo={tracking_number}"
+3,日本郵便,"https://trackings.post.japanpost.jp/services/srv/search/?requestNo1={tracking_number}"
+4,西濃運輸,"https://track.seino.co.jp/kamotsu/GempyoNoShokai.do?GNPNO1={tracking_number}"
+5,福山通運,"https://corp.fukutsu.co.jp/situation/tracking_no_search/{tracking_number}"

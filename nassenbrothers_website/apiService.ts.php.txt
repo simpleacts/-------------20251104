@@ -1,0 +1,36 @@
+import { AppData } from '../types';
+
+/**
+ * Fetches the entire application data from the PHP backend.
+ * This function makes a single API call to `/api/app-data.php`
+ * to retrieve all necessary data for the application to run.
+ * 
+ * @returns A Promise that resolves to the AppData object.
+ * @throws An error if the network request fails or the server returns an error.
+ */
+export const fetchData = async (): Promise<AppData> => {
+    try {
+        const response = await fetch('/api/app-data.php');
+
+        if (!response.ok) {
+            let errorMessage = `サーバーエラーが発生しました (HTTP ${response.status})。`;
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData?.details || errorData?.error || errorMessage;
+            } catch (e) {
+                // Ignore if the response is not JSON
+            }
+            throw new Error(errorMessage);
+        }
+
+        const appData: AppData = await response.json();
+        
+        // The backend is expected to return data in the exact AppData format,
+        // so extensive client-side processing is no longer needed.
+        return appData;
+
+    } catch (error) {
+        console.error("Failed to load app data from the server", error);
+        throw new Error(error instanceof Error ? error.message : 'サーバーからのデータ取得中に不明なエラーが発生しました。');
+    }
+};

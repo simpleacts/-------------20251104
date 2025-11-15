@@ -1,0 +1,4 @@
+id,name,rules
+1,日付プレフィックス削除,"[{""id"":""rule_1"",""type"":""replace"",""enabled"":true,""params"":{""useRegex"":true,""caseSensitive"":false,""search"":""^\\\\d{8}_"",""replace"":""""}}]"
+2,"ファイル名を整理 (日付とIMG_を削除)","[{""id"":""rule_2a"",""type"":""replace"",""enabled"":true,""params"":{""search"":""^\\\\d{8}_"",""replace"":"""",""useRegex"":true}},{""id"":""rule_2b"",""type"":""replace"",""enabled"":true,""params"":{""search"":""^IMG_"",""replace"":"""",""useRegex"":true}}]"
+3,型番-カラーコード形式に,"[{""id"":""rule_3"",""type"":""replace"",""enabled"":true,""params"":{""useRegex"":true,""caseSensitive"":false,""search"":""^([^-]+)-([^-]+)-.*"",""replace"":""$1-$2""}}]"

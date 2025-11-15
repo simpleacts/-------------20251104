@@ -1,0 +1,58 @@
+key,ja,en
+proofing.title,仕上がりイメージメーカー,Proofing Image Maker
+proofing.description,案件に紐づく仕上がりイメージを作成・管理します。,Create and manage proof images linked to quotes.
+proofing.select_quote,案件を選択,Select Quote
+proofing.switch_quote,案件を切り替え,Switch Quote
+proofing.please_select_quote,案件を選択してください,Please select a quote
+proofing.quote_id,見積ID,Quote ID
+proofing.quote_code,見積コード,Quote Code
+proofing.customer_id,顧客ID,Customer ID
+proofing.select_products_colors,商品・カラーを選択,Select Products & Colors
+proofing.add_pattern,パターンを追加,Add Pattern
+proofing.download_images,画像をダウンロード,Download Images
+proofing.view_type,ビュータイプ,View Type
+proofing.view_front,正面,Front
+proofing.view_back,背面,Back
+proofing.view_other,その他,Other
+proofing.preview_placeholder,案件を選択すると、ここにプレビューが表示されます。,Select a quote to see the preview here.
+proofing.add_design_layer,デザインレイヤーを追加,Add Design Layer
+proofing.processing,処理中...,Processing...
+proofing.product_design_layers,商品・デザインレイヤー,Product & Design Layers
+proofing.selected_layer_settings,選択中のレイヤー設定,Selected Layer Settings
+proofing.layer_locked,このレイヤーはロックされています。,This layer is locked.
+proofing.scale,拡大縮小,Scale
+proofing.reset_scale,拡大縮小をリセット,Reset Scale
+proofing.rotation,回転 (角度),Rotation (degrees)
+proofing.reset_rotation,回転をリセット,Reset Rotation
+proofing.loading,仕上がりイメージツールを準備中...,Preparing proofing image tool...
+proofing.error_occurred,エラーが発生しました,An error occurred
+proofing.data_load_failed,データを読み込めませんでした,Could not load data
+proofing.debug_panel_hint,デバッグパネル（右下のアイコン）で詳細を確認できます。,You can check details in the debug panel (icon in the bottom right).
+proofing.export_settings_title,画像のエクスポート設定,Image Export Settings
+proofing.save_options,保存オプション,Save Options
+proofing.filename,ファイル名,Filename
+proofing.file_format,ファイル形式,File Format
+proofing.resolution,解像度,Resolution
+proofing.background,背景,Background
+proofing.background_white,白,White
+proofing.background_transparent,透明,Transparent
+proofing.regenerate_preview,プレビューを再生成,Regenerate Preview
+proofing.generating,生成中...,Generating...
+proofing.generating_images,画像を生成中...,Generating images...
+proofing.images_completed,枚完了,completed
+proofing.select_all,すべて選択,Select All
+proofing.download_selected,選択した画像を保存,Download Selected Images
+proofing.download_all,すべて保存,Download All
+proofing.close,閉じる,Close
+proofing.registering,登録中...,Registering...
+proofing.register_to_db_drive,DBとDriveに登録,Register to DB & Drive
+proofing.register_failed,データベースへの登録またはGoogle Driveへのアップロードに失敗しました。,Failed to register to database or upload to Google Drive.
+proofing.select_design,デザインを選択,Select Design
+proofing.no_designs_available,この案件で利用可能なデザインがありません。,No designs available for this quote.
+proofing.create_design_first,先に「仕上がりイメージメーカー」でデザインを作成してください。,Please create a design in the Proofing Image Maker first.
+proofing.design_layer,デザインレイヤー,Design Layer
+proofing.product_layer,商品レイヤー,Product Layer
+proofing.small_resolution,小 (600px),Small (600px)
+proofing.medium_resolution,中 (1200px),Medium (1200px)
+proofing.large_resolution,大 (1800px),Large (1800px)
+

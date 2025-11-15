@@ -1,0 +1,56 @@
+<?php
+// api/save_pages_content.php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+try {
+    // --- TODO: AUTHENTICATION ---
+    // In a real application, you MUST add authentication/authorization here.
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception('Invalid request method. Only POST is allowed.', 405);
+    }
+
+    $target_dir = dirname(__DIR__) . '/templates';
+    $target_file = $target_dir . '/pages_content.json';
+
+    if (!is_dir($target_dir) || !is_writable($target_dir) || !file_exists($target_file) || !is_writable($target_file)) {
+        throw new Exception('Server permission error.', 500);
+    }
+
+    $new_content = file_get_contents('php://input');
+    if ($new_content === false) {
+        throw new Exception('Could not read request body.', 400);
+    }
+    
+    // Validate if the content is valid JSON
+    json_decode($new_content);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception('Invalid JSON format provided.', 400);
+    }
+
+    $result = file_put_contents($target_file, $new_content, LOCK_EX);
+    
+    if ($result === false) {
+        throw new Exception('Failed to write to file.', 500);
+    }
+
+    http_response_code(200);
+    echo json_encode(['success' => true, 'message' => 'Page content saved successfully.']);
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("save_pages_content.php Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'ページコンテンツの保存中にエラーが発生しました。', 'error' => $e->getMessage()]);
+}
+?>

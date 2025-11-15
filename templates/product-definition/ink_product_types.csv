@@ -1,0 +1,6 @@
+id,code,name,sort_order
+ipt_001,color,基本色,1
+ipt_002,pigment,顔料,2
+ipt_003,base,ベース,3
+ipt_004,additive,添加剤,4
+

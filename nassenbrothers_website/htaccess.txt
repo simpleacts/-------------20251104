@@ -1,0 +1,35 @@
+# .htaccess for dynamic image resizing and SPA routing
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # 1. Prevent direct access to cache directory contents (security)
+  RewriteRule ^cache/images/ - [F,L]
+
+  # 2. Rewrite image requests with a query string to the resizer script
+  RewriteCond %{REQUEST_URI} \.(jpe?g|png|gif)$ [NC]
+  RewriteCond %{QUERY_STRING} .
+  RewriteCond %{REQUEST_URI} !^/cache/
+  RewriteRule ^(.*)$ api/image.php?path=$1 [L,QSA]
+
+  # 3. Sitemap rule
+  RewriteRule ^sitemap\.xml$ api/sitemap.php [L]
+
+  # 4. Handle API calls directly, do not process further
+  RewriteRule ^api/ - [L]
+
+  # 5. Handle existing files and directories
+  # If the request is for an existing file or directory, serve it directly
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # 6. Admin SPA routing
+  # If we get here, it's not a real file/dir. If it starts with /admin, serve admin.html
+  RewriteRule ^admin(.*)$ admin.html [L]
+
+  # 7. Public SPA routing fallback
+  # For anything else, serve index.html
+  RewriteRule ^(.*)$ index.html [L,QSA]
+
+</IfModule>

@@ -1,0 +1,4 @@
+id,quote_id,from_address,to_address,cc_address,subject,body,sent_at,direction,status,account_id,thread_id,has_attachments,is_triaged,ai_summary,ai_category,ai_triage_data
+email_00000001,quot_00000001,customer@client.com,info@example.com,,見積もり依頼の件,"お世話になっております。添付のデザインでTシャツ50枚の見積もりをお願いします。",2024-07-28T10:00:00Z,incoming,read,acc_0001,thread_A,true,false,,,
+email_00000002,quot_00000001,info@example.com,customer@client.com,,Re: 見積もり依頼の件,"お問い合わせありがとうございます。担当者より改めてご連絡いたします。",2024-07-28T10:05:00Z,outgoing,sent,acc_0001,thread_A,false,true,顧客への自動返信,notification,
+email_00000003,,help@software.com,support@example.com,,[Case #123] Software Update,"Please update your software to the latest version.",2024-07-29T11:00:00Z,incoming,read,acc_0002,thread_B,false,false,,,

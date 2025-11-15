@@ -1,0 +1,7 @@
+﻿id,size,plateType,cost,surchargePerColor
+1,10x10,normal,3000,0
+2,30x40,normal,5000,0
+3,35x50,normal,7000,0
+4,10x10,decomposition,6000,100
+5,30x40,decomposition,10000,100
+6,35x50,decomposition,14000,100

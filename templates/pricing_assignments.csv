@@ -1,0 +1,7 @@
+﻿id,target_type,target_id,rule_id,customer_group_id
+1,manufacturer,1,1,1
+2,manufacturer,2,1,1
+3,category,cat_0001,1,1
+4,category,cat_0002,1,1
+5,category,cat_0003,1,1
+6,category,cat_0004,1,1

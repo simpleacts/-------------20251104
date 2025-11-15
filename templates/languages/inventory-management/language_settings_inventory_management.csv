@@ -1,0 +1,17 @@
+key,ja,en
+inventory.title,商品在庫管理,Product Inventory Management
+inventory.description,{count}件のSKU在庫を管理しています。,Managing {count} SKU inventory items.
+inventory.adjust_stock,在庫調整,Adjust Stock
+inventory.filter_low_stock,在庫不足のみ表示,Show Low Stock Only
+inventory.low_stock_count,{count}件の在庫不足,{count} items low in stock
+inventory.current_stock,現在の在庫数,Current Stock
+inventory.low_stock_alert,在庫不足アラート,Low Stock Alert
+inventory.low_stock_message,{count}件の商品が在庫不足です（閾値: {threshold}以下）,{count} items are low in stock (threshold: {threshold} or below)
+inventory.and_more,他{count}件...,{count} more...
+inventory.incoming_stock_management,入荷予定管理,Incoming Stock Management
+inventory.stock_history,在庫履歴,Stock History
+inventory.save,保存,Save
+inventory.cancel,キャンセル,Cancel
+inventory.save_success,在庫を更新しました。,Stock updated successfully.
+inventory.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+

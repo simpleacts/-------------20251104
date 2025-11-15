@@ -1,0 +1,32 @@
+{
+  "name": "ai-database-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tシャツビジネスの在庫、商品、設定などを管理するための直感的なデータベース管理ツールです。",
+  "scripts": {
+    "build:css": "tailwindcss -i ./index.css -o ./dist/index.css --minify",
+    "build:js": "node esbuild.config.js",
+    "build:cleanup": "node scripts/build-cleanup.js",
+    "export:setup-sql": "node scripts/generate-database-setup.js && node scripts/generate-sql-from-csv.js",
+    "verify:csv-sql": "node scripts/verify-csv-sql-consistency.js",
+    "build": "node -e \"const fs = require('fs'); if (fs.existsSync('dist')) { fs.rmSync('dist', { recursive: true, force: true }); } fs.mkdirSync('dist', { recursive: true });\" && npm run build:css && npm run build:js && node scripts/generate-tool-dependencies.js && npm run export:setup-sql && node scripts/prepare-deployment.js && npm run verify:csv-sql && npm run build:cleanup",
+    "dev": "npx http-server . -p 8000 --cors -o",
+    "dev:dist": "npx http-server dist -p 8000 --cors -o"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.13",
+    "@types/markdown-it": "^14.1.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.2.2",
+    "@types/react-window": "^1.8.5",
+    "autoprefixer": "^10.4.19",
+    "esbuild": "^0.21.4",
+    "markdown-it": "^14.1.0",
+    "postcss": "^8.4.38",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-virtualized-auto-sizer": "^1.0.20",
+    "react-window": "^1.8.10",
+    "tailwindcss": "^3.4.4"
+  }
+}

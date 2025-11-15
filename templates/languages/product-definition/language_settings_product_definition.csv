@@ -1,0 +1,31 @@
+key,ja,en
+product_def.title,商品定義管理,Product Definition Management
+product_def.description,商品の基本構成要素（メーカー、ブランド、カラー、印刷箇所等）を一元管理します。,Centrally manage basic product components (manufacturers, brands, colors, print locations, etc.).
+product_def.tab_manufacturers,メーカー,Manufacturers
+product_def.tab_brands,ブランド,Brands
+product_def.tab_categories,カテゴリー,Categories
+product_def.tab_tags,タグ,Tags
+product_def.tab_colors,カラー,Colors
+product_def.tab_sizes,サイズ,Sizes
+product_def.tab_print_locations,印刷箇所,Print Locations
+product_def.tab_print_size_constraints,印刷サイズ制約,Print Size Constraints
+product_def.tab_category_print_locations,カテゴリ別印刷箇所,Category Print Locations
+product_def.tab_print_cost_combination,印刷グループ設定,Print Cost Combination
+product_def.tab_plate_cost_combination,製版グループ設定,Plate Cost Combination
+product_def.tab_payment_methods,支払方法,Payment Methods
+product_def.tab_time_units,時間単位,Time Units
+product_def.tab_calculation_logic_types,計算ロジックタイプ,Calculation Logic Types
+product_def.tab_ink_product_types,インク製品タイプ,Ink Product Types
+product_def.tab_weight_volume_units,重さ・容量単位,Weight/Volume Units
+product_def.tab_free_input_item_types,調整項目タイプ,Adjustment Item Types
+product_def.tab_color_libraries,カラーライブラリ,Color Libraries
+product_def.tab_color_library_types,カラーライブラリタイプ,Color Library Types
+product_def.list_title,一覧,List
+product_def.add_new,新規追加,Add New
+product_def.actions,操作,Actions
+product_def.load_failed,データの読み込みに失敗しました。,Failed to load data.
+product_def.load_error,定義データを読み込めませんでした。,Could not load definition data.
+product_def.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+product_def.delete_confirm,「{name}」を削除しますか？\nこの項目が他のデータで使用されている場合、関連情報が失われる可能性があります。,Are you sure you want to delete {name}?\nIf this item is used by other data, related information may be lost.
+product_def.delete_failed,サーバーからの削除に失敗しました:,Failed to delete from server:
+

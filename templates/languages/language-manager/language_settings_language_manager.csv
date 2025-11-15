@@ -1,0 +1,15 @@
+key,ja,en
+language_settings.key,キー,Key
+language_settings.ja,日本語,Japanese
+language_settings.en,英語,English
+language_manager.title,言語管理,Language Manager
+language_manager.description,アプリケーション内のテキストを多言語で管理します。,Manage multilingual text within the application.
+language_manager.unsaved_changes,未保存の変更があります,You have unsaved changes
+language_manager.no_language,言語なし,No Language
+language_manager.ai_translate,AIで翻訳,AI Translate
+language_manager.save,保存,Save
+language_manager.save_success,言語設定を保存しました。,Language settings saved successfully.
+language_manager.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+language_manager.select_language,翻訳対象の言語を選択してください。,Please select a target language for translation.
+language_manager.translate_complete,AIによる翻訳が完了しました。,AI translation completed.
+language_manager.translate_failed,翻訳に失敗しました:,Translation failed:

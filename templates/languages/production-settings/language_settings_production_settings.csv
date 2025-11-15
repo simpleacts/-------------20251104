@@ -1,0 +1,10 @@
+key,ja,en
+production_settings.title,生産設定ツール,Production Settings Tool
+production_settings.description,生産スケジュールの計算に使用する各種パラメータを設定します。,Configure various parameters used for production schedule calculations.
+production_settings.save,保存,Save
+production_settings.save_success,設定を保存しました。,Settings saved.
+production_settings.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+production_settings.general_settings,全般設定,General Settings
+production_settings.capacity_label,1日の最大生産能力 (枚数),Daily Maximum Production Capacity (pieces)
+production_settings.profit_target_label,1日の粗利目標 (円),Daily Gross Profit Target (yen)
+

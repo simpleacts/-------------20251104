@@ -1,0 +1,385 @@
+<?php
+// --- ERROR HANDLING & SETUP ---
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+// [!!] 重要: このスクリプトを実行するには、ComposerでmPDFがインストールされている必要があります。
+// 例: composer require mpdf/mpdf
+// vendor/autoload.php へのパスは環境に合わせて調整してください。
+$autoload_path = __DIR__ . '/vendor/autoload.php'; 
+if (!file_exists($autoload_path)) {
+    // プロジェクトルートのvendorを探すフォールバック
+    $autoload_path = dirname(__DIR__) . '/vendor/autoload.php';
+}
+
+if (!file_exists($autoload_path)) {
+    http_response_code(500);
+    header('Content-Type: application/json; charset=UTF-8');
+    error_log("mPDF library not found. Please run 'composer require mpdf/mpdf'. Autoload path checked: " . $autoload_path);
+    die(json_encode(['success' => false, 'message' => 'サーバーのPDFライブラリ(mPDF)設定にエラーがあります。']));
+}
+require_once $autoload_path;
+
+use Mpdf\Mpdf;
+
+// --- MAIN LOGIC ---
+try {
+    // 1. Get Input Data
+    $json_data = file_get_contents('php://input');
+    if ($json_data === false) throw new Exception("入力データを読み込めませんでした。");
+    $data = json_decode($json_data, true);
+    if (json_last_error() !== JSON_ERROR_NONE) throw new Exception("無効なJSONデータです: " . json_last_error_msg());
+
+    // 2. Create PDF HTML
+    $html = create_html_from_data($data);
+    
+    // 3. Generate PDF from HTML
+    $mpdf = new Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'tempDir' => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'mpdf'
+    ]);
+    
+    // 日本語フォントを有効化
+    $mpdf->autoScriptToLang = true;
+    $mpdf->autoLangToFont = true;
+
+    $mpdf->SetTitle(($data['documentType'] ?? 'estimate') === 'invoice' ? '御請求書' : '御見積書');
+    $mpdf->SetAuthor('捺染兄弟');
+    
+    $mpdf->WriteHTML($html);
+    
+    // 4. Output PDF to browser
+    if (ob_get_level()) ob_end_clean(); // Clean any previous output buffer
+    
+    // PDFコンテンツを文字列として取得
+    $pdf_content = $mpdf->Output('', 'S');
+    
+    header('Content-Type: application/pdf');
+    header('Content-Length: ' . strlen($pdf_content));
+    
+    echo $pdf_content;
+    exit;
+
+} catch (Exception $e) {
+    http_response_code(500);
+    error_log("PDF Generation failed: " . $e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile());
+    if (!headers_sent()) {
+        header('Content-Type: application/json; charset=UTF-8');
+    }
+    echo json_encode(['success' => false, 'message' => 'PDFの生成中にサーバーエラーが発生しました。', 'error' => $e->getMessage()]);
+}
+
+// --- HELPER FUNCTIONS ---
+
+function h($str) {
+    return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+}
+
+function group_order_details($orderDetails) {
+    $grouped = [];
+    foreach ($orderDetails as $item) {
+        $key = $item['productId'] . '_' . $item['unitPrice'];
+        if (!isset($grouped[$key])) {
+            $grouped[$key] = [
+                'name' => $item['productName'],
+                'productId' => $item['productId'],
+                'unitPrice' => $item['unitPrice'],
+                'totalQuantity' => 0,
+                'subtotal' => 0,
+                'details' => [],
+            ];
+        }
+        $grouped[$key]['totalQuantity'] += $item['quantity'];
+        $grouped[$key]['subtotal'] += $item['quantity'] * $item['unitPrice'];
+        $grouped[$key]['details'][] = [
+            'color' => $item['color'],
+            'size' => $item['size'],
+            'quantity' => $item['quantity'],
+        ];
+    }
+    return array_values($grouped);
+}
+
+function calculate_detailed_print_items($data) {
+    $printDesigns = $data['printDesigns'] ?? [];
+    $totalQuantity = $data['totalQuantity'] ?? 0;
+    $pricingData = $data['pricingData'] ?? [];
+    $printLocations = $data['printLocations'] ?? [];
+    $cost = $data['cost'] ?? [];
+
+    $tier = null;
+    foreach ($pricingData['printPricingTiers'] ?? [] as $t) {
+        if ($totalQuantity >= $t['min'] && $totalQuantity <= $t['max']) {
+            $tier = $t;
+            break;
+        }
+    }
+    if (!$tier || $totalQuantity === 0) return ['designItems' => [], 'itemSurcharge' => null, 'plateTypeSurcharge' => null];
+    
+    $designItems = [];
+    foreach ($printDesigns as $index => $design) {
+        if (empty($design['location']) || $design['colors'] <= 0) continue;
+
+        $locationInfo = array_values(array_filter($printLocations, function ($l) use ($design) { return $l['locationId'] === $design['location']; }))[0] ?? null;
+        $name = 'プリント代: デザイン' . ($index + 1) . ' ' . ($locationInfo['groupName'] ?? '') . ' ' . ($locationInfo['label'] ?? '');
+
+        $basePrintPrice = $tier['firstColor'] + max(0, $design['colors'] - 1) * $tier['additionalColor'];
+        $sizeSurcharge = $pricingData['additionalPrintCostsBySize'][$design['size']] ?? 0;
+        $locationSurcharge = $pricingData['additionalPrintCostsByLocation'][$design['location']] ?? 0;
+
+        $breakdown = [['label' => "基本 ({$design['colors']}色)", 'amount' => $basePrintPrice]];
+        if ($sizeSurcharge > 0) $breakdown[] = ['label' => "大判 ({$design['size']})", 'amount' => $sizeSurcharge];
+        if ($locationSurcharge > 0) $breakdown[] = ['label' => '特殊箇所', 'amount' => $locationSurcharge];
+
+        foreach ($design['specialInks'] ?? [] as $ink) {
+            $inkCost = ($pricingData['specialInkCosts'][$ink['type']] ?? 0) * $ink['count'];
+            $inkOpt = array_values(array_filter($pricingData['specialInkOptions'], function ($o) use ($ink) { return $o['type'] === $ink['type']; }))[0] ?? null;
+            $inkLabel = $inkOpt ? $inkOpt['displayName'] : $ink['type'];
+            $breakdown[] = ['label' => "{$inkLabel} (x{$ink['count']})", 'amount' => $inkCost];
+        }
+        
+        $unitPrice = array_reduce($breakdown, function($sum, $item) { return $sum + $item['amount']; }, 0);
+        $designItems[] = ['name' => $name, 'breakdown' => $breakdown, 'unitPrice' => $unitPrice, 'quantity' => $totalQuantity, 'subtotal' => $unitPrice * $totalQuantity];
+    }
+    
+    $itemSurcharge = null;
+    if (($cost['printCostDetail']['byItem'] ?? 0) > 0) {
+        $perItemSurcharge = round($cost['printCostDetail']['byItem'] / $totalQuantity);
+        $itemSurcharge = ['name' => '商品特性による追加料金 (裏起毛など)', 'unitPrice' => $perItemSurcharge, 'quantity' => $totalQuantity, 'subtotal' => $cost['printCostDetail']['byItem']];
+    }
+    
+    $plateTypeSurcharge = null;
+    if (($cost['printCostDetail']['byPlateType'] ?? 0) > 0) {
+        $perItemSurcharge = round($cost['printCostDetail']['byPlateType'] / $totalQuantity);
+        $plateTypeSurcharge = ['name' => '分解版による追加料金', 'unitPrice' => $perItemSurcharge, 'quantity' => $totalQuantity, 'subtotal' => $cost['printCostDetail']['byPlateType']];
+    }
+
+    return ['designItems' => $designItems, 'itemSurcharge' => $itemSurcharge, 'plateTypeSurcharge' => $plateTypeSurcharge];
+}
+
+
+function create_html_from_data($data) {
+    // データ抽出
+    $docType = $data['documentType'] ?? 'estimate';
+    $customerInfo = $data['customerInfo'] ?? [];
+    $companyInfo = $data['companyInfo'] ?? [];
+    $cost = $data['cost'] ?? [];
+    $estimateId = $data['estimateId'] ?? '';
+    $isBringInMode = $data['isBringInMode'] ?? false;
+    $totalQuantity = $data['totalQuantity'] ?? 0;
+    $printDesigns = $data['printDesigns'] ?? [];
+    $printLocations = $data['printLocations'] ?? [];
+    $pricingData = $data['pricingData'] ?? [];
+    $quoteSubject = $customerInfo['quoteSubject'] ?? '';
+
+    // ヘルパー変数
+    $title = $docType === 'invoice' ? '御請求書' : '御見積書';
+    $totalLabel = $docType === 'invoice' ? '御請求金額 (税込)' : '御見積金額 (税込)';
+    $docNumLabel = $docType === 'invoice' ? '請求書番号' : '見積書番号';
+    $tshirtLabel = $isBringInMode ? '持ち込み手数料' : 'Tシャツ本体代';
+    $addresseeLine = trim(($customerInfo['companyName'] ?? '') . ' ' . ($customerInfo['nameKanji'] ?? ''));
+    $postalCodeLine = !empty($customerInfo['zipCode']) ? '〒' . substr($customerInfo['zipCode'], 0, 3) . '-' . substr($customerInfo['zipCode'], 3) : '';
+    
+    // 明細データ準備
+    $groupedItems = group_order_details($data['orderDetails'] ?? []);
+    $detailedPrintItems = calculate_detailed_print_items($data);
+
+    ob_start();
+?>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title><?php echo h($title); ?></title>
+    <style>
+        body { font-family: 'dejavusans', sans-serif; font-size: 10pt; color: #333; }
+        .page { width: 100%; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { font-size: 24pt; margin: 0; }
+        .addresses { margin-bottom: 10px; }
+        .customer-info { width: 50%; float: left; }
+        .company-info { width: 45%; float: right; text-align: right; font-size: 9pt; }
+        .doc-info { clear: both; text-align: right; margin-bottom: 10px; }
+        .total-box { border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 10px 0; margin-bottom: 20px; }
+        .total-box .label { font-size: 12pt; font-weight: bold; }
+        .total-box .amount { font-size: 18pt; font-weight: bold; text-align: right; }
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .items-table th, .items-table td { border: 1px solid #000; padding: 5px; vertical-align: top; }
+        .items-table th { background-color: #f2f2f2; font-weight: bold; text-align: center; }
+        .summary-table { width: 50%; float: right; border-collapse: collapse; }
+        .summary-table td { border: 1px solid #000; padding: 5px; }
+        .summary-table .label { background-color: #f2f2f2; font-weight: bold; }
+        .notes-box { clear: both; margin-top: 20px; page-break-inside: avoid; }
+        .notes-box h3 { font-size: 10pt; border-bottom: 1px solid #000; padding-bottom: 2px; margin-bottom: 5px; }
+        .bank-info { margin-top: 20px; padding: 10px; border: 1px solid #000; page-break-inside: avoid; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .font-sm { font-size: 8pt; }
+        .font-bold { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="header"><h1><?php echo h($title); ?></h1></div>
+        
+        <?php if (!empty($quoteSubject)): ?>
+        <div style="font-size: 14pt; margin-bottom: 20px; border-bottom: 1px solid #000; padding-bottom: 5px;"><strong>件名: <?php echo h($quoteSubject); ?></strong></div>
+        <?php endif; ?>
+
+        <div class="addresses">
+            <div class="customer-info">
+                <div style="font-size: 12pt; border-bottom: 1px solid #000; padding-bottom: 5px;"><?php echo h($addresseeLine); ?> 様</div>
+                <div style="font-size: 9pt; padding-top: 5px;">
+                    <?php if ($postalCodeLine): ?><p style="margin:0;"><?php echo h($postalCodeLine); ?></p><?php endif; ?>
+                    <?php if (!empty($customerInfo['address1'])): ?><p style="margin:0;"><?php echo h($customerInfo['address1'] . $customerInfo['address2']); ?></p><?php endif; ?>
+                    <?php if (!empty($customerInfo['phone'])): ?><p style="margin:2px 0 0;">TEL: <?php echo h($customerInfo['phone']); ?></p><?php endif; ?>
+                </div>
+            </div>
+            <div class="company-info">
+                <p style="margin:0; font-weight: bold;"><?php echo h($companyInfo['companyName']); ?></p>
+                <p style="margin:0;">〒<?php echo h($companyInfo['zip']); ?> <?php echo h($companyInfo['address']); ?></p>
+                <p style="margin:0;">TEL: <?php echo h($companyInfo['tel']); ?> / FAX: <?php echo h($companyInfo['fax']); ?></p>
+                <?php if (!empty($companyInfo['invoiceIssuerNumber'])): ?><p style="margin:5px 0 0;">適格請求書発行事業者番号：<?php echo h($companyInfo['invoiceIssuerNumber']); ?></p><?php endif; ?>
+            </div>
+        </div>
+
+        <div class="doc-info">
+            <p style="margin:0;"><?php echo h($docNumLabel); ?>: <?php echo h($estimateId); ?></p>
+            <p style="margin:0;">発行日: <?php echo date('Y/m/d'); ?></p>
+        </div>
+
+        <div class="total-box">
+            <table style="width: 100%;">
+                <tr>
+                    <td class="label"><?php echo h($totalLabel); ?></td>
+                    <td class="amount">¥ <?php echo number_format($cost['totalCostWithTax'] ?? 0); ?></td>
+                </tr>
+            </table>
+        </div>
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 55%;">品目</th>
+                    <th style="width: 15%;">単価</th>
+                    <th style="width: 10%;">数量</th>
+                    <th style="width: 20%;">価格 (税抜)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (!empty($groupedItems)): ?>
+                <tr>
+                    <td>
+                        <p class="font-bold"><?php echo h($tshirtLabel); ?></p>
+                        <?php foreach($groupedItems as $item): ?>
+                        <div class="font-sm" style="padding-left: 10px;">
+                            <p style="margin:0;"><?php echo h($item['name']); ?></p>
+                            <?php foreach($item['details'] as $detail): ?>
+                                <p style="margin:0; padding-left:10px;"><?php echo h($detail['color'] . ' / ' . $detail['size'] . ' x ' . $detail['quantity']); ?></p>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endforeach; ?>
+                    </td>
+                    <td class="text-center">-</td>
+                    <td class="text-center"><?php echo h($totalQuantity); ?></td>
+                    <td class="text-right">¥<?php echo number_format($cost['tshirtCost'] ?? 0); ?></td>
+                </tr>
+                <?php endif; ?>
+                
+                <?php foreach($detailedPrintItems['designItems'] as $item): ?>
+                <tr>
+                    <td>
+                        <p class="font-bold"><?php echo h($item['name']); ?></p>
+                        <div class="font-sm" style="padding-left: 10px;">
+                            <?php foreach($item['breakdown'] as $d): ?>
+                                <p style="margin:0;"><?php echo h($d['label']); ?> (＠¥<?php echo number_format($d['amount']); ?>)</p>
+                            <?php endforeach; ?>
+                        </div>
+                    </td>
+                    <td class="text-center font-bold">¥<?php echo number_format($item['unitPrice']); ?></td>
+                    <td class="text-center"><?php echo h($item['quantity']); ?></td>
+                    <td class="text-right">¥<?php echo number_format($item['subtotal']); ?></td>
+                </tr>
+                <?php endforeach; ?>
+
+                <?php if ($detailedPrintItems['itemSurcharge']): $item = $detailedPrintItems['itemSurcharge']; ?>
+                <tr>
+                    <td class="font-bold"><?php echo h($item['name']); ?></td>
+                    <td class="text-center">¥<?php echo number_format($item['unitPrice']); ?></td>
+                    <td class="text-center"><?php echo h($item['quantity']); ?></td>
+                    <td class="text-right">¥<?php echo number_format($item['subtotal']); ?></td>
+                </tr>
+                <?php endif; ?>
+
+                <?php if ($detailedPrintItems['plateTypeSurcharge']): $item = $detailedPrintItems['plateTypeSurcharge']; ?>
+                <tr>
+                    <td class="font-bold"><?php echo h($item['name']); ?></td>
+                    <td class="text-center">¥<?php echo number_format($item['unitPrice']); ?></td>
+                    <td class="text-center"><?php echo h($item['quantity']); ?></td>
+                    <td class="text-right">¥<?php echo number_format($item['subtotal']); ?></td>
+                </tr>
+                <?php endif; ?>
+                
+                <?php foreach($printDesigns as $index => $design): 
+                    $costForDesign = $cost['setupCostDetail'][$design['id']] ?? 0;
+                    if ($costForDesign === 0) continue;
+                    $locationInfo = array_values(array_filter($printLocations, function ($l) use ($design) { return $l['locationId'] === $design['location']; }))[0] ?? null;
+                    $name = '版代: デザイン' . ($index + 1) . ' ' . ($locationInfo['groupName'] ?? '') . ' ' . ($locationInfo['label'] ?? '');
+                    $plateTypeLabel = ($design['plateType'] ?? 'normal') === 'decomposition' ? '分解版' : '通常版';
+                    $plateCostKey = "{$design['size']}-{$design['plateType']}";
+                    $plateInfo = $pricingData['plateCosts'][$plateCostKey] ?? null;
+                    $unitPrice = $plateInfo['cost'] ?? 0;
+                ?>
+                <tr>
+                    <td class="font-bold"><?php echo h($name . " ({$design['size']}, {$plateTypeLabel})"); ?></td>
+                    <td class="text-center">¥<?php echo number_format($unitPrice); ?></td>
+                    <td class="text-center"><?php echo h($design['colors']); ?> 色</td>
+                    <td class="text-right">¥<?php echo number_format($costForDesign); ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <table class="summary-table">
+            <tbody>
+                <tr>
+                    <td class="label">小計 (税抜)</td>
+                    <td class="text-right">¥<?php echo number_format($cost['totalCost'] ?? 0); ?></td>
+                </tr>
+                <tr>
+                    <td class="label">送料</td>
+                    <td class="text-right"><?php echo (($cost['shippingCost'] ?? 0) > 0) ? '¥ ' . number_format($cost['shippingCost']) : '無料'; ?></td>
+                </tr>
+                <tr>
+                    <td class="label">消費税 (10%)</td>
+                    <td class="text-right">¥<?php echo number_format($cost['tax'] ?? 0); ?></td>
+                </tr>
+                <tr>
+                    <td class="label font-bold">合計金額 (税込)</td>
+                    <td class="text-right font-bold">¥<?php echo number_format($cost['totalCostWithTax'] ?? 0); ?></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="notes-box">
+            <h3>備考</h3>
+            <p style="white-space: pre-wrap;"><?php echo h($customerInfo['notes'] ?? ''); ?></p>
+        </div>
+
+        <?php if ($docType === 'invoice'): ?>
+        <div class="bank-info">
+            <h3 style="text-align: center; font-size: 11pt; margin-bottom: 5px;">お振込先</h3>
+            <p style="margin:0;">金融機関名: <?php echo h($companyInfo['bankName']); ?></p>
+            <p style="margin:0;">支店名: <?php echo h($companyInfo['bankBranchName']); ?> (<?php echo h($companyInfo['bankAccountType']); ?>) <?php echo h($companyInfo['bankAccountNumber']); ?></p>
+            <p style="margin:0;">口座名義: <?php echo h($companyInfo['bankAccountHolder']); ?></p>
+            <p style="margin:5px 0 0; text-align:center; font-weight: bold;">お支払い期限: <?php echo h($data['paymentDueDate'] ?? ''); ?></p>
+        </div>
+        <?php endif; ?>
+    </div>
+</body>
+</html>
+<?php
+    return ob_get_clean();
+}
+?>

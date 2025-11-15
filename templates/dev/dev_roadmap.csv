@@ -1,0 +1,264 @@
+id,parent_id,title,description,instructions,status,created_at,completed_at,type,priority
+proj_1723500000000,,データ読み込み方式のオンデマンド化リファクタリング,"アプリケーションのパフォーマンス向上のため、起動時の一括データ読み込みを廃止し、各ツールが必要なデータをその都度APIから取得する方式（オンデマンド読み込み）に変更する大規模な構造改修。","この案件全体の方針です。
+1. アプリケーション起動時のデータ読み込みを、ログイン情報やユーザー権限など、真にグローバルで必要な最小限のものに限定します。
+2. 各ツール（コンポーネント）が、自身の機能に必要なデータを、表示されるタイミングでAPI経由で取得するように修正します。
+3. データ取得中は、必ずローディングスピナーなどを表示し、ユーザー体験を損なわないようにします。
+4. このリファクタリングは、下にリストされているタスクに従って、一つずつ段階的に進めてください。",in_progress,2024-08-13T00:00:00Z,,feature,10
+task_1723500000001,proj_1723500000000,【優先度1】APIとデータ取得サービスの改修,"オンデマンドデータ取得の基盤を整備するため、バックエンドAPIとフロントエンドのデータ取得サービスを改修する。","### 目的
+特定のテーブルデータのみを効率的に取得するためのバックエンドAPIと、それを利用するフロントエンド関数を整備します。
+
+### 修正ファイル
+1. `api/app-data.php.txt`
+2. `data/db.live.ts`
+
+### 作業内容
+1.  **`api/app-data.php.txt`の修正:**
+    - 現在の実装は `?tables=all` ですべてのテーブルを取得するようになっています。
+    - これを改修し、`?tables=customers,quotes` のように、カンマ区切りで指定されたテーブルのみを返すように修正してください。
+    - `all` が指定された場合は、従来通りすべてのテーブルを返すフォールバックも残してください。
+
+2.  **`data/db.live.ts`の修正:**
+    - `fetchTables` 関数を作成または改修します。この関数は、テーブル名の配列を引数として受け取ります (例: `fetchTables(['quotes', 'customers'])`)。
+    - 関数内部で、引数のテーブル名配列をカンマ区切りの文字列に変換し、`/api/app-data.php?tables=...` のエンドポイントを叩くように実装してください。
+    - 取得したデータを、既存の `Database` 型に合うように整形して返却します。",done,2024-08-13T00:00:00Z,2024-08-16T12:00:00Z,refactor,20
+task_1723500000002,proj_1723500000000,【優先度2】App.tsxのデータ取得ロジック削除,"アプリケーション起動時の一括データ読み込みを廃止し、各ツールが自身のデータを取得する責務を持つようにする。","### 目的
+アプリケーション全体の初期ロード時間を短縮するため、`App.tsx` から巨大なデータベースを一括で読み込む処理を削除します。
+
+### 修正ファイル
+- `App.tsx`
+- `hooks/useAppDataInitialization.ts`
+
+### 作業内容
+1.  **`loadDatabase` 呼び出しの修正:**
+    - アプリケーション起動時の `loadDatabase` または `fetchTables` の呼び出し箇所を修正します。
+    - 現在は多くのテーブルを一括で取得していますが、これを **アプリケーション起動時に本当に必要な最小限のテーブル** (例: `users`, `roles`, `settings`, `icons` など) のみに限定してください。
+    - 他のテーブルデータは、この後のタスクで各ツールが個別に取得するように修正します。
+
+2.  **`database` Stateの型変更:**
+    - `useState<Database | null>(null);` となっている箇所を、`Partial<Database>` を許容するように `useState<Partial<Database> | null>(null)` に変更します。
+    - これは、アプリケーションが常にすべてのテーブルデータを持っているわけではない、という新しい状態を反映するためです。
+
+3.  **子コンポーネントへのProps Drillingの削除:**
+    - 各ツールコンポーネント (例: `<OrderManagementTool>`, `<EstimatorPage>`) に `database={...}` として渡している巨大なオブジェクトを削除します。
+    - この修正により、多くの場所で型エラーが発生しますが、それらは後続のタスクで各ツールを修正する際に解決します。",done,2024-08-13T00:00:00Z,2024-08-16T12:00:00Z,refactor,30
+task_1723500000003,proj_1723500000000,【優先度3】業務管理ツールのオンデマンド化,"業務管理ツールが必要なデータのみをコンポーネントマウント時に取得するように変更する。","### 目的
+`OrderManagementTool` が、`App.tsx` からのPropsに依存せず、自身で必要なデータを取得するようにリファクタリングします。
+
+### 修正ファイル
+- `components/ordermanagement/templates/OrderManagementTool.tsx`
+
+### 作業内容
+1.  **Propsの削除:**
+    - `database` Propの受け取りを削除します。
+
+2.  **状態の追加:**
+    - データ取得状況を管理するための `useState` を追加します。
+      ```tsx
+      const [isLoading, setIsLoading] = useState(true);
+      const [error, setError] = useState<string | null>(null);
+      ```
+    - `DatabaseContext` からグローバルな `database` を取得しつつ、このコンポーネントに必要なデータが揃っているかをローカルで管理します。
+
+3.  **データ取得ロジックの実装:**
+    - `useEffect` フックを使用して、コンポーネントのマウント時に必要なテーブル (`quotes`, `customers`, `quote_tasks` など) がグローバルの `database` に存在するかチェックします。
+    - 不足しているテーブルがあれば、`fetchTables` サービスを使って取得し、`setDatabase` を使ってグローバルな状態を更新します。
+    - データ取得中は `isLoading` を `true` にし、取得完了後は `false` にします。
+
+4.  **データ参照の変更:**
+    - 常に `DatabaseContext` から取得した `database` を参照するようにします。データが `null` または `undefined` の可能性があるため、オプショナルチェイニング (`?.`) を適切に使用してください。",done,2024-08-13T00:00:00Z,2024-08-16T12:00:00Z,refactor,40
+task_1723500000004,proj_1723500000000,【優先度4】見積作成ツールのオンデマンド化,"見積作成ツールが必要とする広範囲のデータを、ツール起動時に一括で取得するロジックを追加する。","### 目的
+`EstimatorPage` が、`App.tsx` からのPropsに依存せず、自身で必要なデータを取得するようにリファクタリングします。
+
+### 修正ファイル
+- `components/estimator/EstimatorPage.tsx`
+
+### 作業内容
+1.  **Propsの削除:**
+    - `appData` や `database` など、データ関連のPropsの受け取りを削除します。
+
+2.  **状態の追加:**
+    - データ取得状況を管理するための `useState` を追加します。
+      ```tsx
+      const [isLoading, setIsLoading] = useState(true);
+      const [error, setError] = useState<string | null>(null);
+      const [appData, setAppData] = useState<AppData | null>(null);
+      ```
+
+3.  **データ取得ロジックの実装:**
+    - `useEffect` フックを使用し、コンポーネントのマウント時に、見積計算に必要な **すべての** テーブルを `fetchTables` を使って取得します。（このツールは広範囲のデータを必要とするため、ツール起動時に一括で取得するのが合理的です）
+    - 取得した `database` オブジェクトを `transformDatabaseToAppData` ユーティリティ関数に渡し、`appData` 形式に変換してから `appData` Stateに保存します。
+    - データ取得中は `isLoading` を `true` にし、取得完了後は `false` にします。
+
+4.  **UIの変更:**
+    - `isLoading` が `true` の間は、ローディングスピナーなどを表示します。
+    - `appData` が `null` の場合は、コンポーネントの主要な部分をレンダリングしないようにします。",done,2024-08-13T00:00:00Z,2024-08-16T12:00:00Z,refactor,50
+task_1723500000005,proj_1723500000000,【優先度5】帳票管理ツールのオンデマンド化,"帳票管理ツールを改修し、一覧表示と詳細表示で段階的にデータを取得するようにする。","### 目的
+`DocumentManager.tsx` が、`App.tsx` からのPropsに依存せず、自身で必要なデータを取得するようにリファクタリングします。
+
+### 修正ファイル
+- `components/document/templates/DocumentManager.tsx`
+- `components/document/hooks/useDocumentData.ts`
+
+### 作業内容
+1.  **Propsの削除:**
+    - `database` Propの受け取りを削除します。
+
+2.  **`useDocumentData`フックの改修:**
+    - `useEffect` を使用して、フックが初期化される際に、帳票の **一覧表示に必要な最小限のテーブル** (`quotes`, `customers` など) のみを取得します。
+    - ユーザーが特定の帳票をクリックして **プレビューを表示するタイミング** で、そのプレビューの描画に必要な追加データ（例: `quote_items`, `company_info` など）を `fetchTables` で取得するロジックをフック内に追加します。
+    - これにより、初期表示のパフォーマンスを向上させます。
+
+3.  **データ参照の変更:**
+    - グローバルな `database` Propの代わりに、フックが内部で管理・取得したデータを参照するように、すべてのコードを更新してください。",done,2024-08-13T00:00:00Z,2024-08-16T12:00:00Z,refactor,60
+task_1723500000006,proj_1723500000000,【優先度6】取引先管理ツールのオンデマンド化,"取引先管理ツールが、表示に必要な分だけのデータを取得するように変更する。","### 目的
+`CustomerManagementTool.tsx` が、`App.tsx` からのPropsに依存せず、自身で必要なデータを取得するようにリファクタリングします。
+
+### 修正ファイル
+- `components/customermanagement/templates/CustomerManagementTool.tsx`
+
+### 作業内容
+1.  **Propsの削除:**
+    - `database` Propの受け取りを削除します。
+
+2.  **データ取得ロジックの実装:**
+    - `useEffect` を使用して、ツールが表示された際に `fetchTables(['customers', 'customer_groups', 'quotes'])` を呼び出し、必要なデータを取得してグローバルな`database` stateを更新します。
+    - データ取得中はローディングインジケーターを表示してください。",done,2024-08-13T00:00:00Z,2024-08-16T12:00:00Z,refactor,70
+task_1723500000007,proj_1723500000000,【優先度7】商品データ管理ツールのオンデマンド化,"商品データ管理ツールを改修し、必要な商品関連データのみを取得するように変更する。","### 目的
+`ProductManagementTool.tsx` が、`App.tsx` からのPropsに依存せず、自身で必要なデータを取得するようにリファクタリングします。
+
+### 修正ファイル
+- `components/productmanagement/hooks/useProductManagement.ts`
+- `components/productmanagement/templates/ProductManagementTool.tsx`
+
+### 作業内容
+1.  **Propsの削除:**
+    - `database` Propの受け取りを削除します。
+
+2.  **`useProductManagement`フックの改修:**
+    - `useEffect` を使用して、フックが初期化された際に `fetchTables` を呼び出します。
+    - このツールは多くの商品関連テーブルを必要とします (`products_master`, `product_details`, `product_prices`, `brands`, `categories`, `tags` など)。`getRequiredTablesForPage` を参考に、必要なテーブルをすべて取得してください。
+    - データ取得中はローディングインジケーターを表示してください。
+
+3.  **データ参照の変更:**
+    - コンポーネント内のすべての `database.xxx` への参照を、`useProductManagement`フックが返すローカルな`database` stateへの参照に置き換えてください。",done,2024-08-13T00:00:00Z,2024-08-16T12:00:00Z,refactor,80
+task_1723500000008,proj_1723500000000,【残タスク】全ツールのオンデマンド化,"上記以外のすべてのツールコンポーネントを調査し、Propsで渡されていたデータを、各ツールが必要なタイミングで直接取得する方式に全面的に書き換える。","### 目的
+このプロジェクトの最終段階として、残りのすべてのツールをオンデマンドデータ取得方式に移行させ、リファクタリングを完了します。
+
+### 対象ツール
+- ProofingTool
+- WorksheetGenerator
+- AITaskManager
+- ProductionScheduler
+- EmailTool
+- AccountsReceivableTool
+- AccountsPayableTool
+- CashFlowTool
+- TaskAnalysisTool
+- WorkRecordTool
+- ProductDefinitionTool
+- PrintSettingsTool
+- PricingManager
+- PricingAssistant
+- CalculationLogicManager
+- TaskSettingsTool
+- ProductionSettingsTool
+- PrintHistoryTool
+- InkMixingTool
+- DtfCostCalculatorTool
+- DataIO
+- ImageFileNameConverter
+- ImageBatchLinker
+- PdfTemplateManager
+- PdfItemGroupManager
+- UserManager
+- PermissionManager
+- IdManager
+- GoogleApiSettingsTool
+- EmailAccountSettingsTool
+- DisplaySettingsTool
+- PdfPreviewSettingsTool
+- BackupManager
+- LogViewer
+- DevTools
+- DevLockManager
+- AppManager
+- ToolExporter
+- ToolPortingManager
+- ToolGuide
+
+### 作業内容（各ツール共通）
+1.  **Propsの削除:** 各ツールが `App.tsx` から受け取っている `database` や `appData` などのデータ関連Propsを削除します。
+2.  **ローカルStateの導入:** `useState` を使用して、データ、ローディング状態、エラー状態を管理します。
+3.  **データ取得処理の実装:** `useEffect` 内で、`getRequiredTablesForPage` を参考にそのツールが必要とするテーブルリストを特定し、`fetchTables` を呼び出してデータを取得します。
+4.  **UIの更新:** データ取得中はローディング画面を、エラー発生時はエラーメッセージを表示するようにUIを修正します。
+5.  **データ参照の更新:** コンポーネント内のすべてのデータ参照を、グローバルなPropsからローカルのStateに変更します。",done,2024-08-13T00:00:00Z,2024-08-16T12:00:00Z,refactor,90
+proj_1723600000001,,ビルドプロセスとファイル構造の最適化,"開発の効率性と保守性を向上させるため、ビルド関連のスクリプトや設定ファイルを整理・集約する。","### 目的
+プロジェクトの成長に伴い、ビルド関連のスクリプトや設定ファイルが散在しつつあるため、これらを整理し、よりクリーンで理解しやすい構造にリファクタリングします。
+
+### 作業内容
+1.  **`scripts` ディレクトリの再編成:**
+    - `prepare-deployment.js` や `build-cleanup.js` などのビルド関連スクリプトを、新しく作成する `build/` または `config/` ディレクトリに移動する。
+2.  **`package.json` のスクリプト更新:**
+    - 上記のファイル移動に伴い、`package.json`内の `scripts` セクションのパスをすべて更新する。
+3.  **ルートディレクトリのクリーンアップ:**
+    - `htaccess.txt` や `postcss.config.js` など、設定に関連するファイルを `config/` ディレクトリに集約することを検討する。",todo,2024-08-14T00:00:00Z,,refactor,95
+proj_1723600000000,,ウェブサイト管理およびホームページビルダー,"ECサイトやギャラリーなど、公開ウェブサイトのコンテンツを管理し、ノーコードでページを構築できる新機能の開発。","### 目的
+このバックオフィスツールから、専門知識なしで公開ウェブサイト（ホームページ）のコンテンツを直接編集・更新できる機能を追加します。
+
+### 主な機能案
+1.  **ページビルダー:**
+    - ドラッグ＆ドロップでセクション（テキスト、画像、商品リストなど）を追加・編集できる直感的なインターフェース。
+    - プレビュー機能で、公開前に見た目を確認できる。
+2.  **ブログ・お知らせ管理:**
+    - 新しい記事を作成、編集、公開/非公開を設定する機能。
+3.  **ギャラリー管理:**
+    - 既存のギャラリー機能と連携し、表示する画像やカテゴリを管理する。
+4.  **商品連携:**
+    - 商品マスターと連携し、特定の商品をウェブページに表示する機能。",todo,2024-08-14T00:00:00Z,,feature,100
+task_1723800000001,proj_1723500000000,【完了】ProofingToolのオンデマンド化,"ProofingToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000002,proj_1723500000000,【完了】WorksheetGeneratorのオンデマンド化,"WorksheetGeneratorをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000003,proj_1723500000000,【完了】AITaskManagerのオンデマンド化,"AITaskManagerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000004,proj_1723500000000,【完了】ProductionSchedulerのオンデマンド化,"ProductionSchedulerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000005,proj_1723500000000,【完了】EmailToolのオンデマンド化,"EmailToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000006,proj_1723500000000,【完了】AccountsReceivableToolのオンデマンド化,"AccountsReceivableToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000007,proj_1723500000000,【完了】AccountsPayableToolのオンデマンド化,"AccountsPayableToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000008,proj_1723500000000,【完了】CashFlowToolのオンデマンド化,"CashFlowToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000009,proj_1723500000000,【完了】TaskAnalysisToolのオンデマンド化,"TaskAnalysisToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000010,proj_1723500000000,【完了】WorkRecordToolのオンデマンド化,"WorkRecordToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000011,proj_1723500000000,【完了】ProductDefinitionToolのオンデマンド化,"ProductDefinitionToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000012,proj_1723500000000,【完了】PricingManagerのオンデマンド化,"PricingManagerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000013,proj_1723500000000,【完了】PricingAssistantのオンデマンド化,"PricingAssistantをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000014,proj_1723500000000,【完了】CalculationLogicManagerのオンデマンド化,"CalculationLogicManagerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000015,proj_1723500000000,【完了】TaskSettingsToolのオンデマンド化,"TaskSettingsToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000016,proj_1723500000000,【完了】ProductionSettingsToolのオンデマンド化,"ProductionSettingsToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000017,proj_1723500000000,【完了】PrintHistoryToolのオンデマンド化,"PrintHistoryToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000018,proj_1723500000000,【完了】InkMixingToolのオンデマンド化,"InkMixingToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000019,proj_1723500000000,【完了】DtfLogicToolのオンデマンド化,"DtfLogicTool(旧DtfCostCalculatorTool)をオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000020,proj_1723500000000,【完了】DataIOのオンデマンド化,"DataIOをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000021,proj_1723500000000,【完了】ImageFileNameConverterのオンデマンド化,"ImageFileNameConverterをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000022,proj_1723500000000,【完了】ImageBatchLinkerのオンデマンド化,"ImageBatchLinkerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000023,proj_1723500000000,【完了】PdfTemplateManagerのオンデマンド化,"PdfTemplateManagerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000024,proj_1723500000000,【完了】PdfItemGroupManagerのオンデマンド化,"PdfItemGroupManagerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000025,proj_1723500000000,【完了】UserManagerのオンデマンド化,"UserManagerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000026,proj_1723500000000,【完了】PermissionManagerのオンデマンド化,"PermissionManagerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000027,proj_1723500000000,【完了】IdManagerのオンデマンド化,"IdManagerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000028,proj_1723500000000,【完了】GoogleApiSettingsToolのオンデマンド化,"GoogleApiSettingsToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000029,proj_1723500000000,【完了】EmailSettingsToolのオンデマンド化,"EmailSettingsToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000030,proj_1723500000000,【完了】DisplaySettingsToolのオンデマンド化,"DisplaySettingsToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000031,proj_1723500000000,【完了】PdfPreviewSettingsToolのオンデマンド化,"PdfPreviewSettingsToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000032,proj_1723500000000,【完了】BackupManagerのオンデマンド化,"BackupManagerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000033,proj_1723500000000,【完了】LogViewerのオンデマンド化,"LogViewer(system-logs)をオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000034,proj_1723500000000,【完了】DevManagementToolのオンデマンド化,"DevManagementToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000035,proj_1723500000000,【完了】DevToolsのオンデマンド化,"DevToolsをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000036,proj_1723500000000,【完了】DevLockManagerのオンデマンド化,"DevLockManagerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000037,proj_1723500000000,【完了】AppManagerのオンデマンド化,"AppManagerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000038,proj_1723500000000,【完了】ToolExporterのオンデマンド化,"ToolExporterをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000039,proj_1723500000000,【完了】ToolDependencyManagerのオンデマンド化,"ToolDependencyManagerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000040,proj_1723500000000,【完了】SystemDiagnosticsToolのオンデマンド化,"SystemDiagnosticsToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000041,proj_1723500000000,【完了】HubPageのオンデマンド化,"HubPageをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000042,proj_1723500000000,【完了】LanguageManagerのオンデマンド化,"LanguageManagerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000043,proj_1723500000000,【完了】ArchitectureDesignerのオンデマンド化,"ArchitectureDesignerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000044,proj_1723500000000,【完了】PhpInfoViewerのオンデマンド化,"PhpInfoViewerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000045,proj_1723500000000,【完了】ModuleCatalogToolのオンデマンド化,"ModuleCatalogToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000046,proj_1723500000000,【完了】EstimatorSettingsToolのオンデマンド化,"EstimatorSettingsToolをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91
+task_1723800000047,proj_1723500000000,【完了】ToolDependencyScannerのオンデマンド化,"ToolDependencyScannerをオンデマンドデータ取得方式に移行しました。","",done,2024-08-16T12:00:00Z,2024-08-16T12:00:00Z,refactor,91

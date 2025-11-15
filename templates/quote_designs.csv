@@ -1,0 +1,7 @@
+﻿id,quote_id,location,print_size,color_count,special_inks_json,plate_type,image_name,image_src,original_image_src,printMethod,widthCm,heightCm
+qdes_00000001,quot_00000001,frontCenter,30x40,2,[],normal,,,,silkscreen,,
+qdes_00000002,quot_00000002,frontLeftChest,10x10,1,[],normal,,,,silkscreen,,
+qdes_00000003,quot_00000002,backCollar,10x10,1,[],normal,,,,silkscreen,,
+qdes_00000004,quot_00000003,frontCenter,,[],,,,,,dtf,25,30
+qdes_00000005,quot_00000004,backCenter,30x40,1,"[{""type"":""silver"",""count"":1}]",normal,,,,silkscreen,,
+qdes_00000006,quot_00000005,frontCenter,30x40,3,[],normal,,,,silkscreen,,

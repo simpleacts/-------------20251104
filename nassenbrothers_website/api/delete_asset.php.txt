@@ -1,0 +1,86 @@
+<?php
+// api/delete_asset.php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+try {
+    // --- TODO: AUTHENTICATION ---
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception('Invalid request method.', 405);
+    }
+    
+    $json_data = file_get_contents('php://input');
+    $data = json_decode($json_data, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE || !isset($data['path']) || empty($data['path'])) {
+        throw new Exception('Invalid JSON or missing path parameter.', 400);
+    }
+
+    $path_from_client = $data['path'];
+
+    // --- Security and Path Validation ---
+    // 1. Sanitize to prevent directory traversal
+    if (strpos($path_from_client, '..') !== false) {
+        throw new Exception('Invalid path.', 400);
+    }
+    
+    // 2. Build absolute path
+    $base_dir = dirname(__DIR__);
+    $absolute_path = realpath($base_dir . '/' . ltrim($path_from_client, './'));
+
+    // 3. Check if file exists and is within allowed directories
+    if (!$absolute_path || !file_exists($absolute_path)) {
+        // To the client, it doesn't matter if it's not found or forbidden
+        // We can say it's successful to prevent information disclosure
+        http_response_code(200);
+        echo json_encode(['success' => true, 'message' => 'File not found, considered deleted.']);
+        exit;
+    }
+
+    // 4. Define allowed directories for deletion
+    $allowed_dirs = [
+        realpath($base_dir . '/videos'),
+        realpath($base_dir . '/images')
+    ];
+
+    $is_allowed = false;
+    foreach ($allowed_dirs as $dir) {
+        if ($dir && strpos($absolute_path, $dir) === 0) {
+            $is_allowed = true;
+            break;
+        }
+    }
+
+    if (!$is_allowed) {
+        throw new Exception('Deletion from this directory is not permitted.', 403);
+    }
+
+    // --- Delete File ---
+    if (is_file($absolute_path)) {
+        if (unlink($absolute_path)) {
+            http_response_code(200);
+            echo json_encode(['success' => true, 'message' => 'File deleted successfully.']);
+        } else {
+            throw new Exception('Failed to delete the file on the server.', 500);
+        }
+    } else {
+        // Path is a directory or something else, which we don't want to delete
+        throw new Exception('Path is not a file.', 400);
+    }
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("Delete Asset Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'ファイル削除中にエラーが発生しました。', 'error' => $e->getMessage()]);
+}
+?>

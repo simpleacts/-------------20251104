@@ -1,0 +1,91 @@
+<?php
+// api/addresses.php
+// API for CRUD operations on shipping addresses
+
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+require_once __DIR__ . '/db_connect.php';
+
+try {
+    // --- 1. Authentication ---
+    $auth_header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    if (empty($auth_header) || !preg_match('/^Bearer\s+(.*)$/i', $auth_header, $matches)) {
+        throw new Exception("Authorization token not provided.", 401);
+    }
+    $token = $matches[1];
+    if ($token !== 'dev-mock-token') {
+         throw new Exception("Invalid token.", 401);
+    }
+    $customer_id_from_token = 1;
+
+    $pdo = get_db_connection();
+    $method = $_SERVER['REQUEST_METHOD'];
+
+    $json_data = file_get_contents('php://input');
+    $data = json_decode($json_data, true);
+    if ($method !== 'DELETE' && json_last_error() !== JSON_ERROR_NONE) { // DELETE might have empty body
+        throw new Exception("Invalid JSON received.", 400);
+    }
+
+    switch ($method) {
+        case 'POST': // Add new address
+            $stmt = $pdo->prepare("INSERT INTO shipping_addresses (customer_id, name, zip_code, address1, address2, phone) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $customer_id_from_token,
+                $data['name'],
+                $data['zipCode'],
+                $data['address1'],
+                $data['address2'],
+                $data['phone']
+            ]);
+            $new_address_id = $pdo->lastInsertId();
+            http_response_code(201);
+            echo json_encode(['success' => true, 'message' => '新しい配送先を追加しました。', 'id' => $new_address_id]);
+            break;
+
+        case 'PUT': // Update existing address
+            if (empty($data['id'])) throw new Exception("Address ID is required for update.", 400);
+            $stmt = $pdo->prepare("UPDATE shipping_addresses SET name = ?, zip_code = ?, address1 = ?, address2 = ?, phone = ? WHERE id = ? AND customer_id = ?");
+            $stmt->execute([
+                $data['name'],
+                $data['zipCode'],
+                $data['address1'],
+                $data['address2'],
+                $data['phone'],
+                $data['id'],
+                $customer_id_from_token
+            ]);
+            http_response_code(200);
+            echo json_encode(['success' => true, 'message' => '配送先を更新しました。']);
+            break;
+
+        case 'DELETE': // Delete address
+            if (empty($data['id'])) throw new Exception("Address ID is required for deletion.", 400);
+            $stmt = $pdo->prepare("DELETE FROM shipping_addresses WHERE id = ? AND customer_id = ?");
+            $stmt->execute([$data['id'], $customer_id_from_token]);
+            http_response_code(200);
+            echo json_encode(['success' => true, 'message' => '配送先を削除しました。']);
+            break;
+
+        default:
+            throw new Exception("Method not supported.", 405);
+            break;
+    }
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("Address API Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'アドレス帳の操作に失敗しました。', 'error' => $e->getMessage()]);
+}
+?>

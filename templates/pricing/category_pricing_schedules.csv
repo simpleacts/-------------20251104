@@ -1,0 +1,9 @@
+category_id,schedule_id,customer_group_id
+cat_0001,1,1
+cat_0002,1,1
+cat_0003,1,1
+cat_0004,2,1
+cat_0001,3,2
+cat_0002,3,2
+cat_0003,3,2
+cat_0004,3,2

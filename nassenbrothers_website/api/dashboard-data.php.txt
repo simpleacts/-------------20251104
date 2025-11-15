@@ -1,0 +1,78 @@
+<?php
+// api/dashboard-data.php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+require_once __DIR__ . '/db_connect.php';
+
+function parse_csv_to_assoc($filepath) {
+    if (!file_exists($filepath) || !is_readable($filepath)) return [];
+    $csv = array_map('str_getcsv', file($filepath));
+    if (count($csv) < 1) return [];
+    $header = array_shift($csv);
+    $data = [];
+    foreach ($csv as $row) {
+        if(count($header) == count($row)) {
+            $data[] = array_combine($header, $row);
+        }
+    }
+    return $data;
+}
+
+try {
+    // --- TODO: AUTHENTICATION ---
+    
+    $pdo = get_db_connection();
+
+    // Get counts from DB
+    $quote_count = $pdo->query("SELECT COUNT(*) FROM quotes")->fetchColumn();
+    $customer_count = $pdo->query("SELECT COUNT(*) FROM customers")->fetchColumn();
+
+    // Get counts from CSV
+    $templates_dir = dirname(__DIR__) . '/templates';
+    
+    $articles_raw = parse_csv_to_assoc($templates_dir . '/articles.csv');
+    $article_count = count(array_filter($articles_raw, function($a) { return isset($a['is_published']) && $a['is_published'] === '1'; }));
+
+    $gallery_raw = parse_csv_to_assoc($templates_dir . '/gallery_images.csv');
+    $gallery_count = count(array_filter($gallery_raw, function($g) { return isset($g['is_published']) && $g['is_published'] === '1'; }));
+
+    // Fetch recent articles from CSV
+    usort($articles_raw, function($a, $b) {
+        return strtotime($b['published_date'] ?? '1970-01-01') - strtotime($a['published_date'] ?? '1970-01-01');
+    });
+    
+    $recent_articles = array_map(function($article) {
+        return [
+            'title' => $article['title'],
+            'slug' => $article['slug']
+        ];
+    }, array_slice($articles_raw, 0, 5));
+
+
+    echo json_encode([
+        'success' => true,
+        'data' => [
+            'quoteCount' => (int)$quote_count,
+            'customerCount' => (int)$customer_count,
+            'articleCount' => $article_count,
+            'galleryCount' => $gallery_count,
+            'recentArticles' => $recent_articles
+        ]
+    ]);
+
+} catch (Exception $e) {
+    http_response_code(500);
+    error_log("Dashboard Data Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'ダッシュボードデータの取得に失敗しました。', 'error' => $e->getMessage()]);
+}
+?>

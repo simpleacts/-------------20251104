@@ -1,0 +1,7 @@
+﻿id,name,category,unit,default_value,calculation_logic,days_required,sort_order,daily_capacity
+task_001,デザイン確認,制作,minute,30,per_quote,1,10,
+task_002,製版作成,制作,hour,2,per_plate,2,20,
+task_003,プリント,制作,minute,5,per_item,1,30,
+task_004,検品,制作,minute,2,per_item,1,40,
+task_005,梱包,制作,minute,5,per_quote,1,50,
+task_006,発送手配,事務,minute,15,per_quote,1,60,

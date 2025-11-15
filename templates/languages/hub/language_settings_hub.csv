@@ -1,0 +1,18 @@
+key,ja,en
+hub.title,ダッシュボード,Dashboard
+hub.description,各ツールへアクセスできます。,Access various tools.
+hub.current_activity,現在のアクティビティ,Current Activity
+hub.ai_task_list,AIタスク一覧,AI Task List
+hub.click_for_details,クリックして詳細表示,Click for details
+hub.print_business,プリント事業,Print Business
+hub.estimator,見積作成,Estimator
+hub.estimator_description,シルクスクリーンやDTFプリントなど、加工を含む詳細な見積を作成します。,Create detailed estimates including processing for silk screen and DTF printing.
+hub.proofing,仕上がりイメージ作成,Proofing
+hub.proofing_description,お客様への提出用の仕上がりイメージを作成・管理します。,Create and manage proof images for customers.
+hub.worksheet,指示書メーカー,Worksheet
+hub.worksheet_description,印刷現場向けの作業指示書やお客様への確認書を生成します。,Generate work instructions for printing sites and confirmation sheets for customers.
+hub.product_sales,商品販売事業,Product Sales
+hub.product_sales_estimator,商品販売 見積作成,Product Sales Estimator
+hub.product_sales_estimator_description,DTF関連機材や無地Tシャツなど、物品販売用のシンプルな見積を作成します。,Create simple estimates for product sales such as DTF equipment and blank T-shirts.
+hub.in_progress,作成中,In Progress
+

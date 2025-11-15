@@ -1,0 +1,10 @@
+id,printer_id,resolution_dpi,pass_count,speed_sqm_per_hour_min,speed_sqm_per_hour_max,is_default,ink_density,notes
+1,1,"720*900dpi",4,4,,false,0,カタログ値
+2,1,"720*1080dpi",6,2,,false,0,カタログ値
+3,1,"720*1400dpi",8,1.2,,true,3,"高濃度白インク設定（実測値）"
+4,2,"720*1200dpi",4,3.5,5,true,0,標準設定
+5,2,"720*1800dpi",6,2.5,3.5,false,0,高品質設定
+6,2,"720*2400dpi",8,2,3,false,3,"超高品質・高濃度設定"
+7,3,"720*1200dpi",4,14,,true,0,"標準（高速）"
+8,3,"720*1800dpi",6,10,,false,0,中品質
+9,3,"720*2400dpi",8,6,,false,3,"高画質・高濃度"

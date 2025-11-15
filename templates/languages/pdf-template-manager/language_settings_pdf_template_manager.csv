@@ -1,0 +1,80 @@
+key,ja,en
+pdf_template.title,PDFテンプレート管理,PDF Template Management
+pdf_template.save,保存,Save
+pdf_template.save_success,テンプレートを保存しました。,Template saved.
+pdf_template.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+pdf_template.undo,元に戻す (Ctrl+Z),Undo (Ctrl+Z)
+pdf_template.redo,やり直す (Ctrl+Y),Redo (Ctrl+Y)
+pdf_template.tab_layout,レイアウト,Layout
+pdf_template.tab_settings,設定,Settings
+pdf_template.select_template,PDFテンプレートを選択,Select PDF Template
+pdf_template.multi_page_sim,複数ページをシミュレート,Simulate Multiple Pages
+pdf_template.new_title,新しいタイトル,New Title
+pdf_template.layout_analyze_failed,レイアウトの解析に失敗しました:,Layout analysis failed:
+pdf_template.layout_generate_failed,レイアウトの生成に失敗しました:,Layout generation failed:
+pdf_template.block_header,ヘッダー,Header
+pdf_template.block_info,情報欄,Info Section
+pdf_template.block_totals_header,合計金額ヘッダー,Total Amount Header
+pdf_template.block_items,明細表,Items Table
+pdf_template.block_grouped_items,グループ化明細,Grouped Items
+pdf_template.block_summary,小計・合計欄,Subtotal/Total Section
+pdf_template.block_notes,備考欄,Notes Section
+pdf_template.block_bank_info,振込先情報,Bank Information
+pdf_template.block_stamp,捺印欄,Stamp Section
+pdf_template.block_recipient_info,宛名情報,Recipient Information
+pdf_template.block_sender_info,差出人情報,Sender Information
+pdf_template.block_custom_text,カスタムテキスト,Custom Text
+pdf_template.block_data_field,DB項目,Database Field
+pdf_template.block_page_break,改ページ,Page Break
+pdf_template.block_page_number,ページ番号,Page Number
+pdf_template.block_spacer,スペース,Spacer
+pdf_template.block_design_info,デザイン情報,Design Information
+pdf_template.add_block,ブロックを追加,Add Block
+pdf_template.add_block_desc,使いたいブロックを下のリストにドラッグ＆ドロップしてください。,Drag and drop the block you want to use from the list below.
+pdf_template.add_data_field,+ DB項目を追加,+ Add Database Field
+pdf_template.ai_layout,AIでレイアウト,AI Layout
+pdf_template.upload_analyze,見本をアップロードして解析,Upload Sample and Analyze
+pdf_template.ai_prompt_placeholder,例：シンプルな請求書,Example: Simple Invoice
+pdf_template.generate,生成,Generate
+pdf_template.layout_builder,レイアウトビルダー,Layout Builder
+pdf_template.drag_drop_blocks,ブロックをドラッグ＆ドロップしてください,Drag and drop blocks here
+pdf_template.block_label,ブロック {index},Block {index}
+pdf_template.lock_settings,設定をロック,Lock Settings
+pdf_template.unlock_settings,設定のロックを解除,Unlock Settings
+pdf_template.width,幅:,Width:
+pdf_template.height,高さ:,Height:
+pdf_template.adjust_width,幅を調整,Adjust Width
+pdf_template.adjust_height,高さを調整,Adjust Height
+pdf_template.new_line,改行,New Line
+pdf_template.new_line_desc,このブロックから新しい行を開始する,Start a new row from this block
+pdf_template.align_left,左寄せ,Align Left
+pdf_template.align_center,中央寄せ,Align Center
+pdf_template.align_right,右寄せ,Align Right
+pdf_template.fixed_header,ヘッダーとして固定 (全ページ),Fixed as Header (All Pages)
+pdf_template.fixed_header_desc,ヘッダーとして、すべてのページの先頭にこのブロックを表示します。,Display this block at the top of all pages as a header.
+pdf_template.fixed_footer,フッターとして固定 (最終ページ),Fixed as Footer (Last Page)
+pdf_template.fixed_footer_desc,フッターとして、最終ページの下部にこのブロックを表示します。,Display this block at the bottom of the last page as a footer.
+pdf_template.title_label,タイトル,Title
+pdf_template.content_label,テキスト内容,Text Content
+pdf_template.db_field,DB項目:,Database Field:
+pdf_template.sample_value,サンプル値:,Sample Value:
+pdf_template.no_data,(データなし),(No Data)
+pdf_template.space,スペース ({width}% × {height}px),Space ({width}% × {height}px)
+pdf_template.items_display,明細表示設定,Items Display Settings
+pdf_template.default_display,デフォルト表示,Default Display
+pdf_template.page_break,--- 改ページ ---,--- Page Break ---
+pdf_template.select_data_field,データベース項目を選択,Select Database Field
+pdf_template.search_table,テーブルを検索...,Search table...
+pdf_template.font_settings,フォント設定,Font Settings
+pdf_template.font_family,フォントファミリー,Font Family
+pdf_template.font_gothic,ゴシック体 (標準),Gothic (Standard)
+pdf_template.font_mincho,明朝体 (Yuji Syuku),Mincho (Yuji Syuku)
+pdf_template.zoom_settings,初期ズーム設定,Initial Zoom Settings
+pdf_template.alignment_settings,配置設定,Alignment Settings
+pdf_template.align_center_top,左右中央（上揃え）,Center (Top Aligned)
+pdf_template.align_center_center,中央 (上下左右),Center (All Sides)
+pdf_template.preview_modal,プレビューモーダル設定,Preview Modal Settings
+pdf_template.modal_width,モーダル最大幅 (画面幅に対する%),Modal Max Width (% of Screen Width)
+pdf_template.ai_layout_title,AIが提案するレイアウト,AI Proposed Layouts
+pdf_template.proposal,提案 {index},Proposal {index}
+

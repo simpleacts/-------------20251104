@@ -1,0 +1,12 @@
+key,ja,en
+ai_task.validation_modal_title,データ整合性チェック結果,Data Integrity Check Results
+ai_task.no_issues,問題は見つかりませんでした。,No issues found.
+ai_task.integrity_ok,タスクと案件の整合性は正常です。,Task and quote integrity is normal.
+ai_task.errors,エラー,Errors
+ai_task.warnings,警告,Warnings
+ai_task.items,{count}件,{count} items
+ai_task.load_failed,タスクデータの読み込みに失敗しました。,Failed to load task data.
+ai_task.due_date_passed,タスク期日が過ぎています (期日: {due_date}),Task due date has passed (Due: {due_date})
+ai_task.due_date_no_delivery,タスクに期日がありますが、案件の希望納品日が設定されていません。,Task has a due date, but the quote's estimated delivery date is not set.
+ai_task.due_date_exceeds_delivery,タスク期日 ({task_due}) が案件の希望納品日 ({delivery_date}) を超えています。,Task due date ({task_due}) exceeds the quote's estimated delivery date ({delivery_date}).
+

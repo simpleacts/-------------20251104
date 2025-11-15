@@ -1,0 +1,5 @@
+id,customer_id,invoice_number,issue_date,due_date,total_amount,status,notes,file_attachment_url,payment_date,is_locked,billing_month
+bill_000001,cust_000006,INV-CAB-202407,2024-07-20,2024-08-31,150000,unpaid,"7月分 Tシャツ仕入れ",,,false,2024-07
+bill_000002,cust_000007,INV-TOMS-202407,2024-07-22,2024-08-31,85000,unpaid,"7月分 パーカー仕入れ",,,false,2024-07
+bill_000003,cust_000009,RENT-202408,2024-08-01,2024-07-31,120000,paid,"8月分事務所家賃",,2024-08-01,false,2024-08
+bill_000004,cust_000006,INV-CAB-202406,2024-06-20,2024-07-31,135000,paid,"6月分 Tシャツ仕入れ",,2024-07-25,false,2024-06

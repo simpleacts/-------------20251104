@@ -1,0 +1,24 @@
+key,ja,en
+system_logs.title,システムログ,System Logs
+system_logs.description,アプリケーションで記録されたエラーやイベント、データアクセスの履歴です。,Error and event logs, and data access history recorded in the application.
+system_logs.level_filter,レベルで絞り込み,Filter by Level
+system_logs.table_not_found,app_logsテーブルが見つかりません。データベースのセットアップを確認してください。,app_logs table not found. Please check database setup.
+system_logs.log_detail_title,ログ詳細,Log Details
+system_logs.copy_all,全ての内容をコピー,Copy All Content
+system_logs.copied,コピーしました,Copied
+system_logs.data_access_info,データアクセス情報,Data Access Information
+system_logs.tool_source,ツール/ソース,Tool/Source
+system_logs.edit_dependency,依存関係を編集,Edit Dependency
+system_logs.load_strategy,取得タイミング,Load Strategy
+system_logs.read_fields,読み込み許可,Read Fields
+system_logs.write_fields,書き込み許可,Write Fields
+system_logs.none,なし,None
+system_logs.copy_message,メッセージをコピー,Copy Message
+system_logs.copy_stack,スタックトレースをコピー,Copy Stack Trace
+system_logs.copy_context,コンテキストをコピー（折りたたみ部分も含む）,Copy Context (including collapsed parts)
+system_logs.copy_context_aria,コンテキストをコピー,Copy Context
+system_logs.table_header_datetime,日時,DateTime
+system_logs.table_header_level,レベル,Level
+system_logs.table_header_message,メッセージ,Message
+system_logs.table_header_user_id,ユーザーID,User ID
+

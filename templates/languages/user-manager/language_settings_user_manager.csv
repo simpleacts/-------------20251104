@@ -1,0 +1,52 @@
+key,ja,en
+users.id,ユーザーID,User ID
+users.username,ユーザー名,Username
+users.password,パスワード,Password
+users.role_id,役割ID,Role ID
+users.name,名前,Name
+roles.id,役割ID,Role ID
+roles.name,役割名,Role Name
+role_permissions.role_id,役割ID,Role ID
+role_permissions.permissions,権限(JSON),Permissions (JSON)
+permissions.title,権限管理ツール,Permission Manager
+permissions.description,ロールごとの機能アクセスとデータ操作権限を設定します。,Set feature access and data operation permissions for each role.
+permissions.select_role,ロールを選択:,Select Role:
+permissions.tool_access,ツールアクセス権限,Tool Access Permissions
+permissions.toggle_all,すべて切り替え,Toggle All
+permissions.table_access,データテーブル権限,Data Table Permissions
+permissions.table_name,テーブル名,Table Name
+permissions.view,表示/閲覧,View
+permissions.edit,編集,Edit
+permissions.add,追加,Add
+permissions.delete,削除,Delete
+permissions.unsaved_changes,未保存の変更があります,You have unsaved changes
+permissions.save_changes,変更を保存,Save Changes
+permissions.saved,権限設定を保存しました。,Permissions saved successfully.
+permissions.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+permissions.field_settings,項目設定,Field Settings
+field_visibility.title,項目表示設定,Field Visibility Settings
+field_visibility.close,閉じる,Close
+users.title,ユーザー管理,User Management
+users.description,ユーザーの追加、編集、役割の割り当てを行います。,Add, edit, and assign roles to users.
+users.add_new,新規ユーザーを追加,Add New User
+users.name_header,名前,Name
+users.username_header,ユーザー名,Username
+users.role_header,役割,Role
+users.actions_header,操作,Actions
+users.role_not_set,未設定,Not Set
+users.delete_confirm,このユーザーを削除してもよろしいですか？,Are you sure you want to delete this user?
+users.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+users.delete_failed,サーバーからの削除に失敗しました:,Failed to delete from server:
+users.edit.create_title,新規ユーザー作成,Create New User
+users.edit.edit_title,ユーザー情報の編集,Edit User Information
+users.edit.name_label,名前,Name
+users.edit.username_label,ユーザー名,Username
+users.edit.role_label,役割,Role
+users.edit.role_select,役割を選択...,Select Role...
+users.edit.password_setting,パスワード設定,Password Setting
+users.edit.password_change,パスワードを変更,Change Password
+users.edit.password_mismatch,パスワードが一致しません。,Passwords do not match.
+users.edit.new_password_placeholder,新しいパスワード,New Password
+users.edit.password_confirm_placeholder,パスワードの確認,Confirm Password
+users.edit.cancel,キャンセル,Cancel
+users.edit.save,保存,Save

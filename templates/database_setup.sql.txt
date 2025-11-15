@@ -1,0 +1,517 @@
+-- --------------------------------------------------------
+-- 捺染兄弟 アプリケーション データベースセットアップSQL (v5.0 - Full Schema)
+-- --------------------------------------------------------
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS=0;
+
+--
+-- Drop Existing Tables
+--
+DROP TABLE IF EXISTS `additional_options`;
+DROP TABLE IF EXISTS `additional_print_costs_by_location`;
+DROP TABLE IF EXISTS `additional_print_costs_by_size`;
+DROP TABLE IF EXISTS `additional_print_costs_by_tag`;
+DROP TABLE IF EXISTS `ai_settings`;
+DROP TABLE IF EXISTS `app_logs`;
+DROP TABLE IF EXISTS `behavior_settings`;
+DROP TABLE IF EXISTS `bill_items`;
+DROP TABLE IF EXISTS `bills`;
+DROP TABLE IF EXISTS `brands`;
+DROP TABLE IF EXISTS `calculation_logic_types`;
+DROP TABLE IF EXISTS `categories`;
+DROP TABLE IF EXISTS `category_pricing_schedules`;
+DROP TABLE IF EXISTS `category_print_locations`;
+DROP TABLE IF EXISTS `color_libraries`;
+DROP TABLE IF EXISTS `color_library_types`;
+DROP TABLE IF EXISTS `color_settings`;
+DROP TABLE IF EXISTS `colors_manu_0001`;
+DROP TABLE IF EXISTS `colors_manu_0002`;
+DROP TABLE IF EXISTS `colors_manu_0003`;
+DROP TABLE IF EXISTS `colors_manu_0004`;
+DROP TABLE IF EXISTS `company_info`;
+DROP TABLE IF EXISTS `customer_groups`;
+DROP TABLE IF EXISTS `customers`;
+DROP TABLE IF EXISTS `data_confirmation_status_master`;
+DROP TABLE IF EXISTS `dev_constitution`;
+DROP TABLE IF EXISTS `dev_guidelines_prohibited`;
+DROP TABLE IF EXISTS `dev_guidelines_recommended`;
+DROP TABLE IF EXISTS `dev_locks`;
+DROP TABLE IF EXISTS `dev_roadmap`;
+DROP TABLE IF EXISTS `dic_colors`;
+DROP TABLE IF EXISTS `dtf_consumables`;
+DROP TABLE IF EXISTS `dtf_electricity_rates`;
+DROP TABLE IF EXISTS `dtf_equipment`;
+DROP TABLE IF EXISTS `dtf_labor_costs`;
+DROP TABLE IF EXISTS `dtf_press_time_costs`;
+DROP TABLE IF EXISTS `dtf_print_speeds`;
+DROP TABLE IF EXISTS `dtf_printers`;
+DROP TABLE IF EXISTS `email_accounts`;
+DROP TABLE IF EXISTS `email_attachments`;
+DROP TABLE IF EXISTS `email_general_settings`;
+DROP TABLE IF EXISTS `email_label_ai_rules`;
+DROP TABLE IF EXISTS `email_labels`;
+DROP TABLE IF EXISTS `email_settings`;
+DROP TABLE IF EXISTS `email_templates`;
+DROP TABLE IF EXISTS `emails`;
+DROP TABLE IF EXISTS `filename_rule_presets`;
+DROP TABLE IF EXISTS `free_input_item_types`;
+DROP TABLE IF EXISTS `gallery_images`;
+DROP TABLE IF EXISTS `gallery_tags`;
+DROP TABLE IF EXISTS `gemini_models`;
+DROP TABLE IF EXISTS `google_api_settings`;
+DROP TABLE IF EXISTS `google_fonts`;
+DROP TABLE IF EXISTS `icons`;
+DROP TABLE IF EXISTS `id_formats`;
+DROP TABLE IF EXISTS `importer_mappings_manu_0001`;
+DROP TABLE IF EXISTS `importer_mappings_manu_0002`;
+DROP TABLE IF EXISTS `importer_mappings_manu_0003`;
+DROP TABLE IF EXISTS `importer_mappings_manu_0004`;
+DROP TABLE IF EXISTS `incoming_stock_manu_0001`;
+DROP TABLE IF EXISTS `incoming_stock_manu_0002`;
+DROP TABLE IF EXISTS `incoming_stock_manu_0003`;
+DROP TABLE IF EXISTS `incoming_stock_manu_0004`;
+DROP TABLE IF EXISTS `ink_manufacturers`;
+DROP TABLE IF EXISTS `ink_product_types`;
+DROP TABLE IF EXISTS `ink_products`;
+DROP TABLE IF EXISTS `ink_recipe_components`;
+DROP TABLE IF EXISTS `ink_recipe_usage`;
+DROP TABLE IF EXISTS `ink_recipes`;
+DROP TABLE IF EXISTS `ink_series`;
+DROP TABLE IF EXISTS `invoice_parsing_templates`;
+DROP TABLE IF EXISTS `language_settings`;
+DROP TABLE IF EXISTS `language_settings_accounting`;
+DROP TABLE IF EXISTS `language_settings_ai_task_management`;
+DROP TABLE IF EXISTS `language_settings_app_management`;
+DROP TABLE IF EXISTS `language_settings_architecture`;
+DROP TABLE IF EXISTS `language_settings_backup_manager`;
+DROP TABLE IF EXISTS `language_settings_common`;
+DROP TABLE IF EXISTS `language_settings_customer_management`;
+DROP TABLE IF EXISTS `language_settings_data_io`;
+DROP TABLE IF EXISTS `language_settings_database_schema_manager`;
+DROP TABLE IF EXISTS `language_settings_dev_lock_manager`;
+DROP TABLE IF EXISTS `language_settings_dev_tools`;
+DROP TABLE IF EXISTS `language_settings_display_settings`;
+DROP TABLE IF EXISTS `language_settings_document`;
+DROP TABLE IF EXISTS `language_settings_estimator_settings`;
+DROP TABLE IF EXISTS `language_settings_google_api_settings`;
+DROP TABLE IF EXISTS `language_settings_hub`;
+DROP TABLE IF EXISTS `language_settings_id_manager`;
+DROP TABLE IF EXISTS `language_settings_image_batch_linker`;
+DROP TABLE IF EXISTS `language_settings_image_file_name_converter`;
+DROP TABLE IF EXISTS `language_settings_inventory_management`;
+DROP TABLE IF EXISTS `language_settings_language_manager`;
+DROP TABLE IF EXISTS `language_settings_module_catalog`;
+DROP TABLE IF EXISTS `language_settings_module_list`;
+DROP TABLE IF EXISTS `language_settings_order_management`;
+DROP TABLE IF EXISTS `language_settings_pdf_item_group_manager`;
+DROP TABLE IF EXISTS `language_settings_pdf_preview_settings`;
+DROP TABLE IF EXISTS `language_settings_pdf_template_manager`;
+DROP TABLE IF EXISTS `language_settings_php_info_viewer`;
+DROP TABLE IF EXISTS `language_settings_pricing_management`;
+DROP TABLE IF EXISTS `language_settings_product_definition`;
+DROP TABLE IF EXISTS `language_settings_product_management`;
+DROP TABLE IF EXISTS `language_settings_production_settings`;
+DROP TABLE IF EXISTS `language_settings_shipping_logic_tool`;
+DROP TABLE IF EXISTS `language_settings_silkscreen`;
+DROP TABLE IF EXISTS `language_settings_system_diagnostics`;
+DROP TABLE IF EXISTS `language_settings_system_logs`;
+DROP TABLE IF EXISTS `language_settings_tool_dependency_manager`;
+DROP TABLE IF EXISTS `language_settings_tool_dependency_scanner`;
+DROP TABLE IF EXISTS `language_settings_tool_guide`;
+DROP TABLE IF EXISTS `language_settings_user_manager`;
+DROP TABLE IF EXISTS `language_settings_worksheet`;
+DROP TABLE IF EXISTS `languages`;
+DROP TABLE IF EXISTS `layout_settings`;
+DROP TABLE IF EXISTS `manufacturers`;
+DROP TABLE IF EXISTS `mobile_tool_mappings`;
+DROP TABLE IF EXISTS `modules_core`;
+DROP TABLE IF EXISTS `modules_other`;
+DROP TABLE IF EXISTS `modules_page_tool`;
+DROP TABLE IF EXISTS `modules_service`;
+DROP TABLE IF EXISTS `modules_ui_atoms`;
+DROP TABLE IF EXISTS `modules_ui_modals`;
+DROP TABLE IF EXISTS `modules_ui_molecules`;
+DROP TABLE IF EXISTS `modules_ui_organisms`;
+DROP TABLE IF EXISTS `pagination_settings`;
+DROP TABLE IF EXISTS `pantone_colors`;
+DROP TABLE IF EXISTS `partner_codes`;
+DROP TABLE IF EXISTS `payment_methods`;
+DROP TABLE IF EXISTS `payment_status_master`;
+DROP TABLE IF EXISTS `pdf_item_display_configs`;
+DROP TABLE IF EXISTS `pdf_preview_zoom_configs`;
+DROP TABLE IF EXISTS `pdf_templates`;
+DROP TABLE IF EXISTS `plate_cost_combination`;
+DROP TABLE IF EXISTS `plate_costs`;
+DROP TABLE IF EXISTS `prefectures`;
+DROP TABLE IF EXISTS `pricing_assignments`;
+DROP TABLE IF EXISTS `pricing_rules`;
+DROP TABLE IF EXISTS `print_cost_combination`;
+DROP TABLE IF EXISTS `print_history`;
+DROP TABLE IF EXISTS `print_history_images`;
+DROP TABLE IF EXISTS `print_history_positions`;
+DROP TABLE IF EXISTS `print_location_metrics`;
+DROP TABLE IF EXISTS `print_locations`;
+DROP TABLE IF EXISTS `print_pricing_schedules`;
+DROP TABLE IF EXISTS `print_pricing_tiers`;
+DROP TABLE IF EXISTS `print_size_constraints`;
+DROP TABLE IF EXISTS `product_color_sizes_manu_0001`;
+DROP TABLE IF EXISTS `product_color_sizes_manu_0002`;
+DROP TABLE IF EXISTS `product_color_sizes_manu_0003`;
+DROP TABLE IF EXISTS `product_color_sizes_manu_0004`;
+DROP TABLE IF EXISTS `product_colors_manu_0001`;
+DROP TABLE IF EXISTS `product_colors_manu_0002`;
+DROP TABLE IF EXISTS `product_colors_manu_0003`;
+DROP TABLE IF EXISTS `product_colors_manu_0004`;
+DROP TABLE IF EXISTS `product_details_manu_0001`;
+DROP TABLE IF EXISTS `product_details_manu_0002`;
+DROP TABLE IF EXISTS `product_details_manu_0003`;
+DROP TABLE IF EXISTS `product_details_manu_0004`;
+DROP TABLE IF EXISTS `product_price_group_items`;
+DROP TABLE IF EXISTS `product_price_groups`;
+DROP TABLE IF EXISTS `product_prices_manu_0001`;
+DROP TABLE IF EXISTS `product_prices_manu_0002`;
+DROP TABLE IF EXISTS `product_prices_manu_0003`;
+DROP TABLE IF EXISTS `product_prices_manu_0004`;
+DROP TABLE IF EXISTS `product_sizes_manu_0001`;
+DROP TABLE IF EXISTS `product_sizes_manu_0002`;
+DROP TABLE IF EXISTS `product_sizes_manu_0003`;
+DROP TABLE IF EXISTS `product_sizes_manu_0004`;
+DROP TABLE IF EXISTS `product_tags_manu_0001`;
+DROP TABLE IF EXISTS `product_tags_manu_0002`;
+DROP TABLE IF EXISTS `product_tags_manu_0003`;
+DROP TABLE IF EXISTS `product_tags_manu_0004`;
+DROP TABLE IF EXISTS `production_status_master`;
+DROP TABLE IF EXISTS `products_master_manu_0001`;
+DROP TABLE IF EXISTS `products_master_manu_0002`;
+DROP TABLE IF EXISTS `products_master_manu_0003`;
+DROP TABLE IF EXISTS `products_master_manu_0004`;
+DROP TABLE IF EXISTS `quote_designs`;
+DROP TABLE IF EXISTS `quote_history`;
+DROP TABLE IF EXISTS `quote_items`;
+DROP TABLE IF EXISTS `quote_status_master`;
+DROP TABLE IF EXISTS `quote_tasks`;
+DROP TABLE IF EXISTS `quotes`;
+DROP TABLE IF EXISTS `role_permissions`;
+DROP TABLE IF EXISTS `roles`;
+DROP TABLE IF EXISTS `server_config`;
+DROP TABLE IF EXISTS `settings`;
+DROP TABLE IF EXISTS `shipping_carriers`;
+DROP TABLE IF EXISTS `shipping_costs`;
+DROP TABLE IF EXISTS `shipping_status_master`;
+DROP TABLE IF EXISTS `sizes_manu_0001`;
+DROP TABLE IF EXISTS `sizes_manu_0002`;
+DROP TABLE IF EXISTS `sizes_manu_0003`;
+DROP TABLE IF EXISTS `sizes_manu_0004`;
+DROP TABLE IF EXISTS `skus_manu_0001`;
+DROP TABLE IF EXISTS `skus_manu_0002`;
+DROP TABLE IF EXISTS `skus_manu_0003`;
+DROP TABLE IF EXISTS `skus_manu_0004`;
+DROP TABLE IF EXISTS `special_ink_costs`;
+DROP TABLE IF EXISTS `sql_export_presets`;
+DROP TABLE IF EXISTS `stock_history`;
+DROP TABLE IF EXISTS `stock_manu_0001`;
+DROP TABLE IF EXISTS `stock_manu_0002`;
+DROP TABLE IF EXISTS `stock_manu_0003`;
+DROP TABLE IF EXISTS `stock_manu_0004`;
+DROP TABLE IF EXISTS `tags`;
+DROP TABLE IF EXISTS `task_generation_rules`;
+DROP TABLE IF EXISTS `task_master`;
+DROP TABLE IF EXISTS `task_time_settings`;
+DROP TABLE IF EXISTS `time_units`;
+DROP TABLE IF EXISTS `tool_dependencies`;
+DROP TABLE IF EXISTS `tool_migrations`;
+DROP TABLE IF EXISTS `tool_visibility_settings`;
+DROP TABLE IF EXISTS `users`;
+DROP TABLE IF EXISTS `volume_discount_schedules`;
+DROP TABLE IF EXISTS `weight_volume_units`;
+DROP TABLE IF EXISTS `work_session_quotes`;
+DROP TABLE IF EXISTS `work_sessions`;
+
+--
+-- Create Table Structures
+--
+
+CREATE TABLE `settings` ( `key` VARCHAR(255) NOT NULL, `value` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `color_settings` ( `key` VARCHAR(255) NOT NULL, `value` VARCHAR(255), PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `layout_settings` ( `key` VARCHAR(255) NOT NULL, `value` VARCHAR(255), PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `behavior_settings` ( `key` VARCHAR(255) NOT NULL, `value` VARCHAR(255), PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `pagination_settings` ( `id` VARCHAR(255) NOT NULL, `target` VARCHAR(255), `enabled` TINYINT(1), `items_per_page_pc` INT, `items_per_page_tablet` INT, `items_per_page_mobile` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `plate_costs` ( `id` INT NOT NULL AUTO_INCREMENT, `size` VARCHAR(255), `plateType` VARCHAR(255), `cost` INT, `surchargePerColor` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `special_ink_costs` ( `type` VARCHAR(255) NOT NULL, `cost` INT, `displayName` VARCHAR(255), PRIMARY KEY (`type`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `additional_print_costs_by_size` ( `size` VARCHAR(255) NOT NULL, `cost` INT, PRIMARY KEY (`size`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `additional_print_costs_by_location` ( `location` VARCHAR(255) NOT NULL, `cost` INT, PRIMARY KEY (`location`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `print_pricing_tiers` ( `id` VARCHAR(255) NOT NULL, `min` INT, `max` INT, `firstColor` INT, `additionalColor` INT, `schedule_id` VARCHAR(255), `user_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `shipping_costs` ( `region` VARCHAR(255) NOT NULL, `cost` INT, `prefectures` TEXT, PRIMARY KEY (`region`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `company_info` ( `key` VARCHAR(255) NOT NULL, `value` VARCHAR(255), PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `partner_codes` ( `id` INT NOT NULL AUTO_INCREMENT, `code` VARCHAR(255), `partnerName` VARCHAR(255), `description` TEXT, `rate` DECIMAL(5,2), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `print_locations` ( `locationId` VARCHAR(255) NOT NULL, `groupName` VARCHAR(255), `label` VARCHAR(255), PRIMARY KEY (`locationId`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `print_size_constraints` ( `id` INT NOT NULL AUTO_INCREMENT, `constraint_type` VARCHAR(255), `constraint_id` VARCHAR(255), `allowed_print_sizes` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `tags` ( `id` VARCHAR(255) NOT NULL, `tagName` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `categories` ( `id` VARCHAR(255) NOT NULL, `categoryName` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `customers` ( `id` VARCHAR(255) NOT NULL, `company_name` VARCHAR(255) DEFAULT NULL, `name_kanji` VARCHAR(255) DEFAULT NULL, `name_kana` VARCHAR(255) DEFAULT NULL, `email` VARCHAR(255) DEFAULT NULL, `phone` VARCHAR(255) DEFAULT NULL, `zip_code` VARCHAR(10) DEFAULT NULL, `address1` TEXT DEFAULT NULL, `address2` TEXT DEFAULT NULL, `created_at` DATETIME DEFAULT NULL, `updated_at` DATETIME DEFAULT NULL, `customer_group_id` VARCHAR(255) DEFAULT NULL, `is_vendor` TINYINT(1) DEFAULT 0, `has_separate_shipping_address` TINYINT(1) DEFAULT 0, `shipping_name` VARCHAR(255) DEFAULT NULL, `shipping_phone` VARCHAR(255) DEFAULT NULL, `shipping_zip_code` VARCHAR(10) DEFAULT NULL, `shipping_address1` TEXT DEFAULT NULL, `shipping_address2` TEXT DEFAULT NULL, `status` VARCHAR(50) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `manufacturers` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `code` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `brands` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255) NOT NULL, `code` VARCHAR(255) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `code` (`code`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_price_groups` ( `id` INT NOT NULL AUTO_INCREMENT, `name` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_price_group_items` ( `id` INT NOT NULL AUTO_INCREMENT, `price_group_id` INT, `label` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `additional_print_costs_by_tag` ( `tag_id` VARCHAR(255) NOT NULL, `cost` INT, PRIMARY KEY (`tag_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `print_cost_combination` ( `id` INT NOT NULL AUTO_INCREMENT, `combination_id` VARCHAR(255), `category_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `plate_cost_combination` ( `id` INT NOT NULL AUTO_INCREMENT, `combination_id` VARCHAR(255), `category_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `category_print_locations` ( `id` VARCHAR(255) NOT NULL, `category_id` VARCHAR(255), `allowed_location_ids` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `quotes` ( `id` VARCHAR(255) NOT NULL, `quote_code` VARCHAR(255), `subject` TEXT, `customer_id` VARCHAR(255), `quote_status` VARCHAR(255), `payment_status` VARCHAR(255), `production_status` VARCHAR(255), `shipping_status` VARCHAR(255), `data_confirmation_status` VARCHAR(255), `total_cost_ex_tax` INT, `shipping_cost` INT, `tax` INT, `total_cost_in_tax` INT, `notes` TEXT, `internal_notes` TEXT, `created_at` DATETIME, `updated_at` DATETIME, `ordered_at` DATETIME, `payment_due_date` DATE, `estimated_delivery_date` DATE, `shipping_carrier_id` VARCHAR(255), `shipping_date` DATE, `tracking_number` VARCHAR(255), `quote_type` VARCHAR(255), `last_used_template_id` VARCHAR(255), `original_quote_id` VARCHAR(255), `document_type` VARCHAR(255), `parent_document_id` VARCHAR(255), `payment_date` DATE, `is_locked` TINYINT(1), `billing_month` VARCHAR(7), `document_settings_json` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `quote_items` ( `id` VARCHAR(255) NOT NULL, `quote_id` VARCHAR(255), `product_id` VARCHAR(255), `product_name` TEXT, `color` VARCHAR(255), `size` VARCHAR(255), `quantity` INT, `unit_price` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `quote_designs` ( `id` VARCHAR(255) NOT NULL, `quote_id` VARCHAR(255), `location` VARCHAR(255), `print_size` VARCHAR(255), `color_count` INT, `special_inks_json` TEXT, `plate_type` VARCHAR(255), `image_name` TEXT, `image_src` TEXT, `original_image_src` TEXT, `printMethod` VARCHAR(255), `widthCm` DECIMAL(5,2), `heightCm` DECIMAL(5,2), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `quote_history` ( `id` VARCHAR(255) NOT NULL, `quote_id` VARCHAR(255), `user_id` VARCHAR(255), `action` VARCHAR(255), `details` TEXT, `created_at` DATETIME, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `quote_status_master` ( `id` VARCHAR(255) NOT NULL, `value` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `payment_status_master` ( `id` VARCHAR(255) NOT NULL, `value` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `payment_methods` (
+  `id` VARCHAR(255) NOT NULL,
+  `value` VARCHAR(255),
+  `sort_order` INT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `production_status_master` ( `id` VARCHAR(255) NOT NULL, `value` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `shipping_status_master` ( `id` VARCHAR(255) NOT NULL, `value` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `data_confirmation_status_master` ( `id` VARCHAR(255) NOT NULL, `value` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `prefectures` ( `id` INT NOT NULL AUTO_INCREMENT, `name` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `print_pricing_schedules` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `owner_user_id` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `category_pricing_schedules` ( `category_id` VARCHAR(255) NOT NULL, `schedule_id` VARCHAR(255) NOT NULL, `customer_group_id` VARCHAR(255) NOT NULL, PRIMARY KEY (`category_id`, `schedule_id`, `customer_group_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `customer_groups` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `description` TEXT, `payment_terms` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `shipping_carriers` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `tracking_url_template` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `pricing_rules` ( `id` INT NOT NULL AUTO_INCREMENT, `name` VARCHAR(255), `pricing_model` VARCHAR(255), `rate` DECIMAL(5,2), `markup_percentage` DECIMAL(5,2), `volume_discount_schedule_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `pricing_assignments` ( `id` INT NOT NULL AUTO_INCREMENT, `target_type` VARCHAR(255), `target_id` VARCHAR(255), `rule_id` INT, `customer_group_id` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `volume_discount_schedules` ( `id` INT NOT NULL AUTO_INCREMENT, `schedule_id` VARCHAR(255), `min_quantity` INT, `max_quantity` INT, `markup_multiplier` DECIMAL(5,2), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `importer_mappings` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `name` TEXT, `mapping_json` TEXT, `csv_structure_json` TEXT, PRIMARY KEY (`id`), UNIQUE KEY `unique_mapping` (`manufacturer_id`, `name`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- メーカー依存テーブル
+-- --------------------------------------------------------
+
+-- 注意: brandsテーブルは共通テーブルとして管理されています（templates/common/brands.csv）
+-- メーカーごとのbrandsテーブルは削除され、共通テーブルに統合されました
+
+-- Colors tables
+CREATE TABLE `colors_manu_0001` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `colorCode` VARCHAR(255) NOT NULL, `colorName` VARCHAR(255), `colorType` VARCHAR(255), `hex` VARCHAR(255), PRIMARY KEY (`id`), UNIQUE KEY `unique_code` (`manufacturer_id`, `colorCode`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `colors_manu_0002` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `colorCode` VARCHAR(255) NOT NULL, `colorName` VARCHAR(255), `colorType` VARCHAR(255), `hex` VARCHAR(255), PRIMARY KEY (`id`), UNIQUE KEY `unique_code` (`manufacturer_id`, `colorCode`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `colors_manu_0003` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `colorCode` VARCHAR(255) NOT NULL, `colorName` VARCHAR(255), `colorType` VARCHAR(255), `hex` VARCHAR(255), PRIMARY KEY (`id`), UNIQUE KEY `unique_code` (`manufacturer_id`, `colorCode`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `colors_manu_0004` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `colorCode` VARCHAR(255) NOT NULL, `colorName` VARCHAR(255), `colorType` VARCHAR(255), `hex` VARCHAR(255), PRIMARY KEY (`id`), UNIQUE KEY `unique_code` (`manufacturer_id`, `colorCode`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Sizes tables
+CREATE TABLE `sizes_manu_0001` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `sizeCode` VARCHAR(255) NOT NULL, `sizeName` VARCHAR(255), PRIMARY KEY (`id`), UNIQUE KEY `unique_code` (`manufacturer_id`, `sizeCode`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `sizes_manu_0002` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `sizeCode` VARCHAR(255) NOT NULL, `sizeName` VARCHAR(255), PRIMARY KEY (`id`), UNIQUE KEY `unique_code` (`manufacturer_id`, `sizeCode`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `sizes_manu_0003` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `sizeCode` VARCHAR(255) NOT NULL, `sizeName` VARCHAR(255), PRIMARY KEY (`id`), UNIQUE KEY `unique_code` (`manufacturer_id`, `sizeCode`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `sizes_manu_0004` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `sizeCode` VARCHAR(255) NOT NULL, `sizeName` VARCHAR(255), PRIMARY KEY (`id`), UNIQUE KEY `unique_code` (`manufacturer_id`, `sizeCode`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Products master tables
+CREATE TABLE `products_master_manu_0001` ( `id` VARCHAR(255) NOT NULL, `productCode` VARCHAR(255) NOT NULL, `unique_code` VARCHAR(255), `category_id` VARCHAR(255), `is_published` TINYINT(1) DEFAULT 0, `manufacturer_id` VARCHAR(255) NOT NULL, `brand_id` VARCHAR(255), PRIMARY KEY (`id`), UNIQUE KEY `unique_code` (`unique_code`), UNIQUE KEY `unique_product_code` (`manufacturer_id`, `productCode`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `products_master_manu_0002` ( `id` VARCHAR(255) NOT NULL, `productCode` VARCHAR(255) NOT NULL, `unique_code` VARCHAR(255), `category_id` VARCHAR(255), `is_published` TINYINT(1) DEFAULT 0, `manufacturer_id` VARCHAR(255) NOT NULL, `brand_id` VARCHAR(255), PRIMARY KEY (`id`), UNIQUE KEY `unique_code` (`unique_code`), UNIQUE KEY `unique_product_code` (`manufacturer_id`, `productCode`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `products_master_manu_0003` ( `id` VARCHAR(255) NOT NULL, `productCode` VARCHAR(255) NOT NULL, `unique_code` VARCHAR(255), `category_id` VARCHAR(255), `is_published` TINYINT(1) DEFAULT 0, `manufacturer_id` VARCHAR(255) NOT NULL, `brand_id` VARCHAR(255), PRIMARY KEY (`id`), UNIQUE KEY `unique_code` (`unique_code`), UNIQUE KEY `unique_product_code` (`manufacturer_id`, `productCode`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `products_master_manu_0004` ( `id` VARCHAR(255) NOT NULL, `productCode` VARCHAR(255) NOT NULL, `unique_code` VARCHAR(255), `category_id` VARCHAR(255), `is_published` TINYINT(1) DEFAULT 0, `manufacturer_id` VARCHAR(255) NOT NULL, `brand_id` VARCHAR(255), PRIMARY KEY (`id`), UNIQUE KEY `unique_code` (`unique_code`), UNIQUE KEY `unique_product_code` (`manufacturer_id`, `productCode`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Product details tables (削除: 新しい命名規則 manu_0001_details に変更)
+
+-- Product prices tables
+CREATE TABLE `product_prices_manu_0001` ( `id` INT NOT NULL AUTO_INCREMENT, `productId` VARCHAR(255), `price_group_item_id` INT, `size` VARCHAR(255), `listPrice` INT, `purchasePrice` INT, `manufacturer_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_prices_manu_0002` ( `id` INT NOT NULL AUTO_INCREMENT, `productId` VARCHAR(255), `price_group_item_id` INT, `size` VARCHAR(255), `listPrice` INT, `purchasePrice` INT, `manufacturer_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_prices_manu_0003` ( `id` INT NOT NULL AUTO_INCREMENT, `productId` VARCHAR(255), `price_group_item_id` INT, `size` VARCHAR(255), `listPrice` INT, `purchasePrice` INT, `manufacturer_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_prices_manu_0004` ( `id` INT NOT NULL AUTO_INCREMENT, `productId` VARCHAR(255), `price_group_item_id` INT, `size` VARCHAR(255), `listPrice` INT, `purchasePrice` INT, `manufacturer_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Product colors tables
+CREATE TABLE `product_colors_manu_0001` ( `product_id` VARCHAR(255) NOT NULL, `color_id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255), PRIMARY KEY (`product_id`, `color_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_colors_manu_0002` ( `product_id` VARCHAR(255) NOT NULL, `color_id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255), PRIMARY KEY (`product_id`, `color_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_colors_manu_0003` ( `product_id` VARCHAR(255) NOT NULL, `color_id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255), PRIMARY KEY (`product_id`, `color_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_colors_manu_0004` ( `product_id` VARCHAR(255) NOT NULL, `color_id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255), PRIMARY KEY (`product_id`, `color_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Product tags tables
+CREATE TABLE `product_tags_manu_0001` ( `product_id` VARCHAR(255) NOT NULL, `tag_id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255), PRIMARY KEY (`product_id`, `tag_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_tags_manu_0002` ( `product_id` VARCHAR(255) NOT NULL, `tag_id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255), PRIMARY KEY (`product_id`, `tag_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_tags_manu_0003` ( `product_id` VARCHAR(255) NOT NULL, `tag_id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255), PRIMARY KEY (`product_id`, `tag_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_tags_manu_0004` ( `product_id` VARCHAR(255) NOT NULL, `tag_id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255), PRIMARY KEY (`product_id`, `tag_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Product sizes tables
+CREATE TABLE `product_sizes_manu_0001` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `product_id` VARCHAR(255), `size_id` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`), INDEX `idx_product_sizes_product` (`product_id`), INDEX `idx_product_sizes_size` (`size_id`), INDEX `idx_product_sizes_manufacturer` (`manufacturer_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_sizes_manu_0002` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `product_id` VARCHAR(255), `size_id` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`), INDEX `idx_product_sizes_product` (`product_id`), INDEX `idx_product_sizes_size` (`size_id`), INDEX `idx_product_sizes_manufacturer` (`manufacturer_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_sizes_manu_0003` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `product_id` VARCHAR(255), `size_id` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`), INDEX `idx_product_sizes_product` (`product_id`), INDEX `idx_product_sizes_size` (`size_id`), INDEX `idx_product_sizes_manufacturer` (`manufacturer_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `product_sizes_manu_0004` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `product_id` VARCHAR(255), `size_id` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`), INDEX `idx_product_sizes_product` (`product_id`), INDEX `idx_product_sizes_size` (`size_id`), INDEX `idx_product_sizes_manufacturer` (`manufacturer_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- SKUs tables
+CREATE TABLE `skus_manu_0001` ( `id` VARCHAR(255) NOT NULL, `product_master_id` VARCHAR(255), `color_id` VARCHAR(255), `size_id` VARCHAR(255), `jan_code` VARCHAR(255), `manufacturer_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `skus_manu_0002` ( `id` VARCHAR(255) NOT NULL, `product_master_id` VARCHAR(255), `color_id` VARCHAR(255), `size_id` VARCHAR(255), `jan_code` VARCHAR(255), `manufacturer_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `skus_manu_0003` ( `id` VARCHAR(255) NOT NULL, `product_master_id` VARCHAR(255), `color_id` VARCHAR(255), `size_id` VARCHAR(255), `jan_code` VARCHAR(255), `manufacturer_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `skus_manu_0004` ( `id` VARCHAR(255) NOT NULL, `product_master_id` VARCHAR(255), `color_id` VARCHAR(255), `size_id` VARCHAR(255), `jan_code` VARCHAR(255), `manufacturer_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Stock tables (削除: 新しい命名規則 manu_0001_stock に変更)
+
+-- Incoming stock tables
+CREATE TABLE `incoming_stock_manu_0001` ( `id` VARCHAR(255) NOT NULL, `sku_id` VARCHAR(255), `manufacturer_id` VARCHAR(255), `quantity_1` INT, `arrival_date_1` DATE, `quantity_2` INT, `arrival_date_2` DATE, `quantity_3` INT, `arrival_date_3` DATE, PRIMARY KEY (`id`), INDEX `idx_manufacturer` (`manufacturer_id`), INDEX `idx_sku` (`sku_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `incoming_stock_manu_0002` ( `id` VARCHAR(255) NOT NULL, `sku_id` VARCHAR(255), `manufacturer_id` VARCHAR(255), `quantity_1` INT, `arrival_date_1` DATE, `quantity_2` INT, `arrival_date_2` DATE, `quantity_3` INT, `arrival_date_3` DATE, PRIMARY KEY (`id`), INDEX `idx_manufacturer` (`manufacturer_id`), INDEX `idx_sku` (`sku_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `incoming_stock_manu_0003` ( `id` VARCHAR(255) NOT NULL, `sku_id` VARCHAR(255), `manufacturer_id` VARCHAR(255), `quantity_1` INT, `arrival_date_1` DATE, `quantity_2` INT, `arrival_date_2` DATE, `quantity_3` INT, `arrival_date_3` DATE, PRIMARY KEY (`id`), INDEX `idx_manufacturer` (`manufacturer_id`), INDEX `idx_sku` (`sku_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `incoming_stock_manu_0004` ( `id` VARCHAR(255) NOT NULL, `sku_id` VARCHAR(255), `manufacturer_id` VARCHAR(255), `quantity_1` INT, `arrival_date_1` DATE, `quantity_2` INT, `arrival_date_2` DATE, `quantity_3` INT, `arrival_date_3` DATE, PRIMARY KEY (`id`), INDEX `idx_manufacturer` (`manufacturer_id`), INDEX `idx_sku` (`sku_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `filename_rule_presets` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `rules` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `print_history` ( `id` VARCHAR(255) NOT NULL, `quote_id` VARCHAR(255), `printed_at` DATETIME, `notes` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `print_history_images` ( `id` VARCHAR(255) NOT NULL, `print_history_id` VARCHAR(255), `image_name` VARCHAR(255), `image_data_url` LONGTEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `print_history_positions` ( `id` VARCHAR(255) NOT NULL, `print_history_id` VARCHAR(255), `location` VARCHAR(255), `position_notes` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `print_location_metrics` ( `id` INT NOT NULL AUTO_INCREMENT, `location_id` VARCHAR(255), `metric_key` VARCHAR(255), `metric_label` VARCHAR(255), `unit` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `ink_recipes` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `created_at` DATETIME, `pantone_id` VARCHAR(255), `dic_id` VARCHAR(255), `notes` TEXT, `color_chip_url` TEXT, `color_sample_url` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `ink_recipe_components` ( `id` VARCHAR(255) NOT NULL, `recipe_id` VARCHAR(255), `ink_product_id` VARCHAR(255), `amount` DECIMAL(10,2), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `ink_products` ( `id` VARCHAR(255) NOT NULL, `series_id` VARCHAR(255), `product_type` VARCHAR(255), `color_name` VARCHAR(255), `color_code` VARCHAR(255), `hex_value` VARCHAR(255), `unit_cost` INT, `unit_volume` INT, `unit_measure` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `ink_series` ( `id` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255), `name` VARCHAR(255), `category` VARCHAR(255), `mixing_style` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `ink_manufacturers` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `pantone_colors` ( `id` VARCHAR(255) NOT NULL, `code` VARCHAR(255), `type` VARCHAR(255), `hex` VARCHAR(255), `rgb` VARCHAR(255), `cmyk` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `dic_colors` ( `id` VARCHAR(255) NOT NULL, `code` VARCHAR(255), `part` VARCHAR(255), `hex` VARCHAR(255), `rgb` VARCHAR(255), `cmyk` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `ink_recipe_usage` ( `id` VARCHAR(255) NOT NULL, `recipe_id` VARCHAR(255), `quote_id` VARCHAR(255), `used_at` DATETIME, `end_user` VARCHAR(255), `design_name` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `users` ( `id` VARCHAR(255) NOT NULL, `username` VARCHAR(255), `password` VARCHAR(255), `role_id` VARCHAR(255), `name` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `roles` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `role_permissions` ( `role_id` VARCHAR(255) NOT NULL, `permissions` TEXT, PRIMARY KEY (`role_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `id_formats` ( `table_name` VARCHAR(255) NOT NULL, `prefix` VARCHAR(255), `padding` INT, `description` TEXT, `is_manufacturer_dependent` TINYINT(1) DEFAULT 0, PRIMARY KEY (`table_name`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `dtf_consumables` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `type` VARCHAR(255), `unit_price` INT, `unit` VARCHAR(255), `consumption_rate` DECIMAL(10,5), `consumption_unit` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `dtf_equipment` ( `name` VARCHAR(255) NOT NULL, `purchase_price` INT, `depreciation_years` INT, `power_consumption_w` INT, PRIMARY KEY (`name`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `dtf_labor_costs` ( `name` VARCHAR(255) NOT NULL, `cost_per_hour` INT, `setup_fee` INT, PRIMARY KEY (`name`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `dtf_press_time_costs` ( `minutes` INT NOT NULL, `price_per_press` INT, PRIMARY KEY (`minutes`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `dtf_electricity_rates` ( `provider` VARCHAR(255) NOT NULL, `base_fee` DECIMAL(10,2), `tier1_kwh` INT, `tier1_rate` DECIMAL(10,2), `tier2_kwh` INT, `tier2_rate` DECIMAL(10,2), `tier3_rate` DECIMAL(10,2), PRIMARY KEY (`provider`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `dtf_printers` ( `id` INT NOT NULL, `name` VARCHAR(255), `film_width_mm` INT, `printable_width_mm` INT, `is_default` TINYINT(1), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `dtf_print_speeds` ( `id` INT NOT NULL, `printer_id` INT, `resolution_dpi` VARCHAR(255), `pass_count` INT, `speed_sqm_per_hour_min` DECIMAL(5,2), `speed_sqm_per_hour_max` DECIMAL(5,2), `is_default` TINYINT(1), `ink_density` INT, `notes` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `gallery_images` ( `id` VARCHAR(255) NOT NULL, `title` VARCHAR(255), `description` TEXT, `tags` VARCHAR(255), `imageCount` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `gallery_tags` ( `tagId` VARCHAR(255) NOT NULL, `tagName` VARCHAR(255), PRIMARY KEY (`tagId`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `pdf_templates` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `type` VARCHAR(255), `config_json` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `pdf_item_display_configs` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `config_json` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `pdf_preview_zoom_configs` ( `id` VARCHAR(255) NOT NULL, `context_name` VARCHAR(255), `display_name` VARCHAR(255), `zoom_level` INT, `notes` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `additional_options` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `cost_per_item` INT, `description` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `app_logs` ( `id` VARCHAR(255) NOT NULL, `timestamp` DATETIME, `level` VARCHAR(255), `message` TEXT, `stack_trace` TEXT, `user_id` VARCHAR(255), `context` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `dev_locks` ( `id` VARCHAR(255) NOT NULL, `component_type` VARCHAR(255), `component_name` VARCHAR(255), `is_locked` TINYINT(1), `lock_type` VARCHAR(255), `notes` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `tool_migrations` ( `id` VARCHAR(255) NOT NULL, `tool_name` VARCHAR(255), `display_name` VARCHAR(255), `version` VARCHAR(255), `description` TEXT, `destination_app` VARCHAR(255), `migration_date` DATETIME, `notes` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `tool_dependencies` ( `tool_name` VARCHAR(255) NOT NULL, `table_name` VARCHAR(255) NOT NULL, `read_fields` TEXT, `write_fields` TEXT, `allowed_operations` VARCHAR(255) DEFAULT '*', `load_strategy` VARCHAR(255), `load_condition` TEXT, PRIMARY KEY (`tool_name`, `table_name`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `auto_generated_columns` ( `table_name` VARCHAR(255) NOT NULL, `column_name` VARCHAR(255) NOT NULL, `manufacturer_id` VARCHAR(255) NOT NULL, `source_table` VARCHAR(255) NOT NULL, `source_column` VARCHAR(255), `created_at` DATETIME, PRIMARY KEY (`table_name`, `column_name`), INDEX `idx_manufacturer` (`manufacturer_id`), INDEX `idx_source` (`source_table`), INDEX `idx_table` (`table_name`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `dev_roadmap` ( `id` VARCHAR(255) NOT NULL, `parent_id` VARCHAR(255), `title` TEXT, `description` TEXT, `instructions` TEXT, `status` VARCHAR(255), `created_at` DATETIME, `completed_at` DATETIME, `type` VARCHAR(255), `priority` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `dev_constitution` ( `id` VARCHAR(255) NOT NULL, `title` VARCHAR(255), `content` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `dev_guidelines_recommended` ( `id` VARCHAR(255) NOT NULL, `title` VARCHAR(255), `content` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `dev_guidelines_prohibited` ( `id` VARCHAR(255) NOT NULL, `title` VARCHAR(255), `content` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `task_master` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `category` VARCHAR(255), `unit` VARCHAR(255), `default_value` INT, `calculation_logic` VARCHAR(255), `days_required` INT, `sort_order` INT, `daily_capacity` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `quote_tasks` ( `id` VARCHAR(255) NOT NULL, `quote_id` VARCHAR(255), `task_master_id` VARCHAR(255), `status` VARCHAR(255), `completed_at` DATETIME, `due_date` DATE, `assignee_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `task_generation_rules` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `condition_json` TEXT, `task_ids_json` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `task_time_settings` ( `id` VARCHAR(255) NOT NULL, `key` VARCHAR(255), `value` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `calculation_logic_types` ( `id` VARCHAR(255) NOT NULL, `code` VARCHAR(255), `name` VARCHAR(255), `description` TEXT, `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `time_units` ( `id` VARCHAR(255) NOT NULL, `code` VARCHAR(255), `name` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `ink_product_types` ( `id` VARCHAR(255) NOT NULL, `code` VARCHAR(255), `name` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `weight_volume_units` ( `id` VARCHAR(255) NOT NULL, `code` VARCHAR(255), `name` VARCHAR(255), `unit_type` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `free_input_item_types` ( `id` VARCHAR(255) NOT NULL, `code` VARCHAR(255), `name` VARCHAR(255), `description` TEXT, `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `color_libraries` ( `id` VARCHAR(255) NOT NULL, `code` VARCHAR(255), `name` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `color_library_types` ( `id` VARCHAR(255) NOT NULL, `library_id` VARCHAR(255), `code` VARCHAR(255), `name` VARCHAR(255), `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `bills` ( `id` VARCHAR(255) NOT NULL, `customer_id` VARCHAR(255), `invoice_number` VARCHAR(255), `issue_date` DATE, `due_date` DATE, `total_amount` INT, `status` VARCHAR(255), `notes` TEXT, `file_attachment_url` TEXT, `payment_date` DATE, `is_locked` TINYINT(1), `billing_month` VARCHAR(7), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `bill_items` ( `id` VARCHAR(255) NOT NULL, `bill_id` VARCHAR(255), `description` TEXT, `quantity` INT, `unit_price` INT, `amount` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `invoice_parsing_templates` ( `id` VARCHAR(255) NOT NULL, `vendor_id` VARCHAR(255), `template_name` VARCHAR(255), `field_mappings_json` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `emails` ( `id` VARCHAR(255) NOT NULL, `quote_id` VARCHAR(255), `from_address` VARCHAR(255), `to_address` VARCHAR(255), `cc_address` VARCHAR(255), `subject` TEXT, `body` TEXT, `sent_at` DATETIME, `direction` VARCHAR(255), `status` VARCHAR(255), `account_id` VARCHAR(255), `thread_id` VARCHAR(255), `has_attachments` TINYINT(1), `is_triaged` TINYINT(1), `ai_summary` TEXT, `ai_category` VARCHAR(255), `ai_triage_data` TEXT, `message_id_hash` VARCHAR(255), `uid` INT, `previous_status` VARCHAR(255), `trashed_at` DATETIME, `related_email_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `email_attachments` ( `id` VARCHAR(255) NOT NULL, `email_id` VARCHAR(255), `filename` VARCHAR(255), `file_type` VARCHAR(255), `file_size` INT, `base64_data` LONGTEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `email_accounts` ( `id` VARCHAR(255) NOT NULL, `name` TEXT, `email_address` TEXT, `color` TEXT, `account_type` TEXT, `incoming_server_type` TEXT, `incoming_server_host` TEXT, `incoming_server_port` INT, `incoming_server_user` TEXT, `incoming_server_password` TEXT, `incoming_server_ssl` TINYINT(1), `smtp_server_host` TEXT, `smtp_server_port` INT, `smtp_server_user` TEXT, `smtp_server_password` TEXT, `smtp_server_ssl` TINYINT(1), `is_google_oauth` TINYINT(1), `google_refresh_token` TEXT, `last_sync_uid` TEXT, `signature` TEXT, `forwarding_enabled` TINYINT(1) DEFAULT 0, `forwarding_address` TEXT, `forwarding_action` TEXT, `pop_status` TEXT, `pop_action` TEXT, `imap_status` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `google_api_settings` ( `key` VARCHAR(255) NOT NULL, `value` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `google_fonts` ( `id` VARCHAR(255) NOT NULL, `font_family` VARCHAR(255) NOT NULL, `font_name` VARCHAR(255) NOT NULL, `import_url` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `ai_settings` ( `key` VARCHAR(255) NOT NULL, `value` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `email_templates` ( `id` VARCHAR(255) NOT NULL, `title` VARCHAR(255), `content` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `email_general_settings` ( `key` VARCHAR(255) NOT NULL, `value` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `work_sessions` ( `id` VARCHAR(255) NOT NULL, `user_id` VARCHAR(255), `task_master_id` VARCHAR(255), `start_time` DATETIME, `end_time` DATETIME, `duration_minutes` INT, `notes` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `work_session_quotes` ( `id` VARCHAR(255) NOT NULL, `work_session_id` VARCHAR(255), `quote_id` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `sql_export_presets` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `config_json` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `tool_visibility_settings` ( `tool_name` VARCHAR(255) NOT NULL, `device_type` VARCHAR(255) NOT NULL, `is_visible` TINYINT(1), PRIMARY KEY (`tool_name`, `device_type`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `mobile_tool_mappings` ( `mobile_tool_name` VARCHAR(255) NOT NULL, `desktop_tool_name` VARCHAR(255), PRIMARY KEY (`mobile_tool_name`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+-- 共通の言語設定テーブル
+CREATE TABLE `language_settings_common` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- ツールごとの言語設定テーブル
+CREATE TABLE `language_settings_customer_management` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_order_management` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_product_management` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_user_manager` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_language_manager` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_accounting` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_ai_task_management` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_app_management` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_architecture` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_backup_manager` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_data_io` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_dev_lock_manager` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_dev_tools` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_display_settings` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_document` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_estimator_settings` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_google_api_settings` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_hub` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_id_manager` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_image_batch_linker` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_image_file_name_converter` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_module_catalog` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_pdf_item_group_manager` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_pdf_preview_settings` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_pdf_template_manager` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_php_info_viewer` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_pricing_management` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_product_definition` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_production_settings` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_proofing` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_shipping_logic_tool` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_silkscreen` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_system_diagnostics` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_system_logs` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_tool_dependency_manager` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_tool_dependency_scanner` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_tool_guide` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_color_library_manager` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_dev_management` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_dtf_cost_calculator` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_email_settings` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_task_settings` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_tool_exporter` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_tool_porting_manager` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_calculation_logic_manager` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_ink_mixing` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_ink_product_management` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_ink_series_management` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_print_history` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_production_scheduler` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_unregistered_module_tool` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_worksheet` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_inventory_management` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_database_schema_manager` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `language_settings_module_list` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- 後方互換性のため、既存のlanguage_settingsテーブルも残す（非推奨）
+CREATE TABLE `language_settings` ( `key` VARCHAR(255) NOT NULL, `ja` TEXT, `en` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `languages` ( `id` VARCHAR(255) NOT NULL, `code` VARCHAR(255), `name` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `icons` ( `name` VARCHAR(255) NOT NULL, `svg_content` TEXT, PRIMARY KEY (`name`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `email_labels` ( `id` VARCHAR(255) NOT NULL, `name` VARCHAR(255), `color` VARCHAR(255), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `email_label_ai_rules` ( `id` VARCHAR(255) NOT NULL, `label_id` VARCHAR(255), `condition_type` VARCHAR(255), `condition_value` TEXT, `sort_order` INT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `email_settings` ( `key` VARCHAR(255) NOT NULL, `value` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `server_config` ( `key` VARCHAR(255) NOT NULL, `value` TEXT, PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `gemini_models` ( `id` VARCHAR(255) NOT NULL, `model_name` VARCHAR(255) NOT NULL, `display_name` VARCHAR(255) NOT NULL, `status` VARCHAR(50) NOT NULL, `description` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `modules_core` ( `id` VARCHAR(255) NOT NULL, `fileName` VARCHAR(255), `japaneseName` TEXT, `type` VARCHAR(255), `description` TEXT, `page` VARCHAR(255), `usage` TEXT, `sort_order` INT, `icon_name` VARCHAR(255), `group_name` VARCHAR(255), `notes` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `modules_other` ( `id` VARCHAR(255) NOT NULL, `fileName` VARCHAR(255), `japaneseName` TEXT, `type` VARCHAR(255), `description` TEXT, `page` VARCHAR(255), `usage` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `modules_page_tool` ( `id` VARCHAR(255) NOT NULL, `fileName` VARCHAR(255), `japaneseName` TEXT, `type` VARCHAR(255), `description` TEXT, `page` VARCHAR(255), `usage` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `modules_service` ( `id` VARCHAR(255) NOT NULL, `fileName` VARCHAR(255), `japaneseName` TEXT, `type` VARCHAR(255), `description` TEXT, `page` VARCHAR(255), `usage` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `modules_ui_atoms` ( `id` VARCHAR(255) NOT NULL, `fileName` VARCHAR(255), `japaneseName` TEXT, `type` VARCHAR(255), `description` TEXT, `page` VARCHAR(255), `usage` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `modules_ui_modals` ( `id` VARCHAR(255) NOT NULL, `fileName` VARCHAR(255), `japaneseName` TEXT, `type` VARCHAR(255), `description` TEXT, `page` VARCHAR(255), `usage` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `modules_ui_molecules` ( `id` VARCHAR(255) NOT NULL, `fileName` VARCHAR(255), `japaneseName` TEXT, `type` VARCHAR(255), `description` TEXT, `page` VARCHAR(255), `usage` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `modules_ui_organisms` ( `id` VARCHAR(255) NOT NULL, `fileName` VARCHAR(255), `japaneseName` TEXT, `type` VARCHAR(255), `description` TEXT, `page` VARCHAR(255), `usage` TEXT, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 商品×カラー別サイズ展開管理テーブル
+CREATE TABLE `product_color_sizes` (
+  `id` VARCHAR(255) NOT NULL,
+  `manufacturer_id` VARCHAR(255),
+  `product_id` VARCHAR(255),
+  `color_id` VARCHAR(255),
+  `size_id` VARCHAR(255),
+  `sort_order` INT,
+  PRIMARY KEY (`id`),
+  INDEX `idx_product_color_sizes_product` (`product_id`),
+  INDEX `idx_product_color_sizes_color` (`color_id`),
+  INDEX `idx_product_color_sizes_size` (`size_id`),
+  INDEX `idx_product_color_sizes_manufacturer` (`manufacturer_id`),
+  INDEX `idx_product_color_sizes_product_color` (`product_id`, `color_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+SET FOREIGN_KEY_CHECKS=1;
+COMMIT;

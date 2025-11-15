@@ -1,0 +1,4 @@
+﻿id,name,pricing_model,rate,markup_percentage,volume_discount_schedule_id
+1,"標準 定価掛率",RATE,0.52,,
+2,"標準 仕入値マークアップ",MARKUP,,0.1,
+3,"傘 数量割引",VOLUME_DISCOUNT_MARKUP,,,umbrella_A

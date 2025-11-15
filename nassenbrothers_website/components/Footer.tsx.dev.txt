@@ -1,0 +1,95 @@
+import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AppData, Menu } from '../types';
+
+interface FooterProps {
+  appData: AppData;
+}
+
+export const Footer: React.FC<FooterProps> = ({ appData }) => {
+  const { menus, companyInfo, uiText } = appData;
+  const navigate = useNavigate();
+
+  const footerLinks = useMemo(() => {
+    const mainLinks: Menu[] = [];
+    const policyLinks: Menu[] = [];
+
+    menus.forEach(menu => {
+      // Exclude dropdown parents and MyPage links
+      if (menu.parent_id === null && menu.path !== '#' && !menu.path.startsWith('/my-page')) {
+        if (menu.path === '/privacy-policy') {
+          policyLinks.push(menu);
+        } else {
+          mainLinks.push(menu);
+        }
+      }
+    });
+
+    return {
+      main: mainLinks.sort((a, b) => a.sort_order - b.sort_order),
+      policy: policyLinks.sort((a, b) => a.sort_order - b.sort_order),
+    };
+  }, [menus]);
+
+  return (
+    <footer className="bg-primary text-white">
+      <div className="container mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Column 1: Brand and Info */}
+          <div className="md:col-span-1">
+            <h2 className="text-2xl font-bold">捺染兄弟</h2>
+            <div className="mt-4 text-sm text-gray-300 space-y-2">
+              <p>{companyInfo.companyName}</p>
+              <p>〒{companyInfo.zip} {companyInfo.address}</p>
+              <p>TEL: {companyInfo.tel}</p>
+            </div>
+          </div>
+
+          {/* Column 2 & 3: Links */}
+          <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="font-semibold tracking-wider uppercase">ナビゲーション</h3>
+              <ul className="mt-4 space-y-2">
+                {footerLinks.main.map(link => (
+                  <li key={link.id}>
+                    <button onClick={() => navigate(link.path)} className="text-gray-300 hover:text-white transition-colors text-left">
+                      {link.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold tracking-wider uppercase">サポート</h3>
+              <ul className="mt-4 space-y-2">
+                {footerLinks.policy.map(link => (
+                  <li key={link.id}>
+                    <button onClick={() => navigate(link.path)} className="text-gray-300 hover:text-white transition-colors text-left">
+                      {link.name}
+                    </button>
+                  </li>
+                ))}
+                 <li>
+                    <button onClick={() => navigate('/my-page')} className="text-gray-300 hover:text-white transition-colors text-left">
+                      マイページ
+                    </button>
+                  </li>
+                  <li>
+                    <button onClick={() => navigate('/admin')} className="text-gray-300 hover:text-white transition-colors text-left flex items-center">
+                      <i className="fas fa-cogs mr-2"></i>
+                      管理画面
+                    </button>
+                  </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="bg-black bg-opacity-20 py-4">
+        <div className="container mx-auto px-6 text-center text-sm text-gray-400">
+          <p>{uiText['footer.copyright'] || `© ${new Date().getFullYear()} Nassen Brothers Inc.`}</p>
+        </div>
+      </div>
+    </footer>
+  );
+};

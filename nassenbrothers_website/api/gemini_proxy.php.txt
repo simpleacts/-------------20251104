@@ -1,0 +1,42 @@
+<?php
+// api/gemini_proxy.php
+// フロントエンドからのリクエストを受け取り、AIサービスを呼び出すプロキシ
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+// 共通のAIサービスファイルを読み込む
+require_once __DIR__ . '/services/gemini_service.php';
+
+try {
+    // 1. フロントエンドからのリクエストボディを取得
+    $request_body = file_get_contents('php://input');
+    $data = json_decode($request_body, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception('Invalid JSON request body.', 400);
+    }
+
+    // 2. 共通関数を呼び出してGemini APIにリクエストを転送
+    $gemini_response = call_gemini_api($data);
+
+    // 3. Gemini APIからのレスポンスをそのままフロントエンドに返す
+    http_response_code(200);
+    echo $gemini_response;
+
+} catch (Exception $e) {
+    // call_gemini_api からスローされた例外をキャッチ
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("Gemini Proxy Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'AIプロキシでエラーが発生しました。', 'error' => $e->getMessage()]);
+}
+?>

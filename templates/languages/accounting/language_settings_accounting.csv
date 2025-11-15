@@ -1,0 +1,11 @@
+key,ja,en
+accounting.payable.title,買掛管理 (支払),Accounts Payable (Payments)
+accounting.payable.description,仕入先への支払と状況を管理します。,Manage payments and status to vendors.
+accounting.receivable.title,売掛管理 (請求),Accounts Receivable (Invoicing)
+accounting.receivable.description,顧客への請求と入金状況を管理します。,Manage invoicing and payment status to customers.
+accounting.receivable.loading,売掛管理データを読み込み中...,Loading accounts receivable data...
+accounting.receivable.load_failed,データの読み込みに失敗しました。,Failed to load data.
+accounting.receivable.table_error,売掛管理に必要なテーブルデータを読み込めませんでした。,Could not load required table data for accounts receivable management.
+accounting.cashflow.title,資金繰り分析,Cash Flow Analysis
+accounting.cashflow.description,月次のキャッシュフローを可視化し、経営判断をサポートします。,Visualize monthly cash flow and support management decisions.
+

@@ -1,0 +1,332 @@
+<?php
+// --- ERROR HANDLING (for production) ---
+// Turn off error display for security, but log all errors.
+ini_set('display_errors', 0);
+error_reporting(E_ALL); 
+
+// --- ROBUST PHPMailer INCLUSION ---
+// This assumes the PHPMailer folder is placed INSIDE the 'api' directory.
+// Structure: /api/PHPMailer/
+$dir = __DIR__;
+$phpmailer_path = $dir . '/PHPMailer/src/';
+
+// Check for PHPMailer files before trying to require them.
+// This prevents fatal errors and provides a clean JSON response if files are missing.
+if (!file_exists($phpmailer_path . 'PHPMailer.php')) {
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=UTF-8');
+    }
+    // Provide a clear error message for the developer.
+    die(json_encode([
+        'success' => false, 
+        'message' => 'サーバーライブラリの設定エラーです。',
+        'error' => "PHPMailer library not found. Please ensure the 'PHPMailer' folder is placed inside the 'api' directory. Expected path: " . $phpmailer_path
+    ]));
+}
+
+// Now it's safe to require the files.
+require $phpmailer_path . 'Exception.php';
+require $phpmailer_path . 'PHPMailer.php';
+require $phpmailer_path . 'SMTP.php';
+
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// --- HELPER FUNCTION: LOAD CONFIGURATION ---
+function load_config() {
+    // This assumes the 'templates' folder is alongside the 'api' directory.
+    // Structure: /api/ and /templates/
+    $config_path = __DIR__ . '/../templates/server_config.csv';
+
+    if (!file_exists($config_path) || !is_readable($config_path)) {
+        // This improved error message will be logged to the server error log if it fails.
+        throw new Exception("サーバー設定ファイルが見つからないか、読み取れません。パスと権限を確認してください。 (Server configuration file not found or not readable.) Path: {$config_path}");
+    }
+
+    $config = [];
+    if (($handle = fopen($config_path, "r")) !== FALSE) {
+        fgetcsv($handle); // Skip header row
+        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+            if (count($data) == 2) {
+                $config[trim($data[0])] = trim($data[1]);
+            }
+        }
+        fclose($handle);
+    } else {
+        throw new Exception("Could not open server configuration file at: {$config_path}");
+    }
+
+    // Define constants from config
+    define('SMTP_HOST', $config['SMTP_HOST'] ?? '');
+    define('SMTP_PORT', $config['SMTP_PORT'] ?? 587);
+    define('SMTP_USER', $config['SMTP_USER'] ?? '');
+    define('SMTP_PASSWORD', $config['SMTP_PASSWORD'] ?? '');
+    $smtp_secure_value = strtolower($config['SMTP_SECURE'] ?? 'true');
+    define('SMTP_SECURE', $smtp_secure_value === 'true' ? PHPMailer::ENCRYPTION_STARTTLS : false);
+    define('MAIL_FROM_ADDRESS', $config['MAIL_FROM_ADDRESS'] ?? '');
+    define('MAIL_FROM_NAME', $config['MAIL_FROM_NAME'] ?? '捺染兄弟');
+    define('ADMIN_EMAIL', $config['ADMIN_EMAIL'] ?? '');
+    define('APP_BASE_URL', $config['APP_BASE_URL'] ?? '');
+}
+
+// --- HEADERS ---
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Max-Age: 3600");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+// --- MAIN LOGIC ---
+try {
+    // Load server configuration securely
+    load_config();
+    
+    $json_data = file_get_contents('php://input');
+    if ($json_data === false) {
+        throw new Exception("Could not read input data.");
+    }
+    $request_data = json_decode($json_data, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception("Invalid JSON received: " . json_last_error_msg());
+    }
+
+    $mail_type = $request_data['type'] ?? null;
+    $customer_email = $request_data['email'] ?? null;
+    $data = $request_data['data'] ?? null;
+
+    if (!$mail_type || !$customer_email || !$data) {
+        http_response_code(400);
+        throw new Exception("Missing required parameters: type, email, or data.");
+    }
+
+    $estimateId = $data['estimateId'];
+    
+    if ($mail_type === 'estimate') {
+        $subject_customer = "【捺染兄弟】お見積もりのご確認 ({$estimateId})";
+        $subject_admin = "【捺染兄弟】WEB見積もり発行のお知らせ ({$estimateId})";
+        $body_customer = generate_email_body($data, 'estimate', 'customer');
+        $body_admin = generate_email_body($data, 'estimate', 'admin');
+    } elseif ($mail_type === 'invoice') {
+        $subject_customer = "【捺染兄弟】ご請求書のご案内 ({$estimateId})";
+        $subject_admin = "【捺染兄弟】請求書発行のお知らせ ({$estimateId})";
+        $body_customer = generate_email_body($data, 'invoice', 'customer');
+        $body_admin = generate_email_body($data, 'invoice', 'admin');
+    } else {
+        http_response_code(400);
+        throw new Exception("Invalid mail type specified.");
+    }
+
+    send_email($customer_email, $subject_customer, $body_customer);
+    send_email(ADMIN_EMAIL, $subject_admin, $body_admin);
+
+    http_response_code(200);
+    echo json_encode(['success' => true, 'message' => 'Emails sent successfully.']);
+
+} catch (Exception $e) {
+    http_response_code(500);
+    error_log("Email sending failed: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'メールの送信中にエラーが発生しました。', 'error' => $e->getMessage()]);
+}
+
+// --- HELPER FUNCTION: SEND EMAIL ---
+function send_email($to, $subject, $body) {
+    $mail = new PHPMailer(true);
+    
+    try {
+        // Server settings
+        $mail->SMTPDebug = 0; // Disable verbose debug output for production
+        $mail->isSMTP();
+        $mail->Host       = SMTP_HOST;
+        $mail->SMTPAuth   = true;
+        $mail->Username   = SMTP_USER;
+        $mail->Password   = SMTP_PASSWORD;
+        $mail->SMTPSecure = SMTP_SECURE;
+        $mail->Port       = SMTP_PORT;
+        $mail->CharSet    = 'UTF-8';
+
+        // Recipients
+        $mail->setFrom(MAIL_FROM_ADDRESS, MAIL_FROM_NAME);
+        $mail->addAddress($to);
+
+        // Content
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+
+        $mail->send();
+
+    } catch (Exception $e) {
+        // Log any exception and re-throw it to be handled by the main try-catch block
+        error_log("PHPMailer Exception for '{$to}': " . $e->getMessage() . " | Mailer Error: {$mail->ErrorInfo}");
+        throw new Exception("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
+    }
+}
+
+
+// --- HELPER FUNCTION: GENERATE EMAIL BODY ---
+function generate_email_body($data, $type, $recipient) {
+    $customerInfo = $data['customerInfo'];
+    $cost = $data['cost'];
+    $estimateId = $data['estimateId'];
+    $companyInfo = $data['companyInfo'];
+    
+    $doc_title = ($type === 'invoice') ? 'ご請求書' : 'お見積書';
+    $total_label = ($type === 'invoice') ? 'ご請求金額' : 'お見積もり金額';
+
+    $addressee = htmlspecialchars(trim($customerInfo['companyName'] . ' ' . $customerInfo['nameKanji']));
+
+    $customer_greeting = $addressee . " 様<br><br>";
+    if ($type === 'invoice') {
+        $customer_greeting .= "この度はご注文いただき、誠にありがとうございます。<br>下記内容にてご請求させていただきますので、ご確認の上、お支払い期限までにお振込みをお願いいたします。";
+    } else {
+        $customer_greeting .= "この度はお見積もりのご依頼をいただき、誠にありがとうございます。<br>下記内容にてお見積もりを作成いたしましたので、ご確認をお願いいたします。";
+    }
+
+    $admin_greeting = "WEBサイトより{$doc_title}が発行されました。<br>お客様情報： " . $addressee . " 様 (" . htmlspecialchars($customerInfo['email']) . ")";
+
+    $greeting = ($recipient === 'admin') ? $admin_greeting : $customer_greeting;
+
+    ob_start();
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title><?php echo $doc_title; ?></title>
+    <style>
+        body { font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif', 'Meiryo'; color: #333; line-height: 1.6; font-size: 14px; }
+        .container { max-width: 800px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { font-size: 24px; margin: 0; }
+        .address-section { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .customer-address, .company-address { width: 48%; }
+        .customer-address { border-bottom: 2px solid #000; padding-bottom: 5px; font-size: 16px; font-weight: bold; }
+        .company-address { text-align: right; font-size: 12px; }
+        .total-section { border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 15px 0; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: baseline; }
+        .total-section .label { font-size: 18px; font-weight: bold; }
+        .total-section .amount { font-size: 28px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .summary-table { width: 50%; margin-left: auto; }
+        .summary-table td { border: 1px solid #999; }
+        .summary-table .label { background-color: #f2f2f2; font-weight: bold; }
+        .notes { margin-top: 20px; padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9; }
+        .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><?php echo $doc_title; ?></h1>
+        </div>
+        
+        <p>発行日: <?php echo date('Y/m/d'); ?></p>
+        <p><?php echo $doc_title; ?>番号: <?php echo htmlspecialchars($estimateId); ?></p>
+        
+        <div class="address-section">
+            <div class="customer-address">
+                <?php echo $addressee; ?> 様
+            </div>
+            <div class="company-address">
+                <strong><?php echo htmlspecialchars($companyInfo['companyName']); ?></strong><br>
+                〒<?php echo htmlspecialchars($companyInfo['zip']); ?><br>
+                <?php echo htmlspecialchars($companyInfo['address']); ?><br>
+                TEL: <?php echo htmlspecialchars($companyInfo['tel']); ?><br>
+                適格請求書発行事業者番号：<?php echo htmlspecialchars($companyInfo['invoiceIssuerNumber']); ?>
+            </div>
+        </div>
+
+        <p><?php echo $greeting; ?></p>
+        
+        <div class="total-section">
+            <span class="label"><?php echo $total_label; ?> (税込)</span>
+            <span class="amount">¥ <?php echo number_format($cost['totalCostWithTax']); ?></span>
+        </div>
+        
+        <h3>内訳</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>品目</th>
+                    <th class="text-center">単価</th>
+                    <th class="text-center">数量</th>
+                    <th class="text-right">価格 (税抜)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Tシャツ本体代</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center"><?php echo $data['totalQuantity']; ?></td>
+                    <td class="text-right">¥ <?php echo number_format($cost['tshirtCost']); ?></td>
+                </tr>
+                <tr>
+                    <td>プリント代</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-right">¥ <?php echo number_format($cost['printCost']); ?></td>
+                </tr>
+                <tr>
+                    <td>版代</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-right">¥ <?php echo number_format($cost['setupCost']); ?></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="summary-table">
+            <tr>
+                <td class="label">小計 (税抜)</td>
+                <td class="text-right">¥ <?php echo number_format($cost['totalCost']); ?></td>
+            </tr>
+             <tr>
+                <td class="label">送料</td>
+                <td class="text-right"><?php echo ($cost['shippingCost'] > 0) ? '¥ ' . number_format($cost['shippingCost']) : '無料'; ?></td>
+            </tr>
+            <tr>
+                <td class="label">消費税 (10%)</td>
+                <td class="text-right">¥ <?php echo number_format($cost['tax']); ?></td>
+            </tr>
+            <tr>
+                <td class="label"><strong>合計金額 (税込)</strong></td>
+                <td class="text-right"><strong>¥ <?php echo number_format($cost['totalCostWithTax']); ?></strong></td>
+            </tr>
+        </table>
+        
+        <?php if ($type === 'invoice'): ?>
+            <div class="notes">
+                <h4>お振込先</h4>
+                <p>
+                    <?php echo htmlspecialchars($companyInfo['bankName']); ?>
+                    <?php echo htmlspecialchars($companyInfo['bankBranchName']); ?>
+                    (<?php echo htmlspecialchars($companyInfo['bankAccountType']); ?>)
+                    <?php echo htmlspecialchars($companyInfo['bankAccountNumber']); ?><br>
+                    口座名義: <?php echo htmlspecialchars($companyInfo['bankAccountHolder']); ?>
+                </p>
+                <p><strong>お支払い期限: <?php echo htmlspecialchars($data['paymentDueDate']); ?></strong></p>
+            </div>
+        <?php endif; ?>
+
+        <div class="footer">
+            <p>このメールは自動送信されています。</p>
+            <p><?php echo htmlspecialchars($companyInfo['companyName']); ?> | <a href="<?php echo APP_BASE_URL; ?>"><?php echo APP_BASE_URL; ?></a></p>
+        </div>
+    </div>
+</body>
+</html>
+<?php
+    $body = ob_get_clean();
+    return $body;
+}
+?>

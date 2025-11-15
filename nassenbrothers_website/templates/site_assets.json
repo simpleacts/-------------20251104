@@ -1,0 +1,11 @@
+{
+  "heroVideos": [
+    "./videos/background_1.mp4",
+    "./videos/background_2.mp4",
+    "./videos/background_3.mp4"
+  ],
+  "logos": {
+    "main": "./images/logos/logo-placeholder.png",
+    "favicon": ""
+  }
+}

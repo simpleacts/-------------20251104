@@ -1,0 +1,10 @@
+key,ja,en
+pdf_preview.title,PDFプレビュー設定,PDF Preview Settings
+pdf_preview.description,各ツールに埋め込まれたPDFプレビューの初期ズーム率などを管理します。,Manage initial zoom levels and other settings for PDF previews embedded in various tools.
+pdf_preview.add_setting,新規ズーム設定を追加,Add New Zoom Setting
+pdf_preview.table_not_found,'pdf_preview_zoom_configs' テーブルが見つかりません。データベースのセットアップを確認してください。,'pdf_preview_zoom_configs' table not found. Please check database setup.
+pdf_preview.update_failed,サーバーへの更新に失敗しました:,Failed to update to server:
+pdf_preview.delete_confirm,この設定を削除しますか？,Are you sure you want to delete this setting?
+pdf_preview.delete_failed,サーバーからの削除に失敗しました:,Failed to delete from server:
+pdf_preview.add_failed,サーバーへの追加に失敗しました:,Failed to add to server:
+

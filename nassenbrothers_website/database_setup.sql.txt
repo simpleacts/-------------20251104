@@ -1,0 +1,263 @@
+-- --------------------------------------------------------
+-- 捺染兄弟 アプリケーション データベースセットアップSQL
+-- version 6.0
+--
+-- [!!] 重要: このスクリプトは全体を一度に実行してください。
+-- 分割して実行すると、依存関係によりエラーが発生する可能性があります。
+--
+-- 変更点 (v6.0):
+-- - UIエラーを記録するための `app_logs` テーブルを新規追加。
+--
+-- 変更点 (v5.9):
+-- - マジックリンク認証フローのため、`login_tokens` テーブルを新規追加。
+-- 
+-- 変更点 (v5.8):
+-- - マイページのアドレス帳機能のため、`shipping_addresses` テーブルを新規追加。
+-- 
+-- 変更点 (v5.7):
+-- - `products_master` テーブルに公開状態を管理する `is_published` カラムを追加。
+-- 
+-- 変更点 (v5.6):
+-- - 全てのCSVファイルからデータを抽出し、完全なサンプルデータを投入するINSERT文を追加。
+-- 
+-- 変更点 (v5.5):
+-- - `customers` テーブルに配送先住所、顧客グループ等のカラムを追加。
+-- - `products_master` テーブルに `generalImageCount` カラムを追加。
+-- --------------------------------------------------------
+
+-- 使用するデータベースを指定
+USE `simpleacts_quotenassen`;
+
+-- STEP 1: PREPARATION
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS=0; -- 外部キー制約を一時的に無効化
+
+-- --------------------------------------------------------
+-- STEP 2: DROP ALL TABLES IN REVERSE DEPENDENCY ORDER
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `app_logs`;
+DROP TABLE IF EXISTS `login_tokens`;
+DROP TABLE IF EXISTS `quote_history`;
+DROP TABLE IF EXISTS `quote_designs`;
+DROP TABLE IF EXISTS `quote_items`;
+DROP TABLE IF EXISTS `quotes`;
+DROP TABLE IF EXISTS `stock`;
+DROP TABLE IF EXISTS `product_prices`;
+DROP TABLE IF EXISTS `product_colors`;
+DROP TABLE IF EXISTS `product_tags`;
+DROP TABLE IF EXISTS `product_details`;
+DROP TABLE IF EXISTS `additional_print_costs_by_tag`;
+DROP TABLE IF EXISTS `print_cost_combination`;
+DROP TABLE IF EXISTS `plate_cost_combination`;
+DROP TABLE IF EXISTS `category_print_locations`;
+DROP TABLE IF EXISTS `shipping_addresses`;
+DROP TABLE IF EXISTS `customers`;
+DROP TABLE IF EXISTS `products_master`;
+DROP TABLE IF EXISTS `categories`;
+DROP TABLE IF EXISTS `tags`;
+DROP TABLE IF EXISTS `colors`;
+DROP TABLE IF EXISTS `sizes`;
+DROP TABLE IF EXISTS `brand_selling_price_rates`;
+DROP TABLE IF EXISTS `brands`;
+DROP TABLE IF EXISTS `print_size_constraints`;
+DROP TABLE IF EXISTS `print_locations`;
+DROP TABLE IF EXISTS `partner_codes`;
+DROP TABLE IF EXISTS `company_info`;
+DROP TABLE IF EXISTS `gallery_images`;
+DROP TABLE IF EXISTS `gallery_tags`;
+DROP TABLE IF EXISTS `shipping_costs`;
+DROP TABLE IF EXISTS `print_pricing_tiers`;
+DROP TABLE IF EXISTS `additional_print_costs_by_location`;
+DROP TABLE IF EXISTS `additional_print_costs_by_size`;
+DROP TABLE IF EXISTS `special_ink_costs`;
+DROP TABLE IF EXISTS `plate_costs`;
+DROP TABLE IF EXISTS `settings`;
+DROP TABLE IF EXISTS `menus`;
+DROP TABLE IF EXISTS `print_sizes`;
+DROP TABLE IF EXISTS `size_order`;
+DROP TABLE IF EXISTS `articles`;
+DROP TABLE IF EXISTS `article_tags`;
+
+-- --------------------------------------------------------
+-- STEP 3: CREATE ALL TABLES
+-- --------------------------------------------------------
+
+-- Independent Master Tables
+CREATE TABLE `settings` ( `key` varchar(50) NOT NULL, `value` varchar(255), PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `plate_costs` ( `id` int(11) NOT NULL AUTO_INCREMENT, `size` varchar(10) NOT NULL, `plateType` varchar(20) NOT NULL, `cost` int(11) DEFAULT 0, `surchargePerColor` int(11) DEFAULT 0, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `special_ink_costs` ( `type` varchar(20) NOT NULL, `cost` int(11) DEFAULT 0, `displayName` varchar(50), PRIMARY KEY (`type`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `additional_print_costs_by_size` ( `size` varchar(10) NOT NULL, `cost` int(11) DEFAULT 0, PRIMARY KEY (`size`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `additional_print_costs_by_location` ( `location` varchar(50) NOT NULL, `cost` int(11) DEFAULT 0, PRIMARY KEY (`location`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `print_pricing_tiers` ( `id` int(11) NOT NULL AUTO_INCREMENT, `min` int(11) NOT NULL, `max` int(11) NOT NULL, `firstColor` int(11) DEFAULT 0, `additionalColor` int(11) DEFAULT 0, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `shipping_costs` ( `region` varchar(20) NOT NULL, `cost` int(11) DEFAULT 0, `prefectures` text, PRIMARY KEY (`region`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `gallery_images` ( `id` varchar(10) NOT NULL, `title` varchar(100), `description` text, `tags` varchar(255), `imageCount` int(11) DEFAULT 1, `is_published` tinyint(1) NOT NULL DEFAULT 0, `created_at` timestamp NOT NULL DEFAULT current_timestamp(), `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(), PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `gallery_tags` ( `tagId` varchar(20) NOT NULL, `tagName` varchar(50), PRIMARY KEY (`tagId`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `company_info` ( `key` varchar(50) NOT NULL, `value` varchar(255), PRIMARY KEY (`key`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `partner_codes` ( `id` int(11) NOT NULL AUTO_INCREMENT, `code` varchar(50) NOT NULL, `partnerName` varchar(100) NOT NULL, `description` text, `rate` decimal(5,2), PRIMARY KEY (`id`), UNIQUE KEY `code` (`code`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `print_locations` ( `locationId` varchar(50) NOT NULL, `groupName` varchar(50) NOT NULL, `label` varchar(50) NOT NULL, PRIMARY KEY (`locationId`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `print_size_constraints` ( `id` int(11) NOT NULL AUTO_INCREMENT, `constraint_type` varchar(20) NOT NULL, `constraint_id` varchar(50) NOT NULL, `allowed_print_sizes` text, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `tags` ( `tagId` varchar(20) NOT NULL, `tagName` varchar(50), PRIMARY KEY (`tagId`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `categories` ( `categoryId` varchar(10) NOT NULL, `categoryName` varchar(50), `icon` varchar(50) DEFAULT NULL, `sort_order` int(11) DEFAULT 99, PRIMARY KEY (`categoryId`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `brands` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(50) NOT NULL, `code` varchar(50) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `code` (`code`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `menus` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(50) NOT NULL, `path` varchar(255) NOT NULL, `parent_id` int(11) DEFAULT NULL, `sort_order` int(11) NOT NULL DEFAULT 0, `icon` varchar(50) DEFAULT NULL, `is_visible` tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY (`id`), KEY `fk_menus_parent_idx` (`parent_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `print_sizes` ( `sizeId` varchar(10) NOT NULL, `label` varchar(50) NOT NULL, PRIMARY KEY (`sizeId`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `size_order` ( `sizeName` varchar(10) NOT NULL, `sortOrder` int(11) NOT NULL, PRIMARY KEY (`sizeName`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `articles` ( `id` varchar(10) NOT NULL, `slug` varchar(255) NOT NULL, `title` varchar(255) NOT NULL, `excerpt` text, `content` text, `tags` varchar(255), `published_date` date, `image_path` varchar(255), `is_published` tinyint(1) DEFAULT 1, `created_at` timestamp NOT NULL DEFAULT current_timestamp(), `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(), PRIMARY KEY (`id`), UNIQUE KEY `slug` (`slug`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `article_tags` ( `tagId` varchar(20) NOT NULL, `tagName` varchar(50), PRIMARY KEY (`tagId`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `customers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `company_name` varchar(255) DEFAULT NULL,
+  `name_kanji` varchar(255) DEFAULT NULL,
+  `name_kana` varchar(255) DEFAULT NULL,
+  `email` varchar(255) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `zip_code` varchar(10) DEFAULT NULL,
+  `address1` varchar(255) DEFAULT NULL,
+  `address2` varchar(255) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `customer_group` varchar(50) DEFAULT '捺染兄弟',
+  `has_separate_shipping_address` tinyint(1) DEFAULT 0,
+  `shipping_name` varchar(255) DEFAULT NULL,
+  `shipping_phone` varchar(20) DEFAULT NULL,
+  `shipping_zip_code` varchar(10) DEFAULT NULL,
+  `shipping_address1` varchar(255) DEFAULT NULL,
+  `shipping_address2` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dependent Tables
+CREATE TABLE `sizes` (`id` INT AUTO_INCREMENT PRIMARY KEY, `brand_id` INT NOT NULL, `sizeCode` VARCHAR(10) NOT NULL, `sizeName` VARCHAR(10) NOT NULL, UNIQUE KEY `brand_code` (`brand_id`, `sizeCode`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `brand_selling_price_rates` ( `brand_id` int(11) NOT NULL, `rate` decimal(5,2), PRIMARY KEY (`brand_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `colors` ( `id` int(11) NOT NULL AUTO_INCREMENT, `brand_id` int(11) NOT NULL, `code` varchar(10) NOT NULL, `name` varchar(50) NOT NULL, `colorType` varchar(10) NOT NULL, `hex` varchar(7), PRIMARY KEY (`id`), UNIQUE KEY `brand_id_code` (`brand_id`,`code`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `products_master` ( `id` varchar(50) NOT NULL, `brand_id` int(11) NOT NULL, `code` varchar(50), `categoryId` varchar(10), `jan_code` varchar(20), `generalImageCount` int(11) DEFAULT 0, `is_published` tinyint(1) NOT NULL DEFAULT 0, `created_at` timestamp NOT NULL DEFAULT current_timestamp(), `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(), PRIMARY KEY (`id`), KEY `idx_brand_id` (`brand_id`), KEY `idx_categoryId` (`categoryId`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `product_details` ( `product_id` varchar(50) NOT NULL, `name` varchar(100), `variantName` varchar(100), `description` text, PRIMARY KEY (`product_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `product_tags` ( `product_id` varchar(50) NOT NULL, `tag_id` varchar(20) NOT NULL, PRIMARY KEY (`product_id`,`tag_id`), KEY `fk_pt_tag_idx` (`tag_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `product_colors` ( `product_id` varchar(50) NOT NULL, `color_id` int(11) NOT NULL, PRIMARY KEY (`product_id`,`color_id`), KEY `fk_pc_color_idx` (`color_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `product_prices` ( `id` int(11) NOT NULL AUTO_INCREMENT, `productId` varchar(50) NOT NULL, `colorType` varchar(10) NOT NULL, `size` varchar(10) NOT NULL, `listPrice` int(11) DEFAULT 0, `purchasePrice` int(11) DEFAULT 0, PRIMARY KEY (`id`), KEY `idx_productId` (`productId`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `stock` ( `id` int(11) NOT NULL AUTO_INCREMENT, `productCode` varchar(50) NOT NULL, `colorCode` varchar(10) NOT NULL, `sizeCode` varchar(10) NOT NULL, `stockQuantity` int(11) DEFAULT 0, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `additional_print_costs_by_tag` ( `tagId` varchar(20) NOT NULL, `cost` int(11) DEFAULT 0, PRIMARY KEY (`tagId`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `print_cost_combination` ( `id` int(11) NOT NULL AUTO_INCREMENT, `combination_id` varchar(50) NOT NULL, `category_id` varchar(10) NOT NULL, PRIMARY KEY (`id`), KEY `fk_pcc_category_idx` (`category_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `plate_cost_combination` ( `id` int(11) NOT NULL AUTO_INCREMENT, `combination_id` varchar(50) NOT NULL, `category_id` varchar(10) NOT NULL, PRIMARY KEY (`id`), KEY `fk_plcc_category_idx` (`category_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `category_print_locations` ( `id` int(11) NOT NULL AUTO_INCREMENT, `category_id` varchar(10) NOT NULL, `allowed_location_ids` text, PRIMARY KEY (`id`), KEY `fk_cpl_category_idx` (`category_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `shipping_addresses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `customer_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL COMMENT '例: 自宅, 事務所',
+  `zip_code` varchar(10) NOT NULL,
+  `address1` varchar(255) NOT NULL,
+  `address2` varchar(255) DEFAULT NULL,
+  `phone` varchar(20) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `fk_sa_customer_idx` (`customer_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Quote Related Tables
+CREATE TABLE `quotes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `quote_code` varchar(255) NOT NULL,
+  `customer_id` int(11) NOT NULL,
+  `subject` varchar(255) DEFAULT NULL,
+  `quote_status` varchar(50) NOT NULL DEFAULT '受注',
+  `payment_status` varchar(50) NOT NULL DEFAULT '未入金',
+  `production_status` varchar(50) NOT NULL DEFAULT '未着手',
+  `shipping_status` varchar(50) NOT NULL DEFAULT '未発送',
+  `data_confirmation_status` varchar(50) NOT NULL DEFAULT '未確認',
+  `total_cost_ex_tax` decimal(10,0) NOT NULL DEFAULT 0,
+  `shipping_cost` decimal(10,0) NOT NULL DEFAULT 0,
+  `tax` decimal(10,0) NOT NULL DEFAULT 0,
+  `total_cost_in_tax` decimal(10,0) NOT NULL DEFAULT 0,
+  `notes` text,
+  `internal_notes` text,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `ordered_at` datetime,
+  `payment_due_date` date,
+  `estimated_delivery_date` date,
+  `shipping_carrier` varchar(50),
+  `shipping_date` date,
+  `tracking_number` varchar(255),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `quote_code` (`quote_code`),
+  KEY `fk_q_customer_idx` (`customer_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `quote_items` ( `id` int(11) NOT NULL AUTO_INCREMENT, `quote_id` int(11) NOT NULL, `product_id` varchar(255) NOT NULL, `product_name` varchar(255) NOT NULL, `color` varchar(50) NOT NULL, `size` varchar(50) NOT NULL, `quantity` int(11) NOT NULL, `unit_price` decimal(10,0) NOT NULL, PRIMARY KEY (`id`), KEY `fk_qi_quote_idx` (`quote_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `quote_designs` ( `id` int(11) NOT NULL AUTO_INCREMENT, `quote_id` int(11) NOT NULL, `location` varchar(50), `print_size` varchar(50), `colors` int(11) DEFAULT 1, `plate_type` varchar(50) DEFAULT 'normal', `special_inks` json, `file_url` varchar(2048), PRIMARY KEY (`id`), KEY `fk_qd_quote_idx` (`quote_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `quote_history` ( `id` int(11) NOT NULL AUTO_INCREMENT, `quote_id` int(11) NOT NULL, `event_type` varchar(100) NOT NULL, `notes` text, `created_by` varchar(255) DEFAULT 'system', `created_at` datetime NOT NULL DEFAULT current_timestamp(), PRIMARY KEY (`id`), KEY `fk_qh_quote_idx` (`quote_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `login_tokens` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_email` varchar(255) NOT NULL,
+  `token` varchar(128) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `used_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `token` (`token`),
+  KEY `user_email` (`user_email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ADD: New table for app logs
+CREATE TABLE `app_logs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `timestamp` datetime NOT NULL DEFAULT current_timestamp(),
+  `level` varchar(10) NOT NULL DEFAULT 'ERROR',
+  `message` text,
+  `stack_trace` text,
+  `user_agent` varchar(512) DEFAULT NULL,
+  `location` varchar(2048) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- --------------------------------------------------------
+-- STEP 4: ADD FOREIGN KEYS
+-- --------------------------------------------------------
+ALTER TABLE `sizes` ADD CONSTRAINT `fk_s_brand` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`id`) ON DELETE CASCADE;
+ALTER TABLE `brand_selling_price_rates` ADD CONSTRAINT `fk_bspr_brand` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`id`) ON DELETE CASCADE;
+ALTER TABLE `colors` ADD CONSTRAINT `fk_c_brand` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`id`) ON DELETE CASCADE;
+ALTER TABLE `products_master` ADD CONSTRAINT `fk_pm_brand` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`id`) ON DELETE CASCADE;
+ALTER TABLE `products_master` ADD CONSTRAINT `fk_pm_category` FOREIGN KEY (`categoryId`) REFERENCES `categories` (`categoryId`) ON DELETE SET NULL;
+ALTER TABLE `product_details` ADD CONSTRAINT `fk_pd_product` FOREIGN KEY (`product_id`) REFERENCES `products_master` (`id`) ON DELETE CASCADE;
+ALTER TABLE `product_tags` ADD CONSTRAINT `fk_pt_product` FOREIGN KEY (`product_id`) REFERENCES `products_master` (`id`) ON DELETE CASCADE;
+ALTER TABLE `product_tags` ADD CONSTRAINT `fk_pt_tag` FOREIGN KEY (`tag_id`) REFERENCES `tags` (`tagId`) ON DELETE CASCADE;
+ALTER TABLE `product_colors` ADD CONSTRAINT `fk_pc_product` FOREIGN KEY (`product_id`) REFERENCES `products_master` (`id`) ON DELETE CASCADE;
+ALTER TABLE `product_colors` ADD CONSTRAINT `fk_pc_color` FOREIGN KEY (`color_id`) REFERENCES `colors` (`id`) ON DELETE CASCADE;
+ALTER TABLE `product_prices` ADD CONSTRAINT `fk_pp_product` FOREIGN KEY (`productId`) REFERENCES `products_master` (`id`) ON DELETE CASCADE;
+ALTER TABLE `additional_print_costs_by_tag` ADD CONSTRAINT `fk_apc_tag` FOREIGN KEY (`tagId`) REFERENCES `tags` (`tagId`) ON DELETE CASCADE;
+ALTER TABLE `print_cost_combination` ADD CONSTRAINT `fk_pcc_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`categoryId`) ON DELETE CASCADE;
+ALTER TABLE `plate_cost_combination` ADD CONSTRAINT `fk_plcc_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`categoryId`) ON DELETE CASCADE;
+ALTER TABLE `category_print_locations` ADD CONSTRAINT `fk_cpl_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`categoryId`) ON DELETE CASCADE;
+ALTER TABLE `quotes` ADD CONSTRAINT `fk_q_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
+ALTER TABLE `quote_items` ADD CONSTRAINT `fk_qi_quote` FOREIGN KEY (`quote_id`) REFERENCES `quotes` (`id`) ON DELETE CASCADE;
+ALTER TABLE `quote_designs` ADD CONSTRAINT `fk_qd_quote` FOREIGN KEY (`quote_id`) REFERENCES `quotes` (`id`) ON DELETE CASCADE;
+ALTER TABLE `quote_history` ADD CONSTRAINT `fk_qh_quote` FOREIGN KEY (`quote_id`) REFERENCES `quotes` (`id`) ON DELETE CASCADE;
+ALTER TABLE `menus` ADD CONSTRAINT `fk_menus_parent` FOREIGN KEY (`parent_id`) REFERENCES `menus` (`id`) ON DELETE SET NULL;
+ALTER TABLE `shipping_addresses` ADD CONSTRAINT `fk_sa_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE;
+ALTER TABLE `login_tokens` ADD CONSTRAINT `fk_lt_customer` FOREIGN KEY (`user_email`) REFERENCES `customers` (`email`) ON DELETE CASCADE;
+
+-- --------------------------------------------------------
+-- STEP 5: INSERT SAMPLE DATA
+-- --------------------------------------------------------
+INSERT INTO `customers` (`id`, `company_name`, `name_kanji`, `name_kana`, `email`, `phone`, `zip_code`, `address1`, `address2`, `has_separate_shipping_address`, `shipping_name`, `shipping_phone`, `shipping_zip_code`, `shipping_address1`, `shipping_address2`) VALUES
+(1, '株式会社サンプル', '山田 太郎', 'ヤマダ タロウ', 'sample-user@example.com', '090-1234-5678', '1000001', '東京都千代田区千代田1-1', 'サンプルビル 101号室', 1, '山田 花子（配送先）', '080-8765-4321', '1500041', '東京都渋谷区神南', 'イベント会場気付'),
+(2, 'デザイン工房ABC', '鈴木 花子', 'スズキ ハナコ', 'hanako.suzuki@example.com', '06-9876-5432', '5300001', '大阪府大阪市北区梅田', 'ABCビル 502', 0, '', '', '', '', ''),
+(3, 'Simple ACTS Inc.', '管理者', 'カンリシャ', 'info@simpleacts.co.jp', '0533-00-0000', '4411211', '愛知県豊川市', '江島町稲場22-2', 0, '', '', '', '', '');
+
+INSERT INTO `shipping_addresses` (`id`, `customer_id`, `name`, `zip_code`, `address1`, `address2`, `phone`) VALUES
+(1, 1, '自宅', '1000001', '東京都千代田区千代田1-1', 'サンプルビル 101号室', '090-1234-5678'),
+(2, 1, 'イベント会場（8/1利用）', '1500041', '東京都渋谷区神南', 'イベント会場気付', '080-8765-4321');
+
+-- (Your other INSERT statements for master data would go here)
+
+-- --------------------------------------------------------
+SET FOREIGN_KEY_CHECKS=1; -- 外部キー制約を有効化
+COMMIT;
+-- END OF SCRIPT
+-- --------------------------------------------------------

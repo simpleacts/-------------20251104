@@ -1,0 +1,148 @@
+<?php
+// --- CONFIGURATION ---
+define('ROOT_PATH', dirname(__DIR__)); // Assumes api folder is in the root
+define('CACHE_DIR', ROOT_PATH . '/cache/images');
+define('CACHE_ENABLED', true);
+define('DEFAULT_QUALITY', 85);
+
+// --- SECURITY AND PATH VALIDATION ---
+if (!isset($_GET['path']) || empty($_GET['path'])) {
+    header("HTTP/1.1 400 Bad Request");
+    exit('Missing image path.');
+}
+
+$requested_path = $_GET['path'];
+// Sanitize path: remove leading slashes and '..' sequences to prevent directory traversal
+$sanitized_path = ltrim(str_replace('..', '', $requested_path), '/\\');
+$source_image_path = ROOT_PATH . '/' . $sanitized_path;
+
+// 1. First, check if the file exists and is readable.
+// This is crucial to prevent errors with realpath() on non-existent files.
+if (!file_exists($source_image_path) || !is_readable($source_image_path)) {
+    header("HTTP/1.1 404 Not Found");
+    exit('Image not found.');
+}
+
+// 2. Now that we know the file exists, perform the security check using realpath.
+// This ensures the file is within an allowed directory (e.g., 'images').
+$allowed_base_dir = realpath(ROOT_PATH . '/images');
+$real_source_path = realpath($source_image_path);
+
+if (!$allowed_base_dir || !$real_source_path || strpos($real_source_path, $allowed_base_dir) !== 0) {
+    header("HTTP/1.1 403 Forbidden");
+    exit('Access denied.');
+}
+
+// --- PARAMETER PARSING ---
+$width  = isset($_GET['w']) ? (int)$_GET['w'] : 0;
+$height = isset($_GET['h']) ? (int)$_GET['h'] : 0;
+$quality = isset($_GET['q']) ? (int)$_GET['q'] : DEFAULT_QUALITY;
+// fit param is not implemented in this version but can be added.
+
+// --- CACHING LOGIC ---
+if (CACHE_ENABLED) {
+    if (!is_dir(CACHE_DIR)) {
+        // Attempt to create cache directory
+        if (!mkdir(CACHE_DIR, 0755, true)) {
+            // Silently fail if cannot create, proceed without caching for this request
+        }
+    }
+    
+    $cache_key = md5($sanitized_path . "-w{$width}-h{$height}-q{$quality}");
+    $file_extension = strtolower(pathinfo($source_image_path, PATHINFO_EXTENSION));
+    $cache_file_path = CACHE_DIR . '/' . $cache_key . '.' . $file_extension;
+
+    if (is_readable($cache_file_path) && filemtime($cache_file_path) >= filemtime($source_image_path)) {
+        $mime_type = mime_content_type($cache_file_path);
+        header('Content-Type: ' . $mime_type);
+        header('Content-Length: ' . filesize($cache_file_path));
+        readfile($cache_file_path);
+        exit;
+    }
+}
+
+// --- IMAGE PROCESSING ---
+try {
+    list($source_width, $source_height, $source_type) = getimagesize($source_image_path);
+
+    // Determine output dimensions while maintaining aspect ratio
+    if ($width > 0 && $height > 0) {
+        $ratio_orig = $source_width / $source_height;
+        if (($width / $height) > $ratio_orig) {
+           $width = $height * $ratio_orig;
+        } else {
+           $height = $width / $ratio_orig;
+        }
+    } elseif ($width > 0) {
+        $height = ($source_height / $source_width) * $width;
+    } elseif ($height > 0) {
+        $width = ($source_width / $source_height) * $height;
+    } else {
+        $width = $source_width;
+        $height = $source_height;
+    }
+    
+    $width = max(1, round($width));
+    $height = max(1, round($height));
+
+    // Load source image
+    switch ($source_type) {
+        case IMAGETYPE_JPEG:
+            $source_image = imagecreatefromjpeg($source_image_path);
+            break;
+        case IMAGETYPE_PNG:
+            $source_image = imagecreatefrompng($source_image_path);
+            break;
+        case IMAGETYPE_GIF:
+            $source_image = imagecreatefromgif($source_image_path);
+            break;
+        default:
+            throw new Exception('Unsupported image type.');
+    }
+
+    if (!$source_image) throw new Exception('Could not load source image.');
+
+    $dest_image = imagecreatetruecolor($width, $height);
+
+    if ($source_type == IMAGETYPE_PNG || $source_type == IMAGETYPE_GIF) {
+        imagealphablending($dest_image, false);
+        imagesavealpha($dest_image, true);
+        $transparent = imagecolorallocatealpha($dest_image, 255, 255, 255, 127);
+        imagefilledrectangle($dest_image, 0, 0, $width, $height, $transparent);
+        imagecolortransparent($dest_image, $transparent);
+    }
+    
+    imagecopyresampled($dest_image, $source_image, 0, 0, 0, 0, $width, $height, $source_width, $source_height);
+
+    ob_start();
+    switch ($source_type) {
+        case IMAGETYPE_JPEG:
+            header('Content-Type: image/jpeg');
+            imagejpeg($dest_image, null, $quality);
+            break;
+        case IMAGETYPE_PNG:
+            header('Content-Type: image/png');
+            $png_quality = round((100 - $quality) / 10.11);
+            imagepng($dest_image, null, $png_quality);
+            break;
+        case IMAGETYPE_GIF:
+             header('Content-Type: image/gif');
+             imagegif($dest_image);
+             break;
+    }
+    
+    if (CACHE_ENABLED && is_dir(CACHE_DIR) && is_writable(CACHE_DIR)) {
+        file_put_contents($cache_file_path, ob_get_contents());
+    }
+    ob_end_flush();
+
+    imagedestroy($source_image);
+    imagedestroy($dest_image);
+    exit;
+
+} catch (Exception $e) {
+    header("HTTP/1.1 500 Internal Server Error");
+    error_log("Image processing error for {$source_image_path}: " . $e->getMessage());
+    exit('Error processing image.');
+}
+?>

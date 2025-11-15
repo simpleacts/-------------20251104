@@ -1,0 +1,159 @@
+<?php
+// api/quote-actions.php
+// Handles various actions related to a specific quote, like reordering or fetching data.
+
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+require_once __DIR__ . '/db_connect.php';
+
+try {
+    // --- 1. Authentication ---
+    $auth_header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    if (empty($auth_header) || !preg_match('/^Bearer\s+(.*)$/i', $auth_header, $matches)) {
+        throw new Exception("Authorization token not provided.", 401);
+    }
+    $token = $matches[1];
+    if ($token !== 'dev-mock-token') {
+         throw new Exception("Invalid token.", 401);
+    }
+    $customer_id_from_token = 1;
+
+    // --- 2. Get Input Data ---
+    $json_data = file_get_contents('php://input');
+    $data = json_decode($json_data, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception("Invalid JSON received.", 400);
+    }
+    
+    $action = $data['action'] ?? null;
+    $estimateId = $data['estimateId'] ?? null;
+
+    if (!$action || !$estimateId) {
+        throw new Exception("Action and Estimate ID are required.", 400);
+    }
+
+    $pdo = get_db_connection();
+
+    // --- 3. Action Handling ---
+    switch ($action) {
+        case 'getReorderData':
+            $response = get_quote_data_for_estimator($pdo, $estimateId, $customer_id_from_token);
+            http_response_code(200);
+            echo json_encode(['success' => true, 'data' => $response]);
+            break;
+        
+        // Note: PDF generation and email are complex and would typically call
+        // other specialized scripts or services. These are placeholders.
+        case 'getPdf':
+            // Placeholder: In a real app, this would trigger a PDF generation service
+            // and return a URL or the file itself.
+            http_response_code(501); // 501 Not Implemented
+            echo json_encode(['success' => false, 'message' => 'PDF generation is not implemented yet.']);
+            break;
+
+        case 'sendEmail':
+             // Placeholder
+            http_response_code(501);
+            echo json_encode(['success' => false, 'message' => 'Email functionality is not implemented yet.']);
+            break;
+
+
+        default:
+            throw new Exception("Action '{$action}' is not supported.", 400);
+            break;
+    }
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("Quote Action Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => '処理に失敗しました。', 'error' => $e->getMessage()]);
+}
+
+/**
+ * Fetches all necessary data for a given quote and formats it
+ * to be used by the Estimator frontend component.
+ */
+function get_quote_data_for_estimator($pdo, $estimateId, $customerId) {
+    // 1. Get quote_id and verify ownership
+    $stmt = $pdo->prepare("SELECT id FROM quotes WHERE quote_code = ? AND customer_id = ?");
+    $stmt->execute([$estimateId, $customerId]);
+    $quote_id = $stmt->fetchColumn();
+
+    if (!$quote_id) {
+        throw new Exception("Quote not found or access denied.", 404);
+    }
+
+    // 2. Fetch order details
+    $stmt = $pdo->prepare("SELECT * FROM quote_items WHERE quote_id = ?");
+    $stmt->execute([$quote_id]);
+    $orderDetails = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // 3. Fetch print designs
+    $stmt = $pdo->prepare("SELECT * FROM quote_designs WHERE quote_id = ?");
+    $stmt->execute([$quote_id]);
+    $designs_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $printDesigns = array_map(function($d) {
+        return [
+            'id' => 'design_' . $d['id'],
+            'location' => $d['location'],
+            'size' => $d['print_size'],
+            'colors' => (int)$d['colors'],
+            'plateType' => $d['plate_type'],
+            'specialInks' => json_decode($d['special_inks'], true) ?? [],
+        ];
+    }, $designs_raw);
+    
+    // 4. Fetch customer info
+    $stmt = $pdo->prepare("SELECT * FROM customers WHERE id = ?");
+    $stmt->execute([$customerId]);
+    $customerInfo_raw = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    // Convert keys to camelCase and boolean fields for frontend
+    $customerInfo = [
+        'id' => (string)$customerInfo_raw['id'],
+        'companyName' => $customerInfo_raw['company_name'],
+        'nameKanji' => $customerInfo_raw['name_kanji'],
+        'nameKana' => $customerInfo_raw['name_kana'],
+        'email' => $customerInfo_raw['email'],
+        'phone' => $customerInfo_raw['phone'],
+        'zipCode' => $customerInfo_raw['zip_code'],
+        'address1' => $customerInfo_raw['address1'],
+        'address2' => $customerInfo_raw['address2'],
+        'hasSeparateShippingAddress' => (bool)$customerInfo_raw['has_separate_shipping_address'],
+        'shippingName' => $customerInfo_raw['shipping_name'],
+        'shippingPhone' => $customerInfo_raw['shipping_phone'],
+        'shippingZipCode' => $customerInfo_raw['shipping_zip_code'],
+        'shippingAddress1' => $customerInfo_raw['shipping_address1'],
+        'shippingAddress2' => $customerInfo_raw['shipping_address2'],
+        'notes' => '',
+        'quoteSubject' => ''
+    ];
+
+
+    // 5. Assemble state for estimator
+    $estimatorState = [
+      'orderDetails' => $orderDetails,
+      'printDesigns' => $printDesigns,
+      'customerInfo' => $customerInfo,
+      'estimateId' => $estimateId,
+      // Default values for reorder
+      'isDataConfirmed' => false,
+      'isOrderPlaced' => false,
+      'orderDate' => null,
+      'isAdminMode' => false,
+    ];
+
+    return $estimatorState;
+}
+?>

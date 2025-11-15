@@ -1,0 +1,6 @@
+id,library_id,code,name,sort_order
+clt_001,cl_001,coated,Coated,1
+clt_002,cl_001,uncoated,Uncoated,2
+clt_003,cl_002,1,Part 1,1
+clt_004,cl_002,2,Part 2,2
+

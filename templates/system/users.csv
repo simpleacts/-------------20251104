@@ -1,0 +1,4 @@
+id,username,password,role_id,name
+user_0001,admin,admin,role_0001,"管理者 太郎"
+user_0002,sales,sales,role_0002,"営業 次郎"
+user_0003,production,production,role_0003,"制作 三郎"

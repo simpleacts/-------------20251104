@@ -1,0 +1,31 @@
+{
+  "name": "tshirt-estimator-netlify",
+  "version": "1.0.0",
+  "private": true,
+  "description": "T-Shirt Printing Cost Estimator",
+  "scripts": {
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true }); require('fs').mkdirSync('dist', { recursive: true });\"",
+    "build:prepare:db": "node -e \"require('fs').copyFileSync('apiService.ts.php.txt', 'services/apiService.ts'); console.log('Switched to PHP/DB-based apiService for build.');\"",
+    "build:prepare:csv": "node -e \"require('fs').copyFileSync('apiService.ts.csv.txt', 'services/apiService.ts'); console.log('Switched to CSV-based apiService for build.');\"",
+    "build:prepare:footer:prod": "node -e \"require('fs').copyFileSync('components/Footer.tsx.prod.txt', 'components/Footer.tsx'); console.log('Switched to Production Footer for build.');\"",
+    "build:js": "esbuild index.tsx --bundle --outfile=dist/main.js --jsx=automatic --format=esm --platform=browser --target=es2020 --external:react --external:react-dom/* --external:react-router-dom --external:@google/genai --external:react-beautiful-dnd --external:colord --external:recharts && esbuild admin.tsx --bundle --outfile=dist/admin.js --jsx=automatic --format=esm --platform=browser --target=es2020 --external:react --external:react-dom/* --external:react-router-dom --external:@google/genai --external:react-beautiful-dnd --external:colord --external:recharts",
+    "copy:html": "node -e \"require('fs').copyFileSync('index.html', 'dist/index.html'); require('fs').copyFileSync('admin.html', 'dist/admin.html');\"",
+    "prepare:api": "node scripts/prepare_api.js",
+    "prepare:static": "node scripts/prepare_static.js",
+    "build:cleanup": "node scripts/build_cleanup.js",
+    "build": "npm run clean && npm run build:prepare:db && npm run build:prepare:footer:prod && npm run build:js && npm run copy:html && npm run prepare:api && npm run prepare:static && npm run build:cleanup",
+    "build:csv": "npm run clean && npm run build:prepare:csv && npm run build:js && npm run copy:html && npm run prepare:static"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^6.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "esbuild": "^0.21.4",
+    "typescript": "^5.3.3"
+  }
+}

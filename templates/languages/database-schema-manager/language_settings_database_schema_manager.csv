@@ -1,0 +1,30 @@
+key,ja,en
+tools.database-schema-manager,データベーススキーマ管理,Database Schema Manager
+schema.tableList,テーブル一覧,Table List
+schema.currentSchema,現在のスキーマ,Current Schema
+schema.editSchema,スキーマ編集,Edit Schema
+schema.columnName,カラム名,Column Name
+schema.columnType,カラム型,Column Type
+schema.nullable,NULL許可,Nullable
+schema.defaultValue,デフォルト値,Default Value
+schema.unique,ユニーク,Unique
+schema.addColumn,カラム追加,Add Column
+schema.deleteColumn,カラム削除,Delete Column
+schema.modifyColumn,カラム変更,Modify Column
+schema.recommendType,型推奨,Recommend Type
+schema.previewChanges,変更プレビュー,Preview Changes
+schema.applyChanges,変更を適用,Apply Changes
+schema.migrationHistory,マイグレーション履歴,Migration History
+schema.rollback,ロールバック,Rollback
+schema.deleteHistory,履歴削除,Delete History
+schema.changeType,型変更,Change Type
+schema.beforeAfter,変更前/後,Before/After
+schema.dataConversion,データ変換,Data Conversion
+schema.previewConversion,変換プレビュー,Preview Conversion
+schema.error,エラー,Error
+schema.success,成功,Success
+schema.confirm,確認,Confirm
+schema.cancel,キャンセル,Cancel
+schema.save,保存,Save
+schema.close,閉じる,Close
+

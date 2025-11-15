@@ -1,0 +1,3 @@
+﻿id,code,name,description,sort_order
+fiit_001,amount_only,"調整項目 (金額固定)",金額を直接指定する項目,1
+fiit_002,quantity_based,"計算項目 (単価×数量)",単価と数量から計算する項目,2

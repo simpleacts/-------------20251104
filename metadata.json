@@ -1,0 +1,8 @@
+{
+  "name": "プリント屋バックオフィス",
+  "description": "様々な機能を集約し、業務の中枢を担うプリント屋のバックエンドツールです。　cursorで修正",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

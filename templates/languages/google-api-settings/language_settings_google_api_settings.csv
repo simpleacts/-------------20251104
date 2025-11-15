@@ -1,0 +1,10 @@
+key,ja,en
+google_api.title,連携設定,Integration Settings
+google_api.description,Google WorkspaceやAI機能との連携設定を行います。,Configure integration with Google Workspace and AI features.
+google_api.save,保存,Save
+google_api.save_success,設定をサーバーに保存しました。,Settings saved to server.
+google_api.save_failed,設定の保存に失敗しました:,Failed to save settings:
+google_api.tab_gemini,Gemini API,Gemini API
+google_api.tab_model_management,モデル管理,Model Management
+google_api.tab_workspace,Google Workspace,Google Workspace
+

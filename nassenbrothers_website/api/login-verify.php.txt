@@ -1,0 +1,84 @@
+<?php
+// api/login-verify.php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { exit(0); }
+
+require_once __DIR__ . '/db_connect.php';
+
+// --- JWT Helper Functions (Simple implementation) ---
+// IMPORTANT: For production, use a trusted library like firebase/php-jwt
+function base64url_encode($data) {
+    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+}
+
+function generate_jwt($payload, $secret) {
+    $header = base64url_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
+    $payload_encoded = base64url_encode(json_encode($payload));
+    $signature = hash_hmac('sha256', "$header.$payload_encoded", $secret, true);
+    $signature_encoded = base64url_encode($signature);
+    return "$header.$payload_encoded.$signature_encoded";
+}
+// ---
+
+try {
+    load_server_config(); // Defines constants like DB_PASSWORD
+    $pdo = get_db_connection();
+
+    $json_data = file_get_contents('php://input');
+    $data = json_decode($json_data, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE || !isset($data['token'])) {
+        throw new Exception('Invalid request.', 400);
+    }
+    $token = $data['token'];
+
+    // Find a valid, unused token
+    $stmt = $pdo->prepare("SELECT * FROM login_tokens WHERE token = ? AND expires_at > NOW() AND used_at IS NULL");
+    $stmt->execute([$token]);
+    $login_token = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$login_token) {
+        throw new Exception('Invalid or expired login link.', 401);
+    }
+
+    // Mark token as used to prevent reuse
+    $stmt = $pdo->prepare("UPDATE login_tokens SET used_at = NOW() WHERE id = ?");
+    $stmt->execute([$login_token['id']]);
+
+    // Get customer ID
+    $stmt = $pdo->prepare("SELECT id FROM customers WHERE email = ?");
+    $stmt->execute([$login_token['user_email']]);
+    $customer_id = $stmt->fetchColumn();
+
+    if (!$customer_id) {
+        throw new Exception('Associated user not found.', 404);
+    }
+
+    // Generate a session token (JWT)
+    $jwt_secret = DB_PASSWORD; // Use a strong, unique secret key from config
+    $payload = [
+        'iss' => APP_BASE_URL, // Issuer
+        'aud' => APP_BASE_URL, // Audience
+        'iat' => time(), // Issued at
+        'exp' => time() + (7 * 24 * 60 * 60), // Expiration time (7 days)
+        'uid' => $customer_id, // User ID
+    ];
+    $sessionToken = generate_jwt($payload, $jwt_secret);
+
+    http_response_code(200);
+    echo json_encode(['success' => true, 'sessionToken' => $sessionToken]);
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("Login Verify Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+}
+?>

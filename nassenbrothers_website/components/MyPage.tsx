@@ -1,0 +1,879 @@
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CustomerInfo, ShippingAddress, AppData, MyPageData, CombinedOrderData, OrderStep, StepStatus } from '../types';
+
+type ActiveTab = 'dashboard' | 'customerInfo' | 'estimates' | 'history' | 'status' | 'invoices' | 'shipping' | 'addressBook';
+
+interface MyPageProps {
+  appData: AppData;
+  onNavigateToEstimator: (params?: { fromPage?: string; estimateId?: string; isReorder?: boolean }) => void;
+  activeTab: ActiveTab;
+}
+
+// --- Sample Data for local development ---
+const sampleMyPageData: MyPageData = {
+    customerInfo: {
+        id: '1',
+        companyName: '株式会社サンプル',
+        nameKanji: '山田 太郎',
+        nameKana: 'ヤマダ タロウ',
+        email: 'sample-user@example.com',
+        phone: '090-1234-5678',
+        zipCode: '1000001',
+        address1: '東京都千代田区千代田1-1',
+        address2: 'サンプルビル 101号室',
+        hasSeparateShippingAddress: true,
+        shippingName: '山田 花子（配送先）',
+        shippingPhone: '080-8765-4321',
+        shippingZipCode: '1500041',
+        shippingAddress1: '東京都渋谷区神南',
+        shippingAddress2: 'イベント会場気付',
+        notes: '',
+        quoteSubject: '',
+    },
+    addresses: [
+      { id: '1', customer_id: '1', name: '自宅', zipCode: '1500002', address1: '東京都渋谷区渋谷', address2: '2-24-12 渋谷スクランブルスクエア', phone: '03-1111-2222' },
+      { id: '2', customer_id: '1', name: 'イベント会場（8/1利用）', zipCode: '2200012', address1: '神奈川県横浜市西区みなとみらい', address2: '2-2-1 ランドマークタワー 5F', phone: '045-3333-4444' },
+    ],
+    orders: [
+        { id: 'E20240728-103000123', date: '2024/07/28', totalItems: 50, totalCost: 75000, mainStatus: '見積もり中', quoteStatus: '確認済', quoteSubject: '夏祭りイベント用Tシャツ', },
+        { id: 'E20240725-150000456', date: '2024/07/25', totalItems: 20, totalCost: 42000, mainStatus: '見積もり中', quoteStatus: '未確定', quoteSubject: 'カフェスタッフ用ポロシャツ', },
+        { id: 'O20240720-11001122', date: '2024/07/20', totalItems: 100, totalCost: 185000, mainStatus: '製作中', quoteSubject: '大学サークルパーカー', steps: [ { name: '注文受付', status: 'complete', date: '2024/07/20' }, { name: 'データ確認', status: 'complete', date: '2024/07/21' }, { name: 'ご入金確認', status: 'complete', date: '2024/07/22' }, { name: '作業中', status: 'current', date: '2024/07/23' }, { name: '発送', status: 'upcoming', date: null }, ], invoice: { id: 'INV-O20240720-11001122', date: '2024/07/21', paymentDueDate: '2024/07/28', totalCost: 185000, status: '未入金' }, shipping: { shippingDate: '2024/08/05 (予定)', carrier: 'ヤマト運輸', trackingNumber: '未発行', status: '発送準備中' } },
+        { id: 'H20240615-09003344', date: '2024/06/15', totalItems: 30, totalCost: 55000, mainStatus: '完了', quoteSubject: '創業記念トートバッグ', steps: [ { name: '注文受付', status: 'complete', date: '2024/06/15' }, { name: 'データ確認', status: 'complete', date: '2024/06/16' }, { name: 'ご入金確認', status: 'complete', date: '2024/06/17' }, { name: '作業中', status: 'complete', date: '2024/06/18' }, { name: '発送', status: 'complete', date: '2024/06/25' }, ], invoice: { id: 'INV-H20240615-09003344', date: '2024/06/16', paymentDueDate: '2024/06/23', totalCost: 55000, status: '入金済' }, shipping: { shippingDate: '2024/06/25', carrier: '佐川急便', trackingNumber: '1234-5678-9012', status: '発送完了' } },
+        { id: 'H20240502-18305566', date: '2024/05/02', totalItems: 200, totalCost: 210000, mainStatus: '完了', quoteSubject: 'スポーツ大会出場記念Tシャツ', steps: [ { name: '注文受付', status: 'complete', date: '2024/05/02' }, { name: 'データ確認', status: 'complete', date: '2024/05/03' }, { name: 'ご入金確認', status: 'complete', date: '2024/05/04' }, { name: '作業中', status: 'complete', date: '2024/05/05' }, { name: '発送', status: 'complete', date: '2024/05/12' }, ], invoice: { id: 'INV-H20240502-18305566', date: '2024/05/03', paymentDueDate: '2024/05/10', totalCost: 210000, status: '入金済' }, shipping: { shippingDate: '2024/05/12', carrier: 'ヤマト運輸', trackingNumber: '9876-5432-1098', status: '発送完了' } }
+    ]
+};
+
+const LoadingComponent: React.FC = () => (
+    <div className="flex items-center justify-center h-64">
+        <div className="w-12 h-12 border-4 border-t-transparent border-primary rounded-full animate-spin"></div>
+        <span className="ml-4 text-gray-600">データを読み込んでいます...</span>
+    </div>
+);
+
+const ErrorComponent: React.FC<{ message: string; onRetry?: () => void }> = ({ message, onRetry }) => (
+    <div className="bg-red-50 p-6 border-l-4 border-accent text-accent-dark">
+        <h3 className="font-bold">エラー</h3>
+        <p>{message}</p>
+        {onRetry && (
+            <button onClick={onRetry} className="mt-4 bg-accent text-white font-semibold py-2 px-4 hover:bg-accent/90 transition">
+                再試行
+            </button>
+        )}
+    </div>
+);
+
+const toHalfWidthNum = (str: string) => str.replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+
+const CustomerInfoFormModal: React.FC<{
+  initialInfo: CustomerInfo;
+  onSave: (updatedInfo: CustomerInfo) => Promise<void>;
+  onClose: () => void;
+}> = ({ initialInfo, onSave, onClose }) => {
+  const [formData, setFormData] = useState(initialInfo);
+  const [isBillingZipLoading, setIsBillingZipLoading] = useState(false);
+  const [isShippingZipLoading, setIsShippingZipLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+  
+  const handleZipCodeLookup = async (zip: string, target: 'billing' | 'shipping') => {
+    const cleanedZip = toHalfWidthNum(zip).replace(/[^0-9]/g, '');
+    if (cleanedZip.length !== 7) return;
+
+    const setIsLoading = target === 'billing' ? setIsBillingZipLoading : setIsShippingZipLoading;
+    setIsLoading(true);
+
+    try {
+        const response = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${cleanedZip}`);
+        if (!response.ok) throw new Error('API request failed');
+        const data = await response.json();
+        if (data.status === 200 && data.results) {
+            const result = data.results[0];
+            const fullAddress = `${result.address1}${result.address2}${result.address3}`;
+            if (target === 'billing') {
+                setFormData(prev => ({ ...prev, address1: fullAddress, address2: '' }));
+            } else {
+                setFormData(prev => ({ ...prev, shippingAddress1: fullAddress, shippingAddress2: '' }));
+            }
+        } else {
+            alert(data.message || '住所が見つかりませんでした。');
+        }
+    } catch (error) {
+        console.error("Zip code lookup failed:", error);
+        alert('郵便番号から住所を取得できませんでした。');
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+        const { checked } = e.target as HTMLInputElement;
+        setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+        setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+  
+  const handleZipBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      if (name === 'zipCode') handleZipCodeLookup(value, 'billing');
+      else if (name === 'shippingZipCode') handleZipCodeLookup(value, 'shipping');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    await onSave(formData);
+    setIsSaving(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <form onSubmit={handleSubmit} className="bg-white shadow-2xl w-full max-w-2xl animate-fade-in-up flex flex-col max-h-[90vh]">
+        <header className="p-4 border-b flex justify-between items-center">
+          <h3 className="text-xl font-bold text-gray-800">お客様情報の編集</h3>
+          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-800 text-2xl" aria-label="閉じる">&times;</button>
+        </header>
+        <main className="p-6 space-y-4 overflow-y-auto">
+          <h4 className="text-md font-semibold text-gray-600">ご請求先情報</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-1">会社名</label>
+              <input type="text" id="companyName" name="companyName" value={formData.companyName} onChange={handleChange} className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="nameKanji" className="block text-sm font-medium text-gray-700 mb-1">お名前 (漢字)</label>
+              <input type="text" id="nameKanji" name="nameKanji" value={formData.nameKanji} onChange={handleChange} required className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+            </div>
+            <div>
+              <label htmlFor="nameKana" className="block text-sm font-medium text-gray-700 mb-1">お名前 (カナ)</label>
+              <input type="text" id="nameKana" name="nameKana" value={formData.nameKana} onChange={handleChange} required className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+              <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+            </div>
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">電話番号</label>
+              <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} required className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="relative">
+              <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">郵便番号</label>
+              <input type="text" id="zipCode" name="zipCode" value={formData.zipCode} onChange={handleChange} onBlur={handleZipBlur} className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+              {isBillingZipLoading && <i className="fas fa-spinner fa-spin absolute right-3 top-9 text-gray-400"></i>}
+            </div>
+          </div>
+          <div>
+            <label htmlFor="address1" className="block text-sm font-medium text-gray-700 mb-1">住所1 (都道府県・市区町村)</label>
+            <input type="text" id="address1" name="address1" value={formData.address1} onChange={handleChange} className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+          </div>
+          <div>
+            <label htmlFor="address2" className="block text-sm font-medium text-gray-700 mb-1">住所2 (番地・建物名)</label>
+            <input type="text" id="address2" name="address2" value={formData.address2} onChange={handleChange} className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+          </div>
+
+          <div className="border-t pt-4 mt-4">
+            <div className="flex items-center">
+                <input
+                    type="checkbox"
+                    id="hasSeparateShippingAddress"
+                    name="hasSeparateShippingAddress"
+                    checked={formData.hasSeparateShippingAddress}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-secondary focus:ring-secondary border-gray-300"
+                />
+                <label htmlFor="hasSeparateShippingAddress" className="ml-2 block text-sm font-medium text-gray-700">
+                    ご請求先と別の住所へ配送する
+                </label>
+            </div>
+          </div>
+
+          {formData.hasSeparateShippingAddress && (
+            <div className="space-y-4 pt-4 border-t mt-4 animate-fade-in-up">
+                <h4 className="text-md font-semibold text-gray-600">配送先情報</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="shippingName" className="block text-sm font-medium text-gray-700 mb-1">お名前</label>
+                        <input type="text" id="shippingName" name="shippingName" value={formData.shippingName} onChange={handleChange} required={formData.hasSeparateShippingAddress} className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+                    </div>
+                    <div>
+                        <label htmlFor="shippingPhone" className="block text-sm font-medium text-gray-700 mb-1">電話番号</label>
+                        <input type="tel" id="shippingPhone" name="shippingPhone" value={formData.shippingPhone} onChange={handleChange} required={formData.hasSeparateShippingAddress} className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="relative">
+                        <label htmlFor="shippingZipCode" className="block text-sm font-medium text-gray-700 mb-1">郵便番号</label>
+                        <input type="text" id="shippingZipCode" name="shippingZipCode" value={formData.shippingZipCode} onChange={handleChange} onBlur={handleZipBlur} required={formData.hasSeparateShippingAddress} className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+                         {isShippingZipLoading && <i className="fas fa-spinner fa-spin absolute right-3 top-9 text-gray-400"></i>}
+                    </div>
+                </div>
+                <div>
+                    <label htmlFor="shippingAddress1" className="block text-sm font-medium text-gray-700 mb-1">住所1 (都道府県・市区町村)</label>
+                    <input type="text" id="shippingAddress1" name="shippingAddress1" value={formData.shippingAddress1} onChange={handleChange} required={formData.hasSeparateShippingAddress} className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+                </div>
+                <div>
+                    <label htmlFor="shippingAddress2" className="block text-sm font-medium text-gray-700 mb-1">住所2 (番地・建物名)</label>
+                    <input type="text" id="shippingAddress2" name="shippingAddress2" value={formData.shippingAddress2} onChange={handleChange} className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+                </div>
+            </div>
+          )}
+        </main>
+        <footer className="p-4 border-t flex justify-end gap-3 bg-gray-50">
+          <button type="button" onClick={onClose} className="px-6 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300">キャンセル</button>
+          <button type="submit" className="px-6 py-2 bg-primary text-white font-bold hover:bg-primary/90">保存する</button>
+        </footer>
+      </form>
+    </div>
+  );
+};
+
+
+const AddressFormModal: React.FC<{
+  address: ShippingAddress | Omit<ShippingAddress, 'id' | 'customer_id'>;
+  onSave: (address: ShippingAddress | Omit<ShippingAddress, 'id' | 'customer_id'>) => void;
+  onClose: () => void;
+}> = ({ address, onSave, onClose }) => {
+  const [formData, setFormData] = useState(address);
+  const isNew = !('id' in address);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <form onSubmit={handleSubmit} className="bg-white shadow-2xl w-full max-w-lg animate-fade-in-up flex flex-col max-h-[90vh]">
+        <header className="p-4 border-b flex justify-between items-center">
+          <h3 className="text-xl font-bold text-gray-800">{isNew ? '新しいお届け先を追加' : 'お届け先の編集'}</h3>
+          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-800 text-2xl" aria-label="閉じる">&times;</button>
+        </header>
+        <main className="p-6 space-y-4 overflow-y-auto">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">名称 (例: 自宅, 事務所)</label>
+            <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+          </div>
+           <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">電話番号</label>
+            <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} required className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+          </div>
+          <div>
+            <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">郵便番号</label>
+            <input type="text" id="zipCode" name="zipCode" value={formData.zipCode} onChange={handleChange} required className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+          </div>
+          <div>
+            <label htmlFor="address1" className="block text-sm font-medium text-gray-700 mb-1">住所1 (都道府県・市区町村)</label>
+            <input type="text" id="address1" name="address1" value={formData.address1} onChange={handleChange} required className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+          </div>
+          <div>
+            <label htmlFor="address2" className="block text-sm font-medium text-gray-700 mb-1">住所2 (番地・建物名)</label>
+            <input type="text" id="address2" name="address2" value={formData.address2} onChange={handleChange} className="w-full p-2 border border-gray-300 focus:ring-secondary focus:border-secondary" />
+          </div>
+        </main>
+        <footer className="p-4 border-t flex justify-end gap-3 bg-gray-50">
+          <button type="button" onClick={onClose} className="px-6 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300">キャンセル</button>
+          <button type="submit" className="px-6 py-2 bg-primary text-white font-bold hover:bg-primary/90">保存する</button>
+        </footer>
+      </form>
+    </div>
+  );
+};
+
+const DashboardView: React.FC<{ onNavigateToEstimator: () => void; customerName: string; onTabChange: (tab: ActiveTab) => void; }> = ({ onNavigateToEstimator, customerName, onTabChange }) => (
+  <div>
+    <h2 className="text-2xl font-bold text-gray-800 mb-2">ようこそ、{customerName} 様</h2>
+    <p className="text-gray-600 mb-6">こちらでお客様の情報やご注文状況を確認できます。</p>
+    
+    <div className="bg-secondary text-white p-6 border border-gray-200 mb-6 shadow-md">
+        <h3 className="font-bold text-xl mb-2 flex items-center">
+            <i className="fas fa-calculator mr-3"></i>
+            新規お見積もり
+        </h3>
+        <p className="text-sm mb-4">新しいデザインでオリジナルTシャツを作成します。</p>
+        <button onClick={onNavigateToEstimator} className="bg-white text-secondary font-bold py-2 px-6 hover:bg-gray-200 transition-colors">
+            見積もりを作成
+        </button>
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-white p-6 border border-gray-200 flex flex-col">
+            <h3 className="font-bold text-lg text-purple-700 mb-2 flex items-center">
+                <i className="fas fa-user-cog mr-3 text-purple-400"></i>
+                お客様情報
+            </h3>
+            <p className="text-sm text-gray-600 mb-4 flex-grow">お客様の連絡先や商品の基本配送先などを確認・編集します。</p>
+            <button onClick={() => onTabChange('customerInfo')} className="mt-auto w-full bg-purple-600 text-white font-bold py-2 px-4 hover:bg-purple-700 transition-colors">
+                情報を確認・編集
+            </button>
+        </div>
+
+        <div className="bg-white p-6 border border-gray-200 flex flex-col">
+            <h3 className="font-bold text-lg text-pink-700 mb-2 flex items-center">
+                <i className="fas fa-address-book mr-3 text-pink-400"></i>
+                配送先アドレス帳
+            </h3>
+            <p className="text-sm text-gray-600 mb-4 flex-grow">商品の配送先を複数登録・管理できます。</p>
+            <button onClick={() => onTabChange('addressBook')} className="mt-auto w-full bg-pink-600 text-white font-bold py-2 px-4 hover:bg-pink-700 transition-colors">
+                アドレス帳を見る
+            </button>
+        </div>
+        
+        <div className="bg-white p-6 border border-gray-200 flex flex-col">
+            <h3 className="font-bold text-lg text-orange-700 mb-2 flex items-center">
+                <i className="fas fa-file-invoice mr-3 text-orange-400"></i>
+                検討中の見積もり
+            </h3>
+            <p className="text-sm text-gray-600 mb-4 flex-grow">作成途中の見積もりや、確定済みの見積もりを確認できます。</p>
+            <button onClick={() => onTabChange('estimates')} className="mt-auto w-full bg-orange-600 text-white font-bold py-2 px-4 hover:bg-orange-700 transition-colors">
+                見積もり一覧へ
+            </button>
+        </div>
+        
+        <div className="bg-white p-6 border border-gray-200 flex flex-col">
+            <h3 className="font-bold text-lg text-blue-700 mb-2 flex items-center">
+                <i className="fas fa-file-invoice-dollar mr-3 text-blue-500"></i>
+                ご依頼中案件の請求書
+            </h3>
+            <p className="text-sm text-gray-600 mb-4 flex-grow">発行済みの請求書の確認やダウンロードができます。</p>
+            <button onClick={() => onTabChange('invoices')} className="mt-auto w-full bg-blue-600 text-white font-bold py-2 px-4 hover:bg-blue-700 transition-colors">
+                請求書一覧へ
+            </button>
+        </div>
+        
+        <div className="bg-white p-6 border border-gray-200 flex flex-col">
+            <h3 className="font-bold text-lg text-teal-700 mb-2 flex items-center">
+                <i className="fas fa-tasks mr-3 text-teal-400"></i>
+                進行状況ステータス
+            </h3>
+            <p className="text-sm text-gray-600 mb-4 flex-grow">ご注文の受付から発送までの現在の状況を確認できます。</p>
+            <button onClick={() => onTabChange('status')} className="mt-auto w-full bg-teal-600 text-white font-bold py-2 px-4 hover:bg-teal-700 transition-colors">
+                進行状況を確認
+            </button>
+        </div>
+
+        <div className="bg-white p-6 border border-gray-200 flex flex-col">
+            <h3 className="font-bold text-lg text-green-700 mb-2 flex items-center">
+                <i className="fas fa-truck mr-3 text-green-500"></i>
+                出荷業者と追跡番号
+            </h3>
+            <p className="text-sm text-gray-600 mb-4 flex-grow">発送済みの商品の配送会社や追跡番号を確認できます。</p>
+            <button onClick={() => onTabChange('shipping')} className="mt-auto w-full bg-green-600 text-white font-bold py-2 px-4 hover:bg-green-700 transition-colors">
+                発送詳細へ
+            </button>
+        </div>
+        
+        <div className="bg-white p-6 border border-gray-200 flex flex-col">
+            <h3 className="font-bold text-lg text-amber-700 mb-2 flex items-center">
+                <i className="fas fa-history mr-3 text-amber-500"></i>
+                過去の案件と書類のダウンロード
+            </h3>
+            <p className="text-sm text-gray-600 mb-4 flex-grow">完了したご注文履歴の確認や、同じ内容での再注文ができます。各種書類（見積書、納品書、請求書、領収書）のダウンロードもこちらから行えます。</p>
+            <button onClick={() => onTabChange('history')} className="mt-auto w-full bg-amber-600 text-white font-bold py-2 px-4 hover:bg-amber-700 transition-colors">
+                履歴を見る
+            </button>
+        </div>
+    </div>
+  </div>
+);
+
+const CustomerInfoView: React.FC<{ info: CustomerInfo, onEdit: () => void }> = ({ info, onEdit }) => {
+    return (
+        <div>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">お客様情報</h2>
+                <button onClick={onEdit} className="bg-primary text-white font-semibold py-2 px-4 hover:bg-primary/90 transition">編集する</button>
+            </div>
+            <div className="bg-white p-6 border border-gray-200">
+                <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12">
+                    {/* --- Column 1: Billing Info --- */}
+                    <div>
+                        <h3 className="text-lg font-bold text-gray-700 mb-4 pb-2 border-b">ご請求先情報</h3>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2">
+                                <span className="font-semibold text-gray-500">会社名</span>
+                                <span className="md:col-span-2">{info.companyName || '-'}</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2">
+                                <span className="font-semibold text-gray-500">お名前</span>
+                                <span className="md:col-span-2">{info.nameKanji} ({info.nameKana})</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2">
+                                <span className="font-semibold text-gray-500">メールアドレス</span>
+                                <span className="md:col-span-2">{info.email}</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2">
+                                <span className="font-semibold text-gray-500">電話番号</span>
+                                <span className="md:col-span-2">{info.phone}</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2">
+                                <span className="font-semibold text-gray-500">ご住所</span>
+                                <div className="md:col-span-2">
+                                    <p>〒{info.zipCode}</p>
+                                    <p>{info.address1}</p>
+                                    <p>{info.address2}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* --- Column 2: Shipping Info --- */}
+                    <div className="mt-6 border-t pt-6 lg:mt-0 lg:border-t-0 lg:pt-0">
+                        <h3 className="text-lg font-bold text-gray-700 mb-4 pb-2 border-b">配送先情報</h3>
+                        {info.hasSeparateShippingAddress ? (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2">
+                                    <span className="font-semibold text-gray-500">お名前</span>
+                                    <span className="md:col-span-2">{info.shippingName}</span>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2">
+                                    <span className="font-semibold text-gray-500">電話番号</span>
+                                    <span className="md:col-span-2">{info.shippingPhone}</span>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2">
+                                    <span className="font-semibold text-gray-500">ご住所</span>
+                                    <div className="md:col-span-2">
+                                        <p>〒{info.shippingZipCode}</p>
+                                        <p>{info.shippingAddress1}</p>
+                                        <p>{info.shippingAddress2}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-sm text-gray-500">ご請求先と同じです。</p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AddressBookView: React.FC<{ addresses: ShippingAddress[], onAddNew: () => void, onEdit: (address: ShippingAddress) => void, onDelete: (id: string) => void }> = ({ addresses, onAddNew, onEdit, onDelete }) => {
+    return (
+        <div>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">配送先アドレス帳</h2>
+                <button onClick={onAddNew} className="bg-primary text-white font-semibold py-2 px-4 hover:bg-primary/90 transition flex items-center">
+                    <i className="fas fa-plus mr-2"></i>新しいお届け先を追加
+                </button>
+            </div>
+             {addresses.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {addresses.map(addr => (
+                        <div key={addr.id} className="bg-white p-4 border border-gray-200 flex flex-col h-full">
+                            <div className="flex-grow">
+                                <p className="font-bold text-lg text-primary">{addr.name}</p>
+                                <div className="text-sm text-gray-600 mt-2 space-y-1">
+                                    <p>〒{addr.zipCode}</p>
+                                    <p>{addr.address1}</p>
+                                    <p>{addr.address2}</p>
+                                    <p>TEL: {addr.phone}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 mt-auto pt-4 border-t mt-4">
+                                <button onClick={() => onEdit(addr)} className="text-sm bg-secondary text-white font-semibold py-1 px-3 hover:bg-secondary/90 transition">編集</button>
+                                <button onClick={() => onDelete(addr.id)} className="text-sm bg-accent text-white font-semibold py-1 px-3 hover:bg-accent/90 transition">削除</button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="bg-white p-8 border border-gray-200 text-center">
+                    <p className="text-gray-500">登録されているお届け先はありません。</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const StatusView: React.FC<{ orders: CombinedOrderData[] }> = ({ orders }) => {
+    return (
+        <div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">進行状況ステータス</h2>
+            {orders.length > 0 ? (
+                <div className="space-y-6">
+                    {orders.map(order => (
+                        <div key={order.id} className="bg-white p-6 border border-gray-200">
+                            <div className="flex justify-between items-start mb-4 pb-3 border-b">
+                               <div>
+                                  <p className="font-bold text-lg text-primary">{order.id}</p>
+                                  <p className="font-semibold text-gray-700">{order.quoteSubject}</p>
+                                  <p className="text-sm text-gray-500">{order.date} ご注文 ({order.totalItems}枚)</p>
+                               </div>
+                                <span className={`font-semibold text-sm px-3 py-1 ${order.mainStatus === '完了' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-secondary'}`}>{order.mainStatus}</span>
+                            </div>
+                            <div className="flex items-start space-x-2 md:space-x-4 overflow-x-auto pb-2">
+                                {order.steps?.map((step, index) => (
+                                     <React.Fragment key={step.name}>
+                                        <div className="flex flex-col items-center text-center flex-shrink-0 w-20">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white ${step.status === 'complete' ? 'bg-green-500' : step.status === 'current' ? 'bg-secondary animate-pulse' : 'bg-gray-300'}`}>
+                                                <i className={`fas ${step.status === 'complete' ? 'fa-check' : 'fa-box'}`}></i>
+                                            </div>
+                                            <p className={`text-xs mt-2 ${step.status !== 'upcoming' ? 'font-semibold' : 'text-gray-500'}`}>{step.name}</p>
+                                            <p className="text-[10px] text-gray-400 mt-1 h-3">{step.date || '\u00A0'}</p>
+                                        </div>
+                                        {index < order.steps.length - 1 && (
+                                            <div className={`flex-grow h-1 mt-4 ${step.status === 'complete' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                                        )}
+                                    </React.Fragment>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : <p className="text-gray-600 bg-white p-6 border">現在進行中の案件はありません。</p>}
+        </div>
+    );
+};
+
+const EstimatesView: React.FC<{ estimates: CombinedOrderData[], onNavigateToEstimator: MyPageProps['onNavigateToEstimator'] }> = ({ estimates, onNavigateToEstimator }) => (
+    <div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">検討中の見積もり</h2>
+        {estimates.length > 0 ? (
+            <div className="bg-white border border-gray-200">
+                <div className="hidden md:grid grid-cols-12 gap-4 p-4 font-semibold text-gray-500 bg-gray-50 border-b">
+                    <div className="col-span-3">件名</div>
+                    <div className="col-span-3">見積もりID</div>
+                    <div className="col-span-2">作成日</div>
+                    <div className="col-span-1">金額 (税込)</div>
+                    <div className="col-span-3">アクション</div>
+                </div>
+                {estimates.map(est => (
+                    <div key={est.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border-b last:border-b-0 items-center">
+                         <div className="md:col-span-3 font-semibold text-gray-800">{est.quoteSubject}</div>
+                         <div className="md:col-span-3">
+                             <p className="font-semibold text-primary">{est.id}</p>
+                             <p className={`text-sm ${est.quoteStatus === '確認済' ? 'text-green-600' : 'text-yellow-600'}`}>{est.quoteStatus}</p>
+                         </div>
+                         <div className="text-gray-600 md:col-span-2">{est.date}</div>
+                         <div className="text-gray-600 font-semibold md:col-span-1">¥{est.totalCost.toLocaleString()}</div>
+                         <div className="md:col-span-3 flex items-center gap-2 flex-wrap justify-start">
+                             <button
+                                onClick={() => alert(`注文ID: ${est.id} を発注します。`)}
+                                className="text-sm bg-accent text-white font-bold py-2 px-5 hover:bg-accent/90 transition-transform transform hover:scale-105"
+                            >
+                                <i className="fas fa-shopping-cart mr-2"></i>発注する
+                            </button>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => onNavigateToEstimator({ fromPage: 'myPage', estimateId: est.id })}
+                                    className="text-sm bg-secondary text-white font-semibold py-1 px-3 hover:bg-secondary/90 transition"
+                                >
+                                    編集
+                                </button>
+                                <button className="text-sm bg-gray-600 text-white font-semibold py-1 px-3 hover:bg-gray-700 transition">
+                                    <i className="fas fa-file-pdf mr-1"></i> PDF
+                                </button>
+                                <button className="text-sm bg-gray-600 text-white font-semibold py-1 px-3 hover:bg-gray-700 transition">
+                                    <i className="fas fa-envelope mr-1"></i> メール
+                                </button>
+                            </div>
+                         </div>
+                    </div>
+                ))}
+            </div>
+        ) : <p className="text-gray-600 bg-white p-6 border">保存されている見積もりはありません。</p>}
+    </div>
+);
+
+const HistoryView: React.FC<{ orders: CombinedOrderData[], onNavigateToEstimator: MyPageProps['onNavigateToEstimator'] }> = ({ orders, onNavigateToEstimator }) => (
+     <div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">過去の案件と書類のダウンロード</h2>
+        {orders.length > 0 ? (
+            <div className="bg-white border border-gray-200">
+                <div className="hidden md:grid grid-cols-12 gap-4 p-4 font-semibold text-gray-500 bg-gray-50 border-b">
+                    <div className="col-span-3">件名</div>
+                    <div className="col-span-3">注文ID</div>
+                    <div className="col-span-2">完了日</div>
+                    <div className="col-span-1">合計金額</div>
+                    <div className="col-span-3">アクション</div>
+                </div>
+                {orders.map(order => (
+                     <div key={order.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border-b last:border-b-0 items-center">
+                         <div className="md:col-span-3 font-semibold text-gray-800">{order.quoteSubject}</div>
+                         <div className="md:col-span-3 font-semibold text-primary">{order.id}</div>
+                         <div className="text-gray-600 md:col-span-2">{order.date}</div>
+                         <div className="text-gray-600 font-semibold md:col-span-1">¥{order.totalCost.toLocaleString()}</div>
+                         <div className="md:col-span-3">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <button onClick={() => onNavigateToEstimator({ fromPage: 'myPage', estimateId: order.id, isReorder: true })} className="text-sm bg-secondary text-white font-semibold py-1 px-3 hover:bg-secondary/90">再度注文</button>
+                                <div className="flex items-center gap-2 border-l pl-2 ml-1">
+                                    <button onClick={() => alert(`${order.id}の見積書PDFをダウンロード`)} className="text-xs bg-gray-500 text-white font-semibold py-1 px-2 hover:bg-gray-600 transition" title="見積書PDF">
+                                        見積書
+                                    </button>
+                                    <button onClick={() => alert(`${order.id}の納品書PDFをダウンロード`)} className="text-xs bg-gray-500 text-white font-semibold py-1 px-2 hover:bg-gray-600 transition" title="納品書PDF">
+                                        納品書
+                                    </button>
+                                    <button onClick={() => alert(`${order.id}の請求書PDFをダウンロード`)} className="text-xs bg-gray-500 text-white font-semibold py-1 px-2 hover:bg-gray-600 transition" title="請求書PDF">
+                                        請求書
+                                    </button>
+                                    <button onClick={() => alert(`${order.id}の領収書PDFをダウンロード`)} className="text-xs bg-gray-500 text-white font-semibold py-1 px-2 hover:bg-gray-600 transition" title="領収書PDF">
+                                        領収書
+                                    </button>
+                                </div>
+                            </div>
+                         </div>
+                    </div>
+                ))}
+            </div>
+        ) : <p className="text-gray-600 bg-white p-6 border">過去の案件はありません。</p>}
+    </div>
+);
+
+const InvoicesView: React.FC<{ invoices: CombinedOrderData[] }> = ({ invoices }) => (
+    <div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">ご依頼中案件の請求書</h2>
+        {invoices.length > 0 ? (
+            <div className="bg-white border border-gray-200">
+                <div className="hidden md:grid grid-cols-12 gap-4 p-4 font-semibold text-gray-500 bg-gray-50 border-b">
+                    <div className="col-span-3">件名</div>
+                    <div className="col-span-3">請求書ID</div>
+                    <div className="col-span-2">発行日</div>
+                    <div className="col-span-1">金額 (税込)</div>
+                    <div className="col-span-1">ステータス</div>
+                    <div className="col-span-2">アクション</div>
+                </div>
+                {invoices.map(order => (
+                    <div key={order.invoice!.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border-b last:border-b-0 items-center">
+                        <div className="md:col-span-3 font-semibold text-gray-800">{order.quoteSubject}</div>
+                        <div className="md:col-span-3 font-semibold text-primary">{order.invoice!.id}</div>
+                        <div className="md:col-span-2 text-gray-600">{order.invoice!.date}</div>
+                        <div className="md:col-span-1 text-gray-600">¥{order.invoice!.totalCost.toLocaleString()}</div>
+                        <div className="md:col-span-1">
+                           <span className={`text-sm font-semibold px-2 py-1 rounded-full ${order.invoice!.status === '入金済' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                             {order.invoice!.status}
+                           </span>
+                        </div>
+                        <div className="md:col-span-2 flex items-center gap-2">
+                            <button className="text-sm bg-secondary text-white font-semibold py-1 px-3 hover:bg-secondary/90 transition">
+                                <i className="fas fa-download mr-1"></i> PDF
+                            </button>
+                            <button className="text-sm bg-gray-600 text-white font-semibold py-1 px-3 hover:bg-gray-700 transition">
+                                <i className="fas fa-envelope mr-1"></i> メール
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        ) : <p className="text-gray-600 bg-white p-6 border">発行済みの請求書はありません。</p>}
+    </div>
+);
+
+const ShippingDetailsView: React.FC<{ orders: CombinedOrderData[] }> = ({ orders }) => (
+    <div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">出荷業者と追跡番号</h2>
+        {orders.length > 0 ? (
+            <div className="bg-white border border-gray-200">
+                <div className="hidden md:grid grid-cols-6 gap-4 p-4 font-semibold text-gray-500 bg-gray-50 border-b">
+                    <div className="col-span-2">件名</div>
+                    <div>注文ID</div>
+                    <div>発送日</div>
+                    <div>配送会社</div>
+                    <div className="col-span-1">追跡番号</div>
+                </div>
+                {orders.map(order => (
+                    <div key={order.id} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 border-b last:border-b-0 items-center">
+                        <div className="md:col-span-2 font-semibold text-gray-800">{order.quoteSubject}</div>
+                        <div>
+                           <p className="font-semibold text-primary">{order.id}</p>
+                           <p className={`text-sm font-semibold ${order.shipping!.status === '発送完了' ? 'text-green-600' : 'text-blue-600'}`}>{order.shipping!.status}</p>
+                        </div>
+                        <div className="text-gray-600">{order.shipping!.shippingDate}</div>
+                        <div className="text-gray-600">{order.shipping!.carrier}</div>
+                        <div className="col-span-1">
+                            {order.shipping!.trackingNumber !== '未発行' ? (
+                                <a href="#" className="text-secondary hover:underline font-mono" onClick={e => e.preventDefault()}>{order.shipping!.trackingNumber}</a>
+                            ) : (
+                                <span className="text-gray-500">{order.shipping!.trackingNumber}</span>
+                            )}
+                         </div>
+                    </div>
+                ))}
+            </div>
+        ) : <p className="text-gray-600 bg-white p-6 border">発送済みの案件はありません。</p>}
+    </div>
+);
+
+
+const MyPage: React.FC<MyPageProps> = ({ appData, onNavigateToEstimator, activeTab: initialActiveTab }) => {
+  const [data, setData] = useState<MyPageData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState<ActiveTab>(initialActiveTab);
+  const [isCustomerInfoModalOpen, setIsCustomerInfoModalOpen] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<ShippingAddress | Omit<ShippingAddress, 'id'|'customer_id'> | null>(null);
+
+  const navigate = useNavigate();
+  
+  const fetchMyPageData = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      // API call simulation
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setData(sampleMyPageData); 
+    } catch (err) {
+      setError('データの読み込みに失敗しました。');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMyPageData();
+  }, [fetchMyPageData]);
+  
+  useEffect(() => {
+    navigate(`/my-page/${activeTab}`, { replace: true });
+  }, [activeTab, navigate]);
+
+  const handleUpdateCustomerInfo = async (updatedInfo: CustomerInfo) => {
+    // API call simulation
+    console.log("Updating customer info:", updatedInfo);
+    setData(prev => prev ? { ...prev, customerInfo: updatedInfo } : null);
+    setIsCustomerInfoModalOpen(false);
+  };
+  
+  const handleSaveAddress = (address: ShippingAddress | Omit<ShippingAddress, 'id'|'customer_id'>) => {
+    setData(prevData => {
+      if (!prevData) return null;
+      if ('id' in address) {
+        // Update existing
+        const newAddresses = prevData.addresses.map(a => a.id === address.id ? address : a);
+        return { ...prevData, addresses: newAddresses };
+      } else {
+        // Add new
+        const newAddress: ShippingAddress = { ...address, id: `addr_${Date.now()}`, customer_id: prevData.customerInfo.id || '1' };
+        return { ...prevData, addresses: [...prevData.addresses, newAddress] };
+      }
+    });
+    setIsAddressModalOpen(false);
+    setEditingAddress(null);
+  };
+  
+  const handleDeleteAddress = (id: string) => {
+    if (window.confirm('このお届け先を削除しますか？')) {
+      setData(prevData => prevData ? { ...prevData, addresses: prevData.addresses.filter(a => a.id !== id) } : null);
+    }
+  };
+
+  const sidebarLinks = [
+    { id: 'dashboard', name: 'ダッシュボード', icon: 'fa-home' },
+    { id: 'customerInfo', name: 'お客様情報', icon: 'fa-user' },
+    { id: 'addressBook', name: '配送先アドレス帳', icon: 'fa-address-book' },
+    { id: 'estimates', name: '検討中の見積もり', icon: 'fa-file-invoice' },
+    { id: 'status', name: '進行状況ステータス', icon: 'fa-tasks' },
+    { id: 'invoices', name: 'ご依頼中案件の請求書', icon: 'fa-file-invoice-dollar' },
+    { id: 'shipping', name: '出荷・追跡番号', icon: 'fa-truck' },
+    { id: 'history', name: '過去の案件', icon: 'fa-history' },
+  ];
+  
+  const handleTabChangeMobile = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newTab = e.target.value as ActiveTab;
+    setActiveTab(newTab);
+  };
+
+  const estimates = useMemo(() => data?.orders.filter(o => o.mainStatus === '見積もり中') || [], [data]);
+  const inProgress = useMemo(() => data?.orders.filter(o => o.mainStatus === '製作中') || [], [data]);
+  const completed = useMemo(() => data?.orders.filter(o => o.mainStatus === '完了') || [], [data]);
+
+  const renderContent = () => {
+    if (loading) return <LoadingComponent />;
+    if (error) return <ErrorComponent message={error} onRetry={fetchMyPageData} />;
+    if (!data) return <p>データがありません。</p>;
+    
+    switch (activeTab) {
+      case 'dashboard': return <DashboardView onNavigateToEstimator={() => onNavigateToEstimator({ fromPage: 'myPage' })} customerName={data.customerInfo.nameKanji} onTabChange={setActiveTab} />;
+      case 'customerInfo': return <CustomerInfoView info={data.customerInfo} onEdit={() => setIsCustomerInfoModalOpen(true)} />;
+      case 'addressBook': return <AddressBookView addresses={data.addresses} onAddNew={() => { setEditingAddress({ name: '', zipCode: '', address1: '', address2: '', phone: '' }); setIsAddressModalOpen(true); }} onEdit={(addr) => { setEditingAddress(addr); setIsAddressModalOpen(true); }} onDelete={handleDeleteAddress} />;
+      case 'estimates': return <EstimatesView estimates={estimates} onNavigateToEstimator={onNavigateToEstimator} />;
+      case 'status': return <StatusView orders={inProgress} />;
+      case 'invoices': return <InvoicesView invoices={inProgress} />;
+      case 'shipping': return <ShippingDetailsView orders={inProgress} />;
+      case 'history': return <HistoryView orders={completed} onNavigateToEstimator={onNavigateToEstimator} />;
+      default: return <div>コンテンツがありません</div>;
+    }
+  };
+
+  return (
+    <div className="bg-background-subtle">
+      <div className="w-full max-w-screen-2xl mx-auto px-4 pt-16 pb-12">
+        <div className="flex flex-col md:flex-row gap-8">
+          <aside className="hidden md:block md:w-64 flex-shrink-0">
+            <nav className="bg-white p-4 border border-gray-200 shadow-sm space-y-2">
+              {sidebarLinks.map(link => (
+                <button
+                  key={link.id}
+                  onClick={() => setActiveTab(link.id as ActiveTab)}
+                  className={`w-full flex items-center p-3 text-sm font-semibold transition-colors ${activeTab === link.id ? 'bg-secondary text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                >
+                  <i className={`fas ${link.icon} w-6 text-center`}></i>
+                  <span className="ml-3">{link.name}</span>
+                </button>
+              ))}
+            </nav>
+          </aside>
+          <div className="md:hidden mb-4">
+              <label htmlFor="mypage-nav-mobile" className="sr-only">ナビゲーション</label>
+              <select
+                  id="mypage-nav-mobile"
+                  value={activeTab}
+                  onChange={handleTabChangeMobile}
+                  className="w-full p-3 border border-gray-300 bg-white focus:ring-primary focus:border-primary text-base font-semibold"
+              >
+                  {sidebarLinks.map(link => (
+                      <option key={link.id} value={link.id}>{link.name}</option>
+                  ))}
+              </select>
+          </div>
+          <main className="flex-1 min-w-0">
+            {renderContent()}
+          </main>
+        </div>
+      </div>
+      {isCustomerInfoModalOpen && data && (
+        <CustomerInfoFormModal
+          initialInfo={data.customerInfo}
+          onSave={handleUpdateCustomerInfo}
+          onClose={() => setIsCustomerInfoModalOpen(false)}
+        />
+      )}
+       {isAddressModalOpen && editingAddress && (
+        <AddressFormModal
+          address={editingAddress}
+          onSave={handleSaveAddress}
+          onClose={() => setIsAddressModalOpen(false)}
+        />
+      )}
+    </div>
+  );
+};
+export default MyPage;

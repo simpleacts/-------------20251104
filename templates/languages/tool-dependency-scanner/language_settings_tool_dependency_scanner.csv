@@ -1,0 +1,26 @@
+key,ja,en
+dependency_scanner.title,依存関係スキャンツール,Dependency Scanner Tool
+dependency_scanner.description,システムログ、手動定義、または両者を比較して、未定義または更新が必要なデータ依存関係を検出・承認します。,Detects and approves undefined or outdated data dependencies by comparing system logs, manual definitions, or both.
+dependency_scanner.mode_log,ログベース,Log-based
+dependency_scanner.mode_manual,手動定義から生成,Generate from Manual Definition
+dependency_scanner.mode_comparison,比較モード,Comparison Mode
+dependency_scanner.scanning,スキャン中...,Scanning...
+dependency_scanner.scan_log,ログから依存関係をスキャン,Scan Dependencies from Logs
+dependency_scanner.scan_manual,手動定義から依存関係を生成,Generate Dependencies from Manual Definition
+dependency_scanner.scan_comparison,手動定義とtool_dependenciesを比較,Compare Manual Definition with tool_dependencies
+dependency_scanner.approve_all,すべて承認,Approve All
+dependency_scanner.no_dependencies,未定義または更新が必要な依存関係は見つかりませんでした。,No undefined or outdated dependencies found.
+dependency_scanner.only_in_manual,手動定義のみに存在（移行候補）,Exists Only in Manual Definition (Migration Candidates)
+dependency_scanner.only_in_manual_desc,{count}件の依存関係がtool_dependenciesに未定義です。,{count} dependencies are undefined in tool_dependencies.
+dependency_scanner.migrate_all,すべてtool_dependenciesに移行,Migrate All to tool_dependencies
+dependency_scanner.only_in_tool_deps,tool_dependenciesのみに存在,Exists Only in tool_dependencies
+dependency_scanner.only_in_tool_deps_desc,{count}件の依存関係が手動定義に存在しません。,{count} dependencies do not exist in manual definition.
+dependency_scanner.in_both,両方に存在（一致）,Exists in Both (Match)
+dependency_scanner.in_both_desc,{count}件の依存関係が両方で定義されています。,{count} dependencies are defined in both.
+dependency_scanner.tool_name,ツール名,Tool Name
+dependency_scanner.table_name,テーブル名,Table Name
+dependency_scanner.read_fields,読み込みフィールド,Read Fields
+dependency_scanner.write_fields,書き込みフィールド,Write Fields
+dependency_scanner.load_strategy,読み込み戦略,Load Strategy
+dependency_scanner.actions,操作,Actions
+

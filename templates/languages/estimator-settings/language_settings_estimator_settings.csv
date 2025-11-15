@@ -1,0 +1,10 @@
+key,ja,en
+estimator_settings.title,見積作成設定,Estimator Settings
+estimator_settings.description,見積作成ツールの共通的な動作を制御します。,Control common behavior of the estimator tool.
+estimator_settings.save,保存,Save
+estimator_settings.save_success,設定を保存しました。,Settings saved.
+estimator_settings.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+estimator_settings.common_pricing,共通価格設定,Common Pricing Settings
+estimator_settings.bring_in_markup_label,持ち込み商品のデフォルト掛率,Default Markup Rate for Bring-in Products
+estimator_settings.bring_in_markup_description,「持ち込み」モードで見積もりを作成する際の、商品代金に対するデフォルトの掛率です。（例: 1.0 = 仕入値と同額）,Default markup rate for product prices when creating estimates in "bring-in" mode. (Example: 1.0 = same as purchase price)
+

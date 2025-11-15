@@ -1,0 +1,18 @@
+key,ja,en
+display_settings.title,表示設定,Display Settings
+display_settings.description,アプリケーションの配色、表示密度、フォントサイズなどの外観をカスタマイズします。,"Customize the appearance of the application, including colors, display density, font size, etc."
+display_settings.unsaved_changes,未保存の変更があります,You have unsaved changes
+display_settings.reset_to_default,デフォルトに戻す,Reset to Default
+display_settings.save_as_default,デフォルトとして保存,Save as Default
+display_settings.save,保存,Save
+display_settings.saved,表示設定を保存しました。,Display settings saved successfully.
+display_settings.save_failed,サーバーへの保存に失敗しました:,"Failed to save to server:"
+display_settings.save_as_default_confirm,現在の設定を全ユーザーのデフォルトとして保存しますか？既存のデフォルト設定は上書きされます。,Save current settings as default for all users? Existing default settings will be overwritten.
+display_settings.save_as_default_success,現在の設定をデフォルトとして保存しました。,Saved current settings as default.
+display_settings.reset_confirm,現在の設定をデフォルトに戻しますか？保存されていない変更は失われます。,Reset current settings to default? Unsaved changes will be lost.
+display_settings.tab_color,配色設定,Color Settings
+display_settings.tab_layout,レイアウト設定,Layout Settings
+display_settings.tab_behavior,動作設定,Behavior Settings
+display_settings.tab_visibility,ツール表示設定,Tool Visibility Settings
+display_settings.tab_pagination,ページネーション設定,Pagination Settings
+

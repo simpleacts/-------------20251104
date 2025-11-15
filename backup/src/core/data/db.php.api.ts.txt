@@ -1,0 +1,213 @@
+import { Column, Database, Row } from '../../shared/types';
+import * as idb from '../services/idbService';
+
+// This function is needed to create the schema from the fetched data
+export function inferSchema(rows: Row[], tableName?: string): Column[] {
+  if (rows.length === 0) return [];
+  
+  const firstRowWithData = rows.find(row => row && Object.keys(row).length > 0);
+  if (!firstRowWithData) return [];
+
+  const columnNames = Object.keys(firstRowWithData);
+  return columnNames.map(name => {
+    const id = name;
+    
+    // products_masterテーブルのcodeカラムは常にTEXT型として扱う（頭の0を保持するため）
+    if (tableName === 'products_master' && name === 'code') {
+      return { id, name, type: 'TEXT' as const };
+    }
+    
+    let hasNumber = false;
+    let hasString = false;
+    let hasBoolean = false;
+
+    for (const row of rows) {
+      const value = row[name];
+      if (value === null || typeof value === 'undefined') continue;
+
+      const type = typeof value;
+      if (type === 'number') {
+        hasNumber = true;
+      } else if (type === 'string' && value.trim() !== '') {
+        hasString = true;
+      } else if (type === 'boolean') {
+        hasBoolean = true;
+      }
+      
+      if (hasNumber && hasString) break;
+    }
+
+    let finalType: Column['type'] = 'TEXT';
+    if (hasNumber && !hasString && !hasBoolean) {
+        finalType = 'NUMBER';
+    } else if (hasBoolean && !hasString && !hasNumber) {
+        finalType = 'BOOLEAN';
+    } else {
+        finalType = 'TEXT';
+    }
+    
+    return { id, name, type: finalType };
+  });
+}
+
+export const getInitialTables = (): string[] => [
+    'settings', 'color_settings', 'layout_settings', 'behavior_settings', 'pagination_settings',
+    'users', 'roles', 'role_permissions', 'dev_locks', 'google_api_settings', 'email_accounts', 'tool_migrations',
+    'app_logs', 'tool_visibility_settings', 'mobile_tool_mappings', 'tool_dependencies', 'icons', 'ai_settings', 'google_fonts',
+    'modules_page_tool', 'modules_core'
+];
+
+export const fetchTables = async (tableNames: string[], options?: { lightweight?: boolean; toolName?: string }): Promise<Partial<Database>> => {
+    if (tableNames.length === 0) return {};
+
+    try {
+        // Use tool-specific PHP file if toolName is provided, otherwise use app-initialization-data.php
+        const phpFile = options?.toolName ? `${options.toolName}-data.php` : 'app-initialization-data.php';
+        const lightweightParam = options?.lightweight ? '&lightweight=true' : '';
+        const response = await fetch(`/api/${phpFile}?tables=${tableNames.join(',')}${lightweightParam}`);
+        if (!response.ok) {
+            // If 404, PHP file doesn't exist - return empty tables
+            if (response.status === 404) {
+                console.warn(`${phpFile} not found (404). Returning empty tables.`);
+                const partialDb: Partial<Database> = {};
+                for (const tableName of tableNames) {
+                    partialDb[tableName] = { schema: [], data: [] };
+                }
+                return partialDb;
+            }
+            const errorText = await response.text();
+            try {
+                const errorJson = JSON.parse(errorText);
+                if (errorJson.error) {
+                    throw new Error(`PHP API Error while fetching tables (${tableNames.join(', ')}): ${errorJson.error}`);
+                }
+            } catch (e) {
+                 throw new Error(`API endpoint '${phpFile}' failed for tables (${tableNames.join(', ')}): ${response.status} ${response.statusText}\nResponse: ${errorText}`);
+            }
+             throw new Error(`API endpoint '${phpFile}' failed for tables (${tableNames.join(', ')}): ${response.status} ${response.statusText}`);
+        }
+        
+        // Check Content-Type header first
+        const contentType = response.headers.get('content-type');
+        
+        // Read response as text first (we can only read the body once)
+        const responseText = await response.text();
+        
+        // Check if response is actually JSON
+        if (!contentType || !contentType.includes('application/json')) {
+            console.error(`Expected JSON but got ${contentType}. Response preview:`, responseText.substring(0, 200));
+            // If we get HTML, it's likely a PHP error or 404 page
+            throw new Error(`API endpoint '${phpFile}' returned non-JSON response (${contentType}). This might indicate a PHP error or 404 page. Response preview: ${responseText.substring(0, 200)}`);
+        }
+        
+        // Parse as JSON
+        let rawData: Record<string, Row[]>;
+        try {
+            rawData = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error(`Failed to parse JSON response. Content type: ${contentType}, Preview:`, responseText.substring(0, 500));
+            throw new Error(`API endpoint '${phpFile}' returned invalid JSON. Response preview: ${responseText.substring(0, 200)}`);
+        }
+        const partialDb: Partial<Database> = {};
+        for (const tableName of tableNames) {
+            let data = rawData[tableName] || [];
+            
+            data = data.filter(row => {
+                if (!row) return false;
+                return Object.values(row).some(value => value !== null && value !== undefined && String(value).trim() !== '');
+            });
+
+            const schema = inferSchema(data, tableName);
+            partialDb[tableName] = { schema, data };
+        }
+        return partialDb;
+    } catch (error) {
+        console.error(`Failed to fetch tables: ${tableNames.join(',')}`, error);
+        throw error;
+    }
+};
+
+/**
+ * Loads the initial database from the live API.
+ * The mode parameter is kept for compatibility but is ignored in this production-focused file.
+ * @returns {Promise<Partial<Database>>} A promise that resolves to the database object.
+ */
+export const loadLiveOrMockDatabase = async (mode: 'live' | 'csv-debug'): Promise<Partial<Database>> => {
+    try {
+        const initialTables = getInitialTables();
+        return await fetchTables(initialTables);
+    } catch (error) {
+        console.error(`Failed to load initial database in live mode:`, error);
+        // If 404 error, return empty database instead of throwing
+        if (error instanceof Error && error.message.includes('404')) {
+            console.warn('PHP API not available (404). Returning empty database.');
+            const emptyDb: Partial<Database> = {};
+            const initialTables = getInitialTables();
+            for (const tableName of initialTables) {
+                emptyDb[tableName] = { schema: [], data: [] };
+            }
+            return emptyDb;
+        }
+        throw error; // Re-throw the error to be caught
+    }
+};
+
+
+const getSourceData = (mode: 'live' | 'csv-debug') => {
+    // In production build, we always use the live data source.
+    return loadLiveOrMockDatabase('live');
+};
+
+/**
+ * Loads the entire database, prioritizing IndexedDB for fast, offline-first access.
+ * If IndexedDB is empty or stale, it fetches from the network source and caches it.
+ * @param {'live' | 'csv-debug'} mode - The data source mode.
+ * @param {{ forceRefetch?: boolean }} [options] - Options for loading.
+ * @returns {Promise<Partial<Database>>} A promise that resolves to the database object.
+ */
+export const loadDatabase = async (mode: 'live' | 'csv-debug' = 'live', options: { forceRefetch?: boolean } = {}): Promise<Partial<Database>> => {
+    try {
+        await idb.initDB();
+        
+        if (!options.forceRefetch) {
+            const cachedData = await idb.loadAllTables();
+            const lastSync = await idb.getMetadata('lastSyncTimestamp');
+            const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minute cache validity
+            const isCacheFresh = lastSync && (Date.now() - lastSync < CACHE_DURATION_MS);
+            
+            const initialTables = getInitialTables();
+            const hasInitialData = cachedData && Object.keys(cachedData).length > 0 && initialTables.every(t => cachedData[t]);
+
+            if (hasInitialData && isCacheFresh) {
+                console.log('Loading database from valid IndexedDB cache.');
+                return cachedData;
+            }
+        }
+
+        console.log(options.forceRefetch ? 'Forcing refetch from source.' : 'IndexedDB cache is empty or stale. Fetching from source...');
+        // In this production file, getSourceData will always fetch from the 'live' API.
+        const sourceData = await getSourceData(mode);
+        
+        return sourceData;
+
+    } catch (error) {
+        console.error('Error in main database load sequence:', error);
+        // Fallback to source if IndexedDB fails
+        try {
+            return await getSourceData(mode);
+        } catch (sourceError) {
+            // If 404 error, return empty database instead of throwing
+            if (sourceError instanceof Error && sourceError.message.includes('404')) {
+                console.warn('PHP API not available (404). Returning empty database.');
+                const emptyDb: Partial<Database> = {};
+                const initialTables = getInitialTables();
+                for (const tableName of initialTables) {
+                    emptyDb[tableName] = { schema: [], data: [] };
+                }
+                return emptyDb;
+            }
+            console.error('CRITICAL: Failed to load data from both IndexedDB and source.', sourceError);
+            throw sourceError;
+        }
+    }
+};

@@ -1,0 +1,161 @@
+key,ja,en
+customers.id,顧客ID,Customer ID
+customers.company_name,会社名,Company Name
+customers.name_kanji,氏名,Name
+customers.name_kana,氏名(カナ),Name (Kana)
+customers.email,メールアドレス,Email
+customers.phone,電話番号,Phone
+customers.zip_code,郵便番号,Zip Code
+customers.address1,住所1,Address 1
+customers.address2,住所2,Address 2
+customers.created_at,登録日時,Created At
+customers.updated_at,更新日時,Updated At
+customers.customer_group_id,顧客グループ,Customer Group
+customers.internal_notes,内部メモ,Internal Notes
+customers.status,ステータス,Status
+customer_groups.id,ID,ID
+customer_groups.name,グループ名,Group Name
+customer_groups.description,説明,Description
+quotes.id,案件・見積ID,Quote ID
+quotes.quote_code,見積/案件コード,Quote Code
+quotes.subject,件名,Subject
+quotes.customer_id,顧客ID,Customer ID
+quotes.quote_status,見積ステータス,Quote Status
+quotes.production_status,製作ステータス,Production Status
+quotes.payment_status,入金状況,Payment Status
+quotes.shipping_status,発送状況,Shipping Status
+quotes.data_confirmation_status,データ確認,Data Confirmation
+quotes.total_cost_ex_tax,税抜合計,Subtotal
+quotes.shipping_cost,送料,Shipping
+quotes.tax,消費税,Tax
+quotes.total_cost_in_tax,税込合計,Total
+quotes.notes,備考,Notes
+quotes.internal_notes,内部メモ,Internal Notes
+quotes.created_at,作成日時,Created At
+quotes.updated_at,更新日時,Updated At
+quotes.estimated_delivery_date,希望納品日,Est. Delivery Date
+quotes.shipping_carrier_id,配送会社,Shipping Carrier
+quotes.shipping_date,発送日,Shipping Date
+quotes.tracking_number,追跡番号,Tracking Number
+quotes.ordered_at,受注日,Order Date
+quotes.payment_due_date,支払期日,Payment Due Date
+quotes.quote_type,見積種別,Quote Type
+products_master.id,商品ID,Product ID
+products_master.brand_id,ブランドID,Brand ID
+products_master.code,型番,Product Code
+products_master.categoryId,カテゴリID,Category ID
+products_master.jan_code,JANコード,JAN Code
+products_master.is_published,公開状態,Published
+products_master.brand,ブランド,Brand
+products_master.category,カテゴリー,Category
+users.id,ユーザーID,User ID
+users.username,ユーザー名,Username
+users.password,パスワード,Password
+users.role_id,役割ID,Role ID
+users.name,名前,Name
+roles.id,役割ID,Role ID
+roles.name,役割名,Role Name
+role_permissions.role_id,役割ID,Role ID
+role_permissions.permissions,権限(JSON),Permissions (JSON)
+language_settings.key,キー,Key
+language_settings.ja,日本語,Japanese
+language_settings.en,英語,English
+tables.customers,顧客,Customers
+tables.customer_groups,顧客グループ,Customer Groups
+tables.quotes,案件・見積管理,Quotes & Orders
+tables.quote_items,見積商品,Quote Items
+tables.quote_designs,見積デザイン,Quote Designs
+tables.quote_history,見積履歴,Quote History
+tables.quote_status_master,見積ステータス設定,Quote Status Master
+tables.payment_status_master,入金状況設定,Payment Status Master
+tables.production_status_master,制作ステータス設定,Production Status Master
+tables.shipping_status_master,発送状況設定,Shipping Status Master
+tables.data_confirmation_status_master,データ確認設定,Data Confirmation Master
+tables.shipping_carriers,配送会社,Shipping Carriers
+tables.products_master,商品マスター,Products Master
+tables.product_details,商品詳細,Product Details
+tables.product_prices,商品価格,Product Prices
+tables.product_colors,商品展開カラー,Product Colors
+tables.product_tags,商品タグ,Product Tags
+tables.stock,在庫,Stock
+tables.manufacturers,メーカー,Manufacturers
+tables.brands,ブランド,Brands
+tables.categories,カテゴリー,Categories
+tables.tags,タグ,Tags
+tables.colors,カラー,Colors
+tables.sizes,サイズ,Sizes
+tables.print_locations,印刷箇所,Print Locations
+tables.print_size_constraints,印刷サイズ制約,Print Size Constraints
+tables.plate_costs,製版代,Plate Costs
+tables.special_ink_costs,特殊インク代,Special Ink Costs
+tables.additional_print_costs_by_size,追加印刷代（サイズ別）,Additional Print Costs (Size)
+tables.additional_print_costs_by_location,追加印刷代（箇所別）,Additional Print Costs (Location)
+tables.additional_print_costs_by_tag,追加印刷代（タグ別）,Additional Print Costs (Tag)
+tables.print_pricing_tiers,単価マトリクス,Print Pricing Tiers
+tables.print_pricing_schedules,プリント単価表,Print Pricing Schedules
+tables.category_pricing_schedules,顧客グループ別単価表設定,Category Pricing Schedules
+tables.pricing_rules,価格設定ルール,Pricing Rules
+tables.pricing_assignments,価格ルール割り当て,Pricing Assignments
+tables.volume_discount_schedules,数量割引スケジュール,Volume Discount Schedules
+tables.print_cost_combination,印刷グループ設定,Print Cost Combination
+tables.plate_cost_combination,製版グループ設定,Plate Cost Combination
+tables.settings,システム設定,System Settings
+tables.company_info,会社情報,Company Info
+tables.shipping_costs,送料,Shipping Costs
+tables.partner_codes,パートナーコード,Partner Codes
+tables.gallery_images,ギャラリー画像,Gallery Images
+tables.gallery_tags,ギャラリータグ,Gallery Tags
+tables.category_print_locations,カテゴリ別印刷箇所,Category Print Locations
+tables.prefectures,都道府県,Prefectures
+tables.skus,SKU,SKUs
+tables.incoming_stock,入荷予定,Incoming Stock
+tables.importer_mappings,インポート設定,Importer Mappings
+tables.filename_rule_presets,ファイル名変換プリセット,Filename Rule Presets
+tables.print_history,印刷履歴,Print History
+tables.print_history_positions,印刷位置,Print History Positions
+tables.print_history_images,仕上がり写真,Print History Images
+tables.ink_manufacturers,インクメーカー,Ink Manufacturers
+tables.ink_series,インクシリーズ,Ink Series
+tables.ink_products,インク製品,Ink Products
+tables.ink_recipes,インクレシピ,Ink Recipes
+tables.ink_recipe_components,レシピ構成,Recipe Components
+tables.ink_recipe_usage,レシピ使用履歴,Recipe Usage History
+tables.pantone_colors,Pantoneカラー,Pantone Colors
+tables.dic_colors,DICカラー,DIC Colors
+tables.users,ユーザー管理,Users
+tables.roles,役割管理,Roles
+tables.role_permissions,権限設定,Role Permissions
+tables.id_formats,ID形式設定,ID Formats
+tables.dtf_consumables,DTF消耗品費,DTF Consumables
+tables.dtf_equipment,DTF設備費,DTF Equipment
+tables.dtf_labor_costs,DTF工賃,DTF Labor Costs
+tables.dtf_press_time_costs,DTFプレス時間単価,DTF Press Time Costs
+tables.dtf_electricity_rates,DTF電気料金,DTF Electricity Rates
+tables.pdf_templates,PDFテンプレート,PDF Templates
+tables.additional_options,追加オプション,Additional Options
+tables.pdf_preview_zoom_configs,PDFプレビュー設定,PDF Preview Settings
+tables.pagination_settings,ページネーション設定,Pagination Settings
+tables.app_logs,システムログ,System Logs
+tables.dev_locks,開発ロック,Dev Locks
+tables.tool_migrations,ツール移植履歴,Tool Migration History
+tables.dev_roadmap,開発ロードマップ,Development Roadmap
+tables.task_master,タスクマスター,Task Master
+tables.quote_tasks,案件タスク,Quote Tasks
+tables.task_generation_rules,タスク自動生成ルール,Task Generation Rules
+tables.sql_export_presets,SQLエクスポートプリセット,SQL Export Presets
+tables.dev_constitution,開発憲法,Dev Constitution
+tables.dev_guidelines_recommended,推奨仕様,Recommended Guidelines
+tables.dev_guidelines_prohibited,禁止事項,Prohibited Guidelines
+tables.task_time_settings,タスク時間設定,Task Time Settings
+tables.bills,支払請求書,Bills
+tables.bill_items,請求書項目,Bill Items
+tables.invoice_parsing_templates,請求書解析テンプレート,Invoice Parsing Templates
+tables.emails,メール,Emails
+tables.email_attachments,メール添付ファイル,Email Attachments
+tables.email_accounts,メールアカウント,Email Accounts
+tables.google_api_settings,Google連携設定,Google API Settings
+tables.work_sessions,作業セッション,Work Sessions
+tables.work_session_quotes,作業セッション案件紐付け,Work Session Quotes
+tables.pdf_item_display_configs,PDF明細項目設定,PDF Item Display Configs
+tables.development_workflow,開発ワークフロー管理,Development Workflow
+tables.icons,アイコン,Icons

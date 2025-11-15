@@ -1,0 +1,11 @@
+key,ja,en
+architecture.title,ファイルパス一括更新プロンプトジェネレーター,Bulk File Path Update Prompt Generator
+architecture.description,プロジェクトのファイル構造を解析し、AIにファイルパスの一括更新を指示するためのプロンプトを生成します。,Analyzes the project's file structure and generates a prompt to instruct AI to perform bulk file path updates.
+architecture.ready,準備完了。ボタンを押してプロンプトを生成してください。,Ready. Press the button to generate the prompt.
+architecture.generating,プロンプト生成を開始します...,Starting prompt generation...
+architecture.error,エラーが発生しました:,An error occurred:
+architecture.generating_status,生成中...,Generating...
+architecture.generate_download,プロンプトを生成してダウンロード,Generate and Download Prompt
+architecture.file_list_title,現在のプロジェクトファイル一覧,Current Project File List
+architecture.file_count,{count}件,{count} items
+

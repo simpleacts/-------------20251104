@@ -1,0 +1,51 @@
+key,ja,en
+app_manager.title,アプリケーション管理,Application Management
+app_manager.description,新しいウェブアプリの雛形を作成したり、既存のアプリを管理します。,Create templates for new web apps or manage existing applications.
+app_manager.managed_apps,管理下のアプリケーション,Managed Applications
+app_manager.current_app_name,プリント屋バックオフィス (現在のアプリ),Print Shop Back Office (Current App)
+app_manager.current_app_description,すべてのツールとデータ管理機能を含む、開発の司令塔です。,Command center for development, including all tools and data management features.
+app_manager.create_new,新規アプリケーションを作成,Create New Application
+app_manager.create_new_description,ウィザードを開始して、新しいウェブサイトやツールの雛形を生成します。,Start a wizard to generate templates for new websites or tools.
+app_manager.import_template,ひな形ZIPをインポート,Import Template ZIP
+app_manager.import_template_description,ZIPファイルをアップロードして、ファイル構成と内容を確認・コピーします。,Upload a ZIP file to view and copy file structure and contents.
+app_manager.wizard_title,新規アプリケーション作成ウィザード (ステップ {step}/3),New Application Creation Wizard (Step {step}/3)
+app_manager.app_name_label,アプリケーション名,Application Name
+app_manager.app_name_placeholder,例: お客様向けホームページ,Example: Customer Homepage
+app_manager.folder_name,フォルダ名:,Folder Name:
+app_manager.next,次へ,Next
+app_manager.select_template,テンプレートを選択,Select Template
+app_manager.minimal_template,最小構成テンプレート,Minimal Template
+app_manager.minimal_template_description,基本的なファイル構造と設定のみを含む空のアプリケーション。,Empty application with only basic file structure and settings.
+app_manager.estimator_template,見積機能付きテンプレート (近日公開),Estimator Template (Coming Soon)
+app_manager.estimator_template_description,スタンドアロンで動作する見積作成機能を備えたアプリケーション。(現在は最小構成と同じ内容です),Application with standalone quote creation functionality. (Currently same as minimal template)
+app_manager.back,戻る,Back
+app_manager.final_confirmation,最終確認,Final Confirmation
+app_manager.app_name,アプリ名:,App Name:
+app_manager.folder_name_label,フォルダ名:,Folder Name:
+app_manager.template_label,テンプレート:,Template:
+app_manager.estimator_template_name,見積機能付き,With Estimator
+app_manager.minimal_template_name,最小構成,Minimal
+app_manager.generate_description,この内容でアプリケーションの雛形（ZIPファイル）を生成します。,Generate an application template (ZIP file) with this content.
+app_manager.generating,生成中...,Generating...
+app_manager.generate_template,雛形を生成,Generate Template
+app_manager.generate_failed,ファイルの生成に失敗しました。コンソールを確認してください。,Failed to generate file. Please check the console.
+app_manager.importer_title,ひな形インポーター,Template Importer
+app_manager.file_list,ファイル一覧,File List
+app_manager.all,すべて,All
+app_manager.combined_copy,結合コピー,Combined Copy
+app_manager.generate_changeset,AI用変更セット生成,Generate Changeset for AI
+app_manager.load_another,別のファイルを読み込む,Load Another File
+app_manager.copy_code,コードをコピー,Copy Code
+app_manager.copied,コピーしました,Copied
+app_manager.select_file,ファイルを選択してください,Please select a file
+app_manager.extracting,ZIPファイルを展開中...,Extracting ZIP file...
+app_manager.drag_drop,アプリケーションの雛形ZIPファイルをここにドラッグ＆ドロップ,Drag & drop application template ZIP file here
+app_manager.click_select,またはクリックしてファイルを選択,or click to select file
+app_manager.upload_zip_error,ZIPファイルをアップロードしてください。,Please upload a ZIP file.
+app_manager.parse_error,ZIPファイルの解析に失敗しました。ファイルが破損しているか、サポートされていない形式の可能性があります。,Failed to parse ZIP file. The file may be corrupted or in an unsupported format.
+app_manager.changeset_title,AIアシスタント用 変更セット,Changeset for AI Assistant
+app_manager.changeset_description,以下のXMLをコピーして、AIアシスタントに送信してください。選択したファイルがシステムに反映されます。,Copy the XML below and send it to the AI assistant. Selected files will be reflected in the system.
+app_manager.close,閉じる,Close
+app_manager.copy_xml,XMLをコピー,Copy XML
+app_manager.copied_exclamation,コピーしました！,Copied!
+

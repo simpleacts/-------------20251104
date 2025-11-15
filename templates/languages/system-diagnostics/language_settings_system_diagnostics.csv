@@ -1,0 +1,28 @@
+key,ja,en
+diagnostics.title,システム診断,System Diagnostics
+diagnostics.description,アプリケーションの接続性や健全性を診断し、問題の特定を支援します。,Diagnoses application connectivity and health, helping identify issues.
+diagnostics.run_all,すべての診断を実行,Run All Diagnostics
+diagnostics.running,診断中...,Running...
+diagnostics.tab_overview,概要,Overview
+diagnostics.tab_details,詳細結果,Detailed Results
+diagnostics.select_test,診断項目を選択してください...,Please select a diagnostic item...
+diagnostics.test_api_connection,APIサーバー接続,API Server Connection
+diagnostics.test_api_connection_desc,フロントエンドからバックエンドAPI (PHP) への基本的な疎通を確認します。,Verifies basic connectivity from frontend to backend API (PHP).
+diagnostics.test_db_connection,データベース接続,Database Connection
+diagnostics.test_db_connection_desc,バックエンドAPIからデータベースへの接続を確認します。,Verifies connection from backend API to database.
+diagnostics.test_php_extensions,必須PHP拡張機能,Required PHP Extensions
+diagnostics.test_php_extensions_desc,アプリケーションの動作に必要なPHP拡張機能（pdo_mysql, gd, imapなど）が有効か確認します。,Verifies that required PHP extensions (pdo_mysql, gd, imap, etc.) for application operation are enabled.
+diagnostics.test_tool_data,ツールデータ取得: {tool},Tool Data Retrieval: {tool}
+diagnostics.test_tool_data_desc,{tool}ツールが必要とする主要なデータを取得できるか確認します。,Verifies that the main data required by the {tool} tool can be retrieved.
+diagnostics.api_endpoint_error,APIエンドポイントにアクセスできませんでした。ステータス: {status},Could not access API endpoint. Status: {status}
+diagnostics.api_error,APIエラー: {error},API Error: {error}
+diagnostics.missing_extensions,必須のPHP拡張機能が不足しています: {extensions},Required PHP extensions are missing: {extensions}
+diagnostics.db_context_error,データベースコンテキストが利用できません。,Database context is not available.
+diagnostics.ai_diagnosis_failed,AIによる診断に失敗しました。,AI diagnosis failed.
+diagnostics.ai_consult,AIに相談,Consult AI
+diagnostics.error_details,エラー詳細:,Error Details:
+diagnostics.ai_diagnosis,AIによる診断,AI Diagnosis
+diagnostics.suggestion_title,修正依頼用の提案,Suggestion for Fix Request
+diagnostics.copy,コピー,Copy
+diagnostics.copied,コピーしました,Copied
+

@@ -1,0 +1,54 @@
+<?php
+// api/log_error.php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+require_once __DIR__ . '/db_connect.php';
+
+try {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception('Invalid request method.', 405);
+    }
+
+    $json_data = file_get_contents('php://input');
+    $data = json_decode($json_data, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE || !isset($data['message'])) {
+        throw new Exception('Invalid JSON or missing message parameter.', 400);
+    }
+
+    $pdo = get_db_connection();
+
+    $stmt = $pdo->prepare("
+        INSERT INTO app_logs (level, message, stack_trace, user_agent, location)
+        VALUES (:level, :message, :stack_trace, :user_agent, :location)
+    ");
+
+    $stmt->execute([
+        ':level' => 'ERROR',
+        ':message' => $data['message'] ?? 'No message provided',
+        ':stack_trace' => $data['stack_trace'] ?? null,
+        ':user_agent' => $data['user_agent'] ?? null,
+        ':location' => $data['location'] ?? null
+    ]);
+
+    http_response_code(200);
+    echo json_encode(['success' => true, 'message' => 'Log entry created.']);
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 ? $e->getCode() : 500;
+    http_response_code($code);
+    // Do not log this error to the DB to prevent infinite loops
+    error_log("log_error.php itself failed: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Failed to write log entry.', 'error' => $e->getMessage()]);
+}
+?>

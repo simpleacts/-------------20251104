@@ -1,0 +1,4 @@
+id,name,owner_user_id,sort_order
+1,衣類 標準単価,user_0001,10
+2,バッグ・その他 標準単価,user_0001,20
+3,業者向け単価,user_0001,30

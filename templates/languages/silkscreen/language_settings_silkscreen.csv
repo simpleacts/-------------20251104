@@ -1,0 +1,33 @@
+key,ja,en
+silkscreen.save,保存,Save
+silkscreen.cancel,キャンセル,Cancel
+silkscreen.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+silkscreen.logic_overview_title,計算ロジックの概要,Calculation Logic Overview
+silkscreen.logic_overview_description,シルクスクリーン印刷の見積もりは、主に「商品代」「プリント代」「製版代」の3つの要素から構成されます。,"Silkscreen printing estimates consist mainly of three components: Product Cost, Printing Cost, and Plate Cost."
+silkscreen.logic_product_cost,1. 商品代:,1. Product Cost:
+silkscreen.logic_product_cost_desc,顧客グループやカテゴリに応じた価格ルールに基づき、商品の販売単価を決定します。,Determines the product selling price based on price rules for customer groups and categories.
+silkscreen.logic_print_cost,2. プリント代:,2. Printing Cost:
+silkscreen.logic_print_cost_desc,注文枚数に応じて変動する単価（単価マトリクス）を基準に、色数、プリントサイズ、特殊インクなどの追加料金を加算します。,"Adds additional fees such as color count, print size, and special inks based on unit prices (price matrix) that vary by order quantity."
+silkscreen.logic_plate_cost,3. 製版代:,3. Plate Cost:
+silkscreen.logic_plate_cost_desc,プリントサイズと色数に基づき、必要な版の作成費用を計算します。（リピート注文では0円）,Calculates the cost of creating required plates based on print size and color count. (0 yen for repeat orders)
+silkscreen.params_title,主要パラメータ,Main Parameters
+silkscreen.default_markup_label,デフォルトのマークアップ率,Default Markup Rate
+silkscreen.bring_in_markup_label,持ち込み時のマークアップ率,Bring-in Markup Rate
+silkscreen.pricing_note,※より詳細な単価設定（単価マトリクス、追加料金など）は「プリント単価表管理」ツールで行います。,"※ For more detailed pricing settings (price matrix, additional fees, etc.), use the Print Price Table Management tool."
+silkscreen.plate_cost_title,製版代設定,Plate Cost Settings
+silkscreen.table_header_size,サイズ,Size
+silkscreen.table_header_plate_type,版種別,Plate Type
+silkscreen.table_header_cost,費用,Cost
+silkscreen.table_header_surcharge,色毎追加料金,Surcharge per Color
+silkscreen.simulator_title,シミュレーター,Simulator
+silkscreen.sim_quantity,数量,Quantity
+silkscreen.sim_colors,色数,Color Count
+silkscreen.sim_size,プリントサイズ,Print Size
+silkscreen.sim_special_ink,特殊インク（色数）,Special Ink (Color Count)
+silkscreen.sim_reorder,リピート注文（版代なし）,Repeat Order (No Plate Cost)
+silkscreen.sim_cost_per_shirt,1枚あたり単価 (税込),Cost per Shirt (Tax Included)
+silkscreen.sim_tshirt_cost,Tシャツ代,T-shirt Cost
+silkscreen.sim_print_cost,プリント代,Printing Cost
+silkscreen.sim_setup_cost,製版代,Plate Cost
+silkscreen.sim_total,合計 (税抜),Total (Tax Excluded)
+

@@ -1,0 +1,38 @@
+<?php
+// api/clear_logs.php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+require_once __DIR__ . '/db_connect.php';
+
+try {
+    // TODO: Add proper authentication/authorization checks for admin users
+    
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception('Invalid request method.', 405);
+    }
+    
+    $pdo = get_db_connection();
+    
+    // Using TRUNCATE TABLE is faster for deleting all rows
+    $pdo->exec("TRUNCATE TABLE app_logs");
+
+    http_response_code(200);
+    echo json_encode(['success' => true, 'message' => 'All logs have been cleared.']);
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("clear_logs.php error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Failed to clear logs.', 'error' => $e->getMessage()]);
+}
+?>

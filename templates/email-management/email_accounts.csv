@@ -1,0 +1,3 @@
+id,name,email_address,color,account_type,incoming_server_type,incoming_server_host,incoming_server_port,incoming_server_user,incoming_server_password,incoming_server_ssl,smtp_server_host,smtp_server_port,smtp_server_user,smtp_server_password,smtp_server_ssl,is_google_oauth,google_refresh_token,last_sync_uid,signature,forwarding_enabled,forwarding_address,forwarding_action,pop_status,pop_action,imap_status
+acc_0001,代表メール,info@example.com,#3b82f6,standard,imap,imap.example.com,993,info@example.com,password,true,smtp.example.com,587,info@example.com,password,true,false,,,"--\nシンプルアクツ株式会社\n\n441-1211\n愛知県豊川市江島町稲場22-2\nTEL：0533-79-7920  FAX：0533-79-7920",false,,,disabled,,enabled
+acc_0002,サポート,support@example.com,#10b981,gmail,,,,,,,,,,,,true,,,,false,,,disabled,,enabled

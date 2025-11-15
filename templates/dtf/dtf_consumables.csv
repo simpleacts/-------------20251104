@@ -1,0 +1,5 @@
+id,name,type,unit_price,unit,consumption_rate,consumption_unit
+1,ホワイトインク,ink_white,12000,L,0.00333,ml/cm2
+2,カラーインク,ink_color,9000,L,0.00333,ml/cm2
+3,フィルム,film,12000,"30cm x 100m roll",0,
+4,パウダー,powder,4500,kg,0.00333,g/cm2

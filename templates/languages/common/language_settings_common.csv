@@ -1,0 +1,188 @@
+key,ja,en
+tables.customers,顧客,Customers
+tables.customer_groups,顧客グループ,Customer Groups
+tables.quotes,案件・見積管理,Quotes & Orders
+tables.quote_items,見積商品,Quote Items
+tables.quote_designs,見積デザイン,Quote Designs
+tables.quote_history,見積履歴,Quote History
+tables.quote_status_master,見積ステータス設定,Quote Status Master
+tables.payment_status_master,入金状況設定,Payment Status Master
+tables.production_status_master,制作ステータス設定,Production Status Master
+tables.shipping_status_master,発送状況設定,Shipping Status Master
+tables.data_confirmation_status_master,データ確認設定,Data Confirmation Master
+tables.shipping_carriers,配送会社,Shipping Carriers
+tables.products_master,商品マスター,Products Master
+tables.product_details,商品詳細,Product Details
+tables.product_prices,商品価格,Product Prices
+tables.product_colors,商品展開カラー,Product Colors
+tables.product_tags,商品タグ,Product Tags
+tables.stock,在庫,Stock
+tables.manufacturers,メーカー,Manufacturers
+tables.brands,ブランド,Brands
+tables.categories,カテゴリー,Categories
+tables.tags,タグ,Tags
+tables.colors,カラー,Colors
+tables.sizes,サイズ,Sizes
+tables.print_locations,印刷箇所,Print Locations
+tables.print_size_constraints,印刷サイズ制約,Print Size Constraints
+tables.plate_costs,製版代,Plate Costs
+tables.special_ink_costs,特殊インク代,Special Ink Costs
+tables.additional_print_costs_by_size,追加印刷代（サイズ別）,Additional Print Costs (Size)
+tables.additional_print_costs_by_location,追加印刷代（箇所別）,Additional Print Costs (Location)
+tables.additional_print_costs_by_tag,追加印刷代（タグ別）,Additional Print Costs (Tag)
+tables.print_pricing_tiers,単価マトリクス,Print Pricing Tiers
+tables.print_pricing_schedules,プリント単価表,Print Pricing Schedules
+tables.category_pricing_schedules,顧客グループ別単価表設定,Category Pricing Schedules
+tables.pricing_rules,価格設定ルール,Pricing Rules
+tables.pricing_assignments,価格ルール割り当て,Pricing Assignments
+tables.volume_discount_schedules,数量割引スケジュール,Volume Discount Schedules
+tables.print_cost_combination,印刷グループ設定,Print Cost Combination
+tables.plate_cost_combination,製版グループ設定,Plate Cost Combination
+tables.settings,システム設定,System Settings
+tables.company_info,会社情報,Company Info
+tables.shipping_costs,送料,Shipping Costs
+tables.partner_codes,パートナーコード,Partner Codes
+tables.gallery_images,ギャラリー画像,Gallery Images
+tables.gallery_tags,ギャラリータグ,Gallery Tags
+tables.category_print_locations,カテゴリ別印刷箇所,Category Print Locations
+tables.prefectures,都道府県,Prefectures
+tables.skus,SKU,SKUs
+tables.incoming_stock,入荷予定,Incoming Stock
+tables.importer_mappings,インポート設定,Importer Mappings
+tables.filename_rule_presets,ファイル名変換プリセット,Filename Rule Presets
+tables.print_history,印刷履歴,Print History
+tables.print_history_positions,印刷位置,Print History Positions
+tables.print_history_images,仕上がり写真,Print History Images
+tables.ink_manufacturers,インクメーカー,Ink Manufacturers
+tables.ink_series,インクシリーズ,Ink Series
+tables.ink_products,インク製品,Ink Products
+tables.ink_recipes,インクレシピ,Ink Recipes
+tables.ink_recipe_components,レシピ構成,Recipe Components
+tables.ink_recipe_usage,レシピ使用履歴,Recipe Usage History
+tables.pantone_colors,Pantoneカラー,Pantone Colors
+tables.dic_colors,DICカラー,DIC Colors
+tables.users,ユーザー管理,Users
+tables.roles,役割管理,Roles
+tables.role_permissions,権限設定,Role Permissions
+tables.id_formats,ID形式設定,ID Formats
+tables.dtf_consumables,DTF消耗品費,DTF Consumables
+tables.dtf_equipment,DTF設備費,DTF Equipment
+tables.dtf_labor_costs,DTF工賃,DTF Labor Costs
+tables.dtf_press_time_costs,DTFプレス時間単価,DTF Press Time Costs
+tables.dtf_electricity_rates,DTF電気料金,DTF Electricity Rates
+tables.pdf_templates,PDFテンプレート,PDF Templates
+tables.additional_options,追加オプション,Additional Options
+tables.pdf_preview_zoom_configs,PDFプレビュー設定,PDF Preview Settings
+tables.pagination_settings,ページネーション設定,Pagination Settings
+tables.app_logs,システムログ,System Logs
+tables.dev_locks,開発ロック,Dev Locks
+tables.tool_migrations,ツール移植履歴,Tool Migration History
+tables.dev_roadmap,開発ロードマップ,Development Roadmap
+tables.task_master,タスクマスター,Task Master
+tables.quote_tasks,案件タスク,Quote Tasks
+tables.task_generation_rules,タスク自動生成ルール,Task Generation Rules
+tables.sql_export_presets,SQLエクスポートプリセット,SQL Export Presets
+tables.dev_constitution,開発憲法,Dev Constitution
+tables.dev_guidelines_recommended,推奨仕様,Recommended Guidelines
+tables.dev_guidelines_prohibited,禁止事項,Prohibited Guidelines
+tables.task_time_settings,タスク時間設定,Task Time Settings
+tables.bills,支払請求書,Bills
+tables.bill_items,請求書項目,Bill Items
+tables.invoice_parsing_templates,請求書解析テンプレート,Invoice Parsing Templates
+tables.emails,メール,Emails
+tables.email_attachments,メール添付ファイル,Email Attachments
+tables.email_accounts,メールアカウント,Email Accounts
+tables.google_api_settings,Google連携設定,Google API Settings
+tables.work_sessions,作業セッション,Work Sessions
+tables.work_session_quotes,作業セッション案件紐付け,Work Session Quotes
+tables.pdf_item_display_configs,PDF明細項目設定,PDF Item Display Configs
+tables.development_workflow,開発ワークフロー管理,Development Workflow
+tables.icons,アイコン,Icons
+tools.hub,ダッシュボード,Dashboard
+tools.order-management,業務管理,Order Management
+tools.ai-task-management,AIタスク管理,AI Task Management
+tools.production-scheduler,生産スケジューリング,Production Scheduler
+tools.customer-management,取引先管理,Customer Management
+tools.email-tool,メール管理,Email Management
+tools.estimator,見積作成,Estimator
+tools.quote-creator,見積作成（新）,Quote Creator (New)
+tools.proofing,仕上がりイメージ作成,Proofing
+tools.worksheet,指示書メーカー,Worksheet
+tools.accounts-receivable,売掛管理,Accounts Receivable
+tools.accounts-payable,買掛管理,Accounts Payable
+tools.document-management,帳票管理,Document Management
+tools.work-record,作業記録,Work Record
+tools.cash-flow-analysis,資金繰り分析,Cash Flow Analysis
+tools.task-analysis,タスク分析,Task Analysis
+tools.product-management,商品データ管理,Product Management
+tools.product-definition-tool,商品定義管理,Product Definition
+tools.pricing-manager,プリント単価表管理,Pricing Manager
+tools.pricing-assistant,価格設定アシスタント,Pricing Assistant
+tools.production-settings,生産設定ツール,Production Settings
+tools.task-settings,タスク設定,Task Settings
+tools.print-history,印刷履歴登録,Print History
+tools.ink-mixing,インク配合管理,Ink Mixing
+tools.ink-series-management,インクシリーズ管理,Ink Series Management
+tools.ink-product-management,インク製品管理,Ink Product Management
+tools.color-library-manager,カラーライブラリ管理,Color Library Manager
+tools.dtf-cost-calculator,DTF計算ロジック管理,DTF Cost Calculator
+tools.data-io,データ入出力,Data I/O
+tools.image-converter,ファイル名変換,Image Converter
+tools.image-batch-linker,商品画像一括紐付け,Image Batch Linker
+tools.pdf-template-manager,PDFテンプレート管理,PDF Template Manager
+tools.pdf-item-group-manager,PDF明細項目管理,PDF Item Group Manager
+tools.user-manager,ユーザー管理,User Manager
+tools.permission-manager,権限管理,Permission Manager
+tools.id-manager,ID形式管理,ID Format Manager
+tools.google-api-settings,Google連携設定,Google API Settings
+tools.display-settings,表示設定,Display Settings
+tools.email-settings,メール設定,Email Settings
+tools.estimator-settings,見積作成設定,Estimator Settings
+tools.pdf-preview-settings,PDFプレビュー設定,PDF Preview Settings
+tools.backup-manager,自動バックアップ設定,Backup Manager
+tools.system-logs,システムログ,System Logs
+tools.database-schema-manager,データベーススキーマ管理,Database Schema Manager
+tools.dev-management,開発管理ツール,Development Management
+tools.dev-tools,開発者向けツール,Developer Tools
+tools.dev-lock-manager,開発ロック管理,Dev Lock Manager
+tools.app-manager,アプリケーション管理,Application Manager
+tools.tool-exporter,ツールエクスポート,Tool Exporter
+tools.tool-porting-manager,ツール移植管理,Tool Porting Manager
+tools.tool-guide,使い方ガイド,Tool Guide
+tools.tool-dependency-manager,ツール依存性管理,Tool Dependency Manager
+tools.calculation-logic-manager,計算ロジック管理,Calculation Logic Manager
+tools.tool-dependency-scanner,依存関係スキャン,Dependency Scanner
+tools.unregistered-module-tool,モジュールカタログ管理,Module Catalog
+tools.architecture-designer,アーキテクチャ設計,Architecture Designer
+tools.php-info-viewer,PHP情報ビューア,PHP Info Viewer
+tools.system-diagnostics,システム診断,System Diagnostics
+tools.language-manager,言語管理,Language Manager
+tool_visibility.title,ツール表示管理,Tool Visibility Management
+tool_visibility.description,デバイス（画面幅）ごとに、サイドバーに表示するツールを制御します。,Control which tools are displayed in the sidebar for each device (screen width).
+tool_visibility.save,保存,Save
+tool_visibility.unsaved_changes,未保存の変更があります,You have unsaved changes
+tool_visibility.saved,ツール表示設定を保存しました。,Tool visibility settings saved successfully.
+tool_visibility.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+tool_visibility.tool_name,繝・・繝ｫ蜷・Tool Name
+tool_visibility.desktop,繝・せ繧ｯ繝医ャ繝・Desktop
+tool_visibility.tablet,繧ｿ繝悶Ξ繝・ヨ,Tablet
+tool_visibility.mobile,繝｢繝舌う繝ｫ,Mobile
+tool_visibility.toggle_all,荳諡ｬ蛻・崛,Toggle All
+tool_visibility.toggle_all_column,縺薙・蛻励・陦ｨ遉ｺ/髱櫁｡ｨ遉ｺ繧偵☆縺ｹ縺ｦ蛻・ｊ譖ｿ縺医∪縺・Toggle all visibility in this column
+categories.受注管理,受注管理,Order Management
+categories.受注ステータス設定,受注ステータス設定,Order Status Settings
+categories.商品マスター,商品マスター,Product Master
+categories.商品定義,商品定義,Product Definition
+categories.印刷設定,印刷設定,Print Settings
+categories.価格設定,価格設定,Pricing Settings
+categories.製造管理,製造管理,Production Management
+categories.インク管理,インク管理,Ink Management
+categories.システム設定,システム設定,System Settings
+categories.ギャラリー,ギャラリー,Gallery
+categories.DTF設定,DTF設定,DTF Settings
+categories.開発管理,開発管理,Development Management
+categories.タスク管理,タスク管理,Task Management
+categories.経理,経理,Accounting
+categories.メール,メール,Email
+categories.作業記録,作業記録,Work Records
+categories.その他,その他,Others

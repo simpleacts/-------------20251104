@@ -1,0 +1,229 @@
+<?php
+// api/save_quote.php.txt
+// This script saves a quote to the database and sends confirmation emails.
+
+// --- ERROR HANDLING (for production) ---
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+require_once __DIR__ . '/db_connect.php';
+
+// --- ROBUST PHPMailer INCLUSION ---
+$phpmailer_path = __DIR__ . '/PHPMailer/src/';
+if (!file_exists($phpmailer_path . 'PHPMailer.php')) {
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=UTF-8');
+    }
+    die(json_encode([
+        'success' => false,
+        'message' => 'サーバーライブラリの設定エラーです。',
+        'error' => "PHPMailer library not found at: " . $phpmailer_path
+    ]));
+}
+require $phpmailer_path . 'Exception.php';
+require $phpmailer_path . 'PHPMailer.php';
+require $phpmailer_path . 'SMTP.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// --- HEADERS ---
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Max-Age: 3600");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+// --- MAIN LOGIC ---
+$pdo = null;
+try {
+    // 1. Get DB connection
+    $pdo = get_db_connection();
+
+    // 2. Get Input Data
+    $json_data = file_get_contents('php://input');
+    if ($json_data === false) throw new Exception("Could not read input data.");
+    $data = json_decode($json_data, true);
+    if (json_last_error() !== JSON_ERROR_NONE) throw new Exception("Invalid JSON received: " . json_last_error_msg());
+    
+    $payload_data = $data['data'];
+
+
+    // 3. Save Quote to DB within a Transaction
+    $pdo->beginTransaction();
+    save_quote_to_db($payload_data, $pdo);
+    $pdo->commit();
+
+    // 4. Send Emails
+    $customer_email = $payload_data['customerInfo']['email'];
+    $estimateId = $payload_data['estimateId'];
+    $quoteSubject = $payload_data['customerInfo']['quoteSubject'] ?? '件名なし';
+    
+    $config_path = __DIR__ . '/../templates/server_config.csv';
+    $config = [];
+    if (($handle = fopen($config_path, "r")) !== FALSE) {
+        fgetcsv($handle);
+        while (($csv_data = fgetcsv($handle, 1000, ",")) !== FALSE) { if (count($csv_data) == 2) $config[trim($csv_data[0])] = trim($csv_data[1]); }
+        fclose($handle);
+    }
+    
+    $subject_customer = "【捺染兄弟】お見積もり内容を保存しました ({$estimateId})：{$quoteSubject}";
+    $subject_admin = "【捺染兄弟】WEBよりお見積もりが保存されました ({$estimateId})：{$quoteSubject}";
+    
+    $body_customer = generate_quote_saved_email_body($payload_data, 'customer');
+    $body_admin = generate_quote_saved_email_body($payload_data, 'admin');
+
+    send_email($customer_email, $subject_customer, $body_customer);
+    send_email($config['ADMIN_EMAIL'], $subject_admin, $body_admin);
+
+    http_response_code(200);
+    echo json_encode(['success' => true, 'message' => 'Quote saved and email sent successfully.']);
+
+} catch (Exception $e) {
+    if ($pdo && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    http_response_code(500);
+    error_log("Quote saving failed: " . $e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile());
+    echo json_encode(['success' => false, 'message' => 'お見積もりの保存処理中にエラーが発生しました。', 'error' => $e->getMessage()]);
+}
+
+function save_quote_to_db($data, $pdo) {
+    $customerInfo = $data['customerInfo'];
+    $stmt = $pdo->prepare("
+        INSERT INTO customers (
+            email, company_name, name_kanji, name_kana, phone, zip_code, address1, address2,
+            customer_group, has_separate_shipping_address, shipping_name, shipping_phone,
+            shipping_zip_code, shipping_address1, shipping_address2
+        ) 
+        VALUES (
+            :email, :company, :name_k, :name_n, :phone, :zip, :addr1, :addr2,
+            '捺染兄弟', :has_shipping, :s_name, :s_phone, :s_zip, :s_addr1, :s_addr2
+        )
+        ON DUPLICATE KEY UPDATE 
+            company_name = VALUES(company_name), name_kanji = VALUES(name_kanji), name_kana = VALUES(name_kana), 
+            phone = VALUES(phone), zip_code = VALUES(zip_code), address1 = VALUES(address1), address2 = VALUES(address2),
+            has_separate_shipping_address = VALUES(has_separate_shipping_address),
+            shipping_name = VALUES(shipping_name), shipping_phone = VALUES(shipping_phone),
+            shipping_zip_code = VALUES(shipping_zip_code), shipping_address1 = VALUES(shipping_address1),
+            shipping_address2 = VALUES(shipping_address2),
+            customer_group = '捺染兄弟',
+            updated_at = NOW()
+    ");
+    $stmt->execute([
+        ':email' => $customerInfo['email'],
+        ':company' => $customerInfo['companyName'],
+        ':name_k' => $customerInfo['nameKanji'],
+        ':name_n' => $customerInfo['nameKana'],
+        ':phone' => $customerInfo['phone'],
+        ':zip' => $customerInfo['zipCode'],
+        ':addr1' => $customerInfo['address1'],
+        ':addr2' => $customerInfo['address2'],
+        ':has_shipping' => ($customerInfo['hasSeparateShippingAddress'] ?? false) ? 1 : 0,
+        ':s_name' => $customerInfo['shippingName'],
+        ':s_phone' => $customerInfo['shippingPhone'],
+        ':s_zip' => $customerInfo['shippingZipCode'],
+        ':s_addr1' => $customerInfo['shippingAddress1'],
+        ':s_addr2' => $customerInfo['shippingAddress2']
+    ]);
+
+    $stmt_get_id = $pdo->prepare("SELECT id FROM customers WHERE email = ?");
+    $stmt_get_id->execute([$customerInfo['email']]);
+    $customer_id = $stmt_get_id->fetchColumn();
+    if (!$customer_id) throw new Exception("Failed to retrieve customer ID.");
+
+    $cost = $data['cost'];
+    $stmt = $pdo->prepare("INSERT INTO quotes (quote_code, customer_id, subject, quote_status, total_cost_ex_tax, shipping_cost, tax, total_cost_in_tax, notes, data_confirmation_status) VALUES (?, ?, ?, '見積もり', ?, ?, ?, ?, ?, '未確認')");
+    $stmt->execute([$data['estimateId'], $customer_id, $customerInfo['quoteSubject'] ?? null, $cost['totalCost'], $cost['shippingCost'], $cost['tax'], $cost['totalCostWithTax'], $customerInfo['notes']]);
+    $quote_id = $pdo->lastInsertId();
+
+    $stmt = $pdo->prepare("INSERT INTO quote_items (quote_id, product_id, product_name, color, size, quantity, unit_price) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    foreach ($data['orderDetails'] as $item) {
+        $stmt->execute([$quote_id, $item['productId'], $item['productName'], $item['color'], $item['size'], $item['quantity'], $item['unitPrice']]);
+    }
+
+    $stmt = $pdo->prepare("INSERT INTO quote_designs (quote_id, location, print_size, colors, plate_type, special_inks) VALUES (?, ?, ?, ?, ?, ?)");
+    foreach ($data['printDesigns'] as $design) {
+        $stmt->execute([$quote_id, $design['location'], $design['size'], $design['colors'], $design['plateType'], json_encode($design['specialInks'], JSON_UNESCAPED_UNICODE)]);
+    }
+
+    $stmt = $pdo->prepare("INSERT INTO quote_history (quote_id, event_type, notes) VALUES (?, '見積もり保存', 'Webからの見積もり保存')");
+    $stmt->execute([$quote_id]);
+}
+
+function send_email($to, $subject, $body) {
+    $config_path = __DIR__ . '/../templates/server_config.csv';
+    $config = [];
+    if (($handle = fopen($config_path, "r")) !== FALSE) {
+        fgetcsv($handle);
+        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) { if (count($data) == 2) $config[trim($data[0])] = trim($data[1]); }
+        fclose($handle);
+    }
+
+    $mail = new PHPMailer(true);
+    try {
+        $mail->SMTPDebug = 0;
+        $mail->isSMTP();
+        $mail->Host       = $config['SMTP_HOST'];
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $config['SMTP_USER'];
+        $mail->Password   = $config['SMTP_PASSWORD'];
+        $mail->SMTPSecure = strtolower($config['SMTP_SECURE'] ?? 'true') === 'true' ? PHPMailer::ENCRYPTION_STARTTLS : false;
+        $mail->Port       = $config['SMTP_PORT'];
+        $mail->CharSet    = 'UTF-8';
+        $mail->setFrom($config['MAIL_FROM_ADDRESS'], $config['MAIL_FROM_NAME']);
+        $mail->addAddress($to);
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+        $mail->send();
+    } catch (Exception $e) {
+        error_log("PHPMailer Exception for '{$to}': " . $e->getMessage() . " | Mailer Error: {$mail->ErrorInfo}");
+    }
+}
+
+function generate_quote_saved_email_body($data, $recipient_type) {
+    $customerInfo = $data['customerInfo'];
+    $cost = $data['cost'];
+    $estimateId = $data['estimateId'];
+    $quoteSubject = $customerInfo['quoteSubject'] ?? '件名なし';
+    $addressee = htmlspecialchars(trim($customerInfo['companyName'] . ' ' . $customerInfo['nameKanji']));
+    
+    $greeting = '';
+    if ($recipient_type === 'customer') {
+        $greeting = $addressee . " 様<br><br>この度は、捺染兄弟のお見積もり機能をご利用いただき、誠にありがとうございます。<br>以下の内容でお見積もりを保存いたしました。<br><br>下記の見積もりIDとご登録のメールアドレスで、いつでも内容を呼び出すことができます。";
+    } else {
+        $greeting = "WEBサイトより以下の内容でお見積もりが保存されました。";
+    }
+
+    ob_start();
+?>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>お見積もり内容のご確認</title>
+<style>
+body{font-family:'Helvetica Neue','Helvetica','Arial','sans-serif','Meiryo';color:#333;line-height:1.6;font-size:14px;background-color:#f4f4f4;margin:0;padding:0;}
+.email-container{max-width:800px;margin:20px auto;background-color:#fff;border:1px solid #ddd;}
+.email-header{background-color:#000;color:#fff;padding:20px;text-align:center;}
+.email-header h1{margin:0;font-size:24px;} .email-body{padding:30px;} .email-footer{background-color:#f4f4f4;color:#888;text-align:center;padding:20px;font-size:12px;}
+.order-summary{margin-top:20px;} .order-summary h3{border-bottom:2px solid #000;padding-bottom:5px;} p{margin:0 0 10px;}
+</style></head><body><div class="email-container"><div class="email-header"><h1>お見積もり保存のお知らせ</h1></div>
+<div class="email-body"><p><?php echo $greeting; ?></p><div class="order-summary"><h3>お見積もり内容の概要</h3>
+<p><strong>件名:</strong> <?php echo htmlspecialchars($quoteSubject); ?></p>
+<p><strong>見積もりID:</strong> <?php echo htmlspecialchars($estimateId); ?></p>
+<p><strong>保存日時:</strong> <?php echo date("Y/m/d H:i"); ?></p>
+<p><strong>合計金額 (税込):</strong> &yen; <?php echo number_format($cost['totalCostWithTax']); ?></p>
+<h3>お客様情報</h3><p><?php echo $addressee; ?><br><?php echo htmlspecialchars($customerInfo['email']); ?><br>
+〒<?php echo htmlspecialchars(substr($customerInfo['zipCode'],0,3).'-'.substr($customerInfo['zipCode'],3)); ?><br>
+<?php echo htmlspecialchars($customerInfo['address1'].$customerInfo['address2']); ?><br>
+TEL: <?php echo htmlspecialchars($customerInfo['phone']); ?></p></div>
+<?php if ($recipient_type === 'customer'): ?><p>内容を編集・確認する場合は、サイトトップページの「おかえりなさい！」ボタンから、見積もりIDとメールアドレスを入力してください。<br>この内容でご注文に進む場合は、再度お見積もりを呼び出し、「注文依頼」ボタンをクリックしてください。</p><?php endif; ?>
+</div><div class="email-footer"><p>このメールは自動送信されています。</p><p>捺染兄弟</p></div></div></body></html>
+<?php
+    return ob_get_clean();
+}
+?>

@@ -1,0 +1,65 @@
+key,ja,en
+pricing.title,プリント単価表管理,Print Pricing Table Management
+pricing.description,単価マトリクスをプリント単価表として管理します。,Manage unit price matrices as print pricing tables.
+pricing.create_new,新規単価表を作成,Create New Pricing Table
+pricing.update_failed,サーバーへの更新に失敗しました:,Failed to update to server:
+pricing.delete_confirm,単価表「{name}」を削除しますか？\n関連する単価階層もすべて削除されます。この操作は元に戻せません。,Are you sure you want to delete pricing table "{name}"?\nAll related pricing tiers will also be deleted. This operation cannot be undone.
+pricing.assistant.title,価格設定アシスタント,Pricing Assistant
+pricing.assistant.description,ウィザード形式で、複雑な価格設定ルールを簡単に追加・管理します。,Easily add and manage complex pricing rules using a wizard format.
+pricing.assistant.wizard_title,価格設定ウィザード,Pricing Setup Wizard
+pricing.assistant.step1_question,1. 何の価格を設定しますか？,1. What price are you setting?
+pricing.assistant.product_price,商品の販売単価,Product Selling Price
+pricing.assistant.print_price,プリント代の単価表,Print Pricing Table
+pricing.assistant.step2_customer,2. どの顧客グループに適用しますか？,2. Which customer group should this apply to?
+pricing.assistant.all_customers,すべての顧客 (一般),All Customers (General)
+pricing.assistant.next,次へ,Next
+pricing.assistant.step3_category,3. どの商品カテゴリーに適用しますか？,3. Which product category should this apply to?
+pricing.assistant.select_category,カテゴリーを選択...,Select category...
+pricing.assistant.step3_product_group,3. どの商品群に適用しますか？,3. Which product group should this apply to?
+pricing.assistant.select_type,対象の種別を選択...,Select target type...
+pricing.assistant.manufacturer,メーカー,Manufacturer
+pricing.assistant.category,カテゴリー,Category
+pricing.assistant.select_manufacturer,メーカーを選択...,Select manufacturer...
+pricing.assistant.select_category_option,カテゴリーを選択...,Select category...
+pricing.assistant.step4_method,4. 価格計算の方法は？,4. What is the pricing calculation method?
+pricing.assistant.method_rate,定価からの掛率で計算,Calculate from list price with markup rate
+pricing.assistant.method_markup,仕入値からのマークアップ率で計算,Calculate from purchase price with markup rate
+pricing.assistant.step4_print_schedule,4. どのプリント単価表を適用しますか？,4. Which print pricing table should be applied?
+pricing.assistant.select_print_schedule,プリント単価表を選択...,Select print pricing table...
+pricing.assistant.save_rule,ルールを保存,Save Rule
+pricing.assistant.step5_input,5. 具体的な数値を入力してください,5. Enter specific values
+pricing.assistant.rate_label,掛率 (例: 0.52),Markup Rate (e.g., 0.52)
+pricing.assistant.markup_label,マークアップ率 (例: 0.3 = 30%増),Markup Rate (e.g., 0.3 = 30% increase)
+pricing.assistant.save_success,新しい価格ルールを保存しました。,New pricing rule saved.
+pricing.assistant.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+pricing.assistant.delete_rule_confirm,このルールを削除しますか？,Are you sure you want to delete this rule?
+pricing.assistant.delete_failed,サーバーからの削除に失敗しました:,Failed to delete from server:
+pricing.assistant.update_success,「{name}」を更新しました。,"{name}" has been updated.
+pricing.assistant.target_manufacturer,メーカー:,Manufacturer:
+pricing.assistant.target_category,カテゴリ:,Category:
+pricing.assistant.for_target,{target}向け - {model},For {target} - {model}
+pricing.assistant.model_rate,定価掛率,List Price Markup Rate
+pricing.assistant.model_markup,仕入値マークアップ,Purchase Price Markup
+pricing.assistant.admin_role,管理者,Administrator
+pricing.assistant.tab_rules,価格ルール,Pricing Rules
+pricing.assistant.tab_basic,基本料金設定,Basic Pricing Settings
+pricing.assistant.product_price_rules,商品価格ルール,Product Price Rules
+pricing.assistant.print_price_rules,プリント単価ルール,Print Price Rules
+pricing.assistant.add_rule,新規ルールを追加,Add New Rule
+pricing.assistant.customer_group,顧客グループ,Customer Group
+pricing.assistant.target,対象,Target
+pricing.assistant.rule_name,ルール名,Rule Name
+pricing.assistant.applied_schedule,適用単価表,Applied Pricing Table
+pricing.assistant.plate_cost_title,製版代,Plate Cost
+pricing.assistant.plate_cost_desc,製版サイズごとの基本料金と、色数ごとの追加料金を設定します。,Set basic fees by plate size and additional fees by number of colors.
+pricing.assistant.special_ink_title,特殊インク,Special Ink
+pricing.assistant.special_ink_desc,特殊インクを使用した場合の追加料金をインクごとに設定します。,Set additional fees for each special ink used.
+pricing.assistant.size_cost_title,サイズ別追加料金,Additional Cost by Size
+pricing.assistant.size_cost_desc,大判サイズ（30x40, 35x50）のプリントに対する追加料金を設定します。,Set additional fees for large size prints (30x40, 35x50).
+pricing.assistant.location_cost_title,箇所別追加料金,Additional Cost by Location
+pricing.assistant.location_cost_desc,プリントが難しい箇所（袖、裾など）への印刷に対する追加料金を設定します。,Set additional fees for printing on difficult locations (sleeves, hems, etc.).
+pricing.assistant.tag_cost_title,素材・特性別追加料金,Additional Cost by Material/Tag
+pricing.assistant.tag_cost_desc,特別な処理が必要な素材（ドライTシャツ、ブルゾンなど）への印刷に対する追加料金を設定します。商品はタグで管理されます。,Set additional fees for printing on materials requiring special processing (dry T-shirts, blousons, etc.). Products are managed by tags.
+pricing.assistant.shipping_cost_title,送料,Shipping Cost
+pricing.assistant.shipping_cost_desc,配送地域ごとの送料を設定します。,Set shipping costs by delivery region.
+

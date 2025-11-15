@@ -1,0 +1,84 @@
+<?php
+// api/update-customer.php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+require_once __DIR__ . '/db_connect.php';
+
+try {
+    // --- 1. Authentication ---
+    $auth_header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    if (empty($auth_header) || !preg_match('/^Bearer\s+(.*)$/i', $auth_header, $matches)) {
+        throw new Exception("Authorization token not provided.", 401);
+    }
+    $token = $matches[1];
+    if ($token !== 'dev-mock-token') {
+         throw new Exception("Invalid token.", 401);
+    }
+    $customer_id_from_token = 1;
+
+    // --- 2. Get Input Data ---
+    $json_data = file_get_contents('php://input');
+    $data = json_decode($json_data, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception("Invalid JSON received.", 400);
+    }
+    
+    // --- 3. Update Database ---
+    $pdo = get_db_connection();
+    $stmt = $pdo->prepare("
+        UPDATE customers SET
+            company_name = :company,
+            name_kanji = :name_k,
+            name_kana = :name_n,
+            email = :email,
+            phone = :phone,
+            zip_code = :zip,
+            address1 = :addr1,
+            address2 = :addr2,
+            has_separate_shipping_address = :has_shipping,
+            shipping_name = :s_name,
+            shipping_phone = :s_phone,
+            shipping_zip_code = :s_zip,
+            shipping_address1 = :s_addr1,
+            shipping_address2 = :s_addr2
+        WHERE id = :customer_id
+    ");
+
+    $stmt->execute([
+        ':company' => $data['companyName'],
+        ':name_k' => $data['nameKanji'],
+        ':name_n' => $data['nameKana'],
+        ':email' => $data['email'],
+        ':phone' => $data['phone'],
+        ':zip' => $data['zipCode'],
+        ':addr1' => $data['address1'],
+        ':addr2' => $data['address2'],
+        ':has_shipping' => $data['hasSeparateShippingAddress'] ? 1 : 0,
+        ':s_name' => $data['shippingName'],
+        ':s_phone' => $data['shippingPhone'],
+        ':s_zip' => $data['shippingZipCode'],
+        ':s_addr1' => $data['shippingAddress1'],
+        ':s_addr2' => $data['shippingAddress2'],
+        ':customer_id' => $customer_id_from_token
+    ]);
+    
+    http_response_code(200);
+    echo json_encode(['success' => true, 'message' => 'お客様情報を更新しました。']);
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("Update Customer Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => '情報の更新に失敗しました。', 'error' => $e->getMessage()]);
+}
+?>

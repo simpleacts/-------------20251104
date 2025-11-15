@@ -1,0 +1,128 @@
+<?php
+// api/upload_asset.php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+try {
+    // --- TODO: AUTHENTICATION ---
+    // In a real application, add authentication/authorization here.
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception('Invalid request method.', 405);
+    }
+
+    if (!isset($_FILES['assetFile']) || $_FILES['assetFile']['error'] !== UPLOAD_ERR_OK) {
+        // Handle various upload errors with more specific messages
+        $error_message = 'ファイルがアップロードされていないか、アップロードエラーが発生しました。';
+        if (isset($_FILES['assetFile']['error'])) {
+            switch ($_FILES['assetFile']['error']) {
+                case UPLOAD_ERR_INI_SIZE:
+                case UPLOAD_ERR_FORM_SIZE:
+                    $error_message = 'ファイルサイズが大きすぎます。サーバーの上限を超えています。';
+                    break;
+                case UPLOAD_ERR_PARTIAL:
+                    $error_message = 'ファイルが一部しかアップロードされませんでした。';
+                    break;
+                case UPLOAD_ERR_NO_FILE:
+                    $error_message = 'ファイルが選択されていません。';
+                    break;
+                default:
+                    $error_message = '不明なアップロードエラーです。';
+                    break;
+            }
+        }
+        throw new Exception($error_message, 400);
+    }
+
+    $file = $_FILES['assetFile'];
+    $folder = $_POST['folder'] ?? 'uploads'; // e.g., 'videos', 'images/logos'
+    
+    // --- Security Checks ---
+    $max_file_size = 20 * 1024 * 1024; // 20MB
+    $allowed_mime_types = [
+        'image/jpeg', 
+        'image/png', 
+        'image/gif', 
+        'image/svg+xml', 
+        'image/x-icon', 
+        'image/vnd.microsoft.icon',
+        'video/mp4'
+    ];
+    $allowed_extensions = [
+        'jpg', 'jpeg', 'png', 'gif', 'svg', 'ico', 'mp4'
+    ];
+
+    if ($file['size'] > $max_file_size) {
+        throw new Exception('ファイルサイズが大きすぎます。20MB以下のファイルを選択してください。', 400);
+    }
+
+    // MIME type check using finfo for better security
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime_type = $finfo->file($file['tmp_name']);
+    if (!in_array($mime_type, $allowed_mime_types, true)) {
+        throw new Exception('無効なファイル形式です。許可されている形式: JPG, PNG, GIF, SVG, ICO, MP4', 400);
+    }
+
+    // Extension check as a fallback
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($extension, $allowed_extensions, true)) {
+         throw new Exception('無効なファイル拡張子です。', 400);
+    }
+
+    // --- File Handling ---
+    // Sanitize folder path
+    $sanitized_folder = preg_replace('/[^a-zA-Z0-9\/_-]/', '', $folder);
+    if (strpos($sanitized_folder, '..') !== false) {
+        throw new Exception('Invalid folder path.', 400);
+    }
+    
+    $upload_dir_relative = '/' . trim($sanitized_folder, '/');
+    $upload_dir_absolute = dirname(__DIR__) . $upload_dir_relative;
+
+    if (!is_dir($upload_dir_absolute)) {
+        if (!mkdir($upload_dir_absolute, 0755, true)) {
+            throw new Exception('アップロードディレクトリの作成に失敗しました。', 500);
+        }
+    }
+    if (!is_writable($upload_dir_absolute)) {
+        throw new Exception('サーバーの書き込み権限エラーです。', 500);
+    }
+    
+    // Sanitize filename and create a unique name
+    $filename = basename($file['name']);
+    $sanitized_filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
+    $base_name = pathinfo($sanitized_filename, PATHINFO_FILENAME);
+    $new_file_name = $base_name . '_' . uniqid() . '.' . $extension;
+
+    $destination = $upload_dir_absolute . '/' . $new_file_name;
+    // Use a relative path from the web root for the client
+    $file_path_for_client = '.' . $upload_dir_relative . '/' . $new_file_name;
+
+    if (!move_uploaded_file($file['tmp_name'], $destination)) {
+        throw new Exception('ファイルの移動に失敗しました。', 500);
+    }
+
+    // --- Success Response ---
+    http_response_code(200);
+    echo json_encode([
+        'success' => true,
+        'message' => 'アップロードに成功しました。',
+        'filePath' => $file_path_for_client
+    ]);
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("Asset Upload Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+}
+?>

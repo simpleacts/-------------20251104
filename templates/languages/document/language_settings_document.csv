@@ -1,0 +1,23 @@
+key,ja,en
+document.title,帳票管理,Document Management
+document.description,作成されたすべての帳票（見積書、請求書など）を管理します。,Manage all created documents (estimates, invoices, etc.).
+document.loading,帳票データを準備中...,Preparing document data...
+document.search_placeholder,案件コード, 顧客名...,Quote Code, Customer Name...
+document.search_label,案件コード, 顧客名で検索,Search by quote code or customer name
+document.doc_type_estimate,見積書,Estimate
+document.doc_type_invoice,請求書,Invoice
+document.doc_type_delivery_slip,納品書,Delivery Slip
+document.doc_type_receipt,領収書,Receipt
+document.doc_type_worksheet,指示書,Worksheet
+document.doc_type_worksheet_label,作業指示書,Work Instruction Sheet
+document.no_documents,表示する帳票がありません。,No documents to display.
+document.edit,編集,Edit
+document.delete,削除,Delete
+document.delete_confirm,この帳票を削除してもよろしいですか？,Are you sure you want to delete this document?
+document.quote_id_not_found,見積IDが見つかりません。,Quote ID not found.
+document.db_not_loaded,データベースが読み込まれていません。,Database is not loaded.
+document.load_failed,見積データの読み込みに失敗しました。,Failed to load quote data.
+document.delete_failed,サーバーからの削除に失敗しました:,Failed to delete from server:
+document.load_list_failed,帳票一覧の読み込みに失敗しました。,Failed to load document list.
+document.load_preview_failed,プレビューデータの読み込みに失敗しました。,Failed to load preview data.
+

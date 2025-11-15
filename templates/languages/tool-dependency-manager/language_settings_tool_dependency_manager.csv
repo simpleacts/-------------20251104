@@ -1,0 +1,29 @@
+key,ja,en
+dependency_manager.title,ツール依存性管理,Tool Dependency Manager
+dependency_manager.description,各ツールのデータ依存関係と読み込み戦略を定義します。,Define data dependencies and load strategies for each tool.
+dependency_manager.open_migration_panel,移行パネルを開く,Open Migration Panel
+dependency_manager.close_migration_panel,移行パネルを閉じる,Close Migration Panel
+dependency_manager.migration_title,手動定義からtool_dependenciesへの移行,Migration from Manual Definition to tool_dependencies
+dependency_manager.migration_status,現在の移行状況:,Current Migration Status:
+dependency_manager.tools_migrated,{migrated}/{total}ツールが移行済み,{migrated}/{total} tools migrated
+dependency_manager.tools_partial,{count}ツールが部分的に移行済み,{count} tools partially migrated
+dependency_manager.tools_not_migrated,{count}ツールが未移行,{count} tools not migrated
+dependency_manager.migrate_all,すべて移行,Migrate All
+dependency_manager.migrate_all_confirm,すべての手動定義をtool_dependenciesに移行しますか？既存の定義は更新されます。,Migrate all manual definitions to tool_dependencies? Existing definitions will be updated.
+dependency_manager.migrate_all_success,すべての手動定義をtool_dependenciesに移行しました（{count}件）。,Migrated all manual definitions to tool_dependencies ({count} items).
+dependency_manager.migrate_tool_success,{tool}の依存関係を移行しました。,Migrated dependencies for {tool}.
+dependency_manager.tool_name,ツール名,Tool Name
+dependency_manager.status,状態,Status
+dependency_manager.manual_tables_count,手動定義テーブル数,Manual Definition Tables
+dependency_manager.tool_deps_count,tool_dependencies数,tool_dependencies Count
+dependency_manager.not_migrated_count,未移行テーブル数,Not Migrated Tables
+dependency_manager.actions,操作,Actions
+dependency_manager.status_none,定義なし,No Definition
+dependency_manager.status_migrated,移行済み,Migrated
+dependency_manager.status_partial,部分的,Partial
+dependency_manager.status_not_migrated,未移行,Not Migrated
+dependency_manager.migrate,移行,Migrate
+dependency_manager.table_name,テーブル名,Table Name
+dependency_manager.save_success,依存関係を保存しました。,Dependencies saved successfully.
+dependency_manager.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+

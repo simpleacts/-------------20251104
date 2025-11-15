@@ -1,0 +1,27 @@
+key,ja,en
+order.title,業務管理,Order Management
+order.loading,業務管理データを読み込み中...,Loading order management data...
+order.load_failed,データの読み込みに失敗しました。,Failed to load data.
+order.table_not_ready,必要なテーブルデータの読み込みが完了していません。,Required table data loading is not complete.
+order.view_kanban,カンバン,Kanban
+order.view_history,完了履歴,Completed History
+order.flow_sales,商談フロー,Sales Flow
+order.flow_production,製作フロー,Production Flow
+order.flow_completion,完了・経理フロー,Completion & Accounting Flow
+order.update_failed,サーバーへの更新に失敗しました:,Failed to update to server:
+order.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+order.delete_confirm,案件「{code}」を削除しますか？関連するすべてのデータ（明細、デザイン、履歴、タスク）も削除されます。この操作は元に戻せません。,Are you sure you want to delete quote {code}? All related data (items, designs, history, tasks) will also be deleted. This operation cannot be undone.
+order.status_inquiry,問い合わせ／下書き,Inquiry / Draft
+order.status_estimate,見積提出,Estimate Submitted
+order.status_confirmation,確認依頼中,Confirmation Requested
+order.status_revision,要修正,Revision Required
+order.status_ordered,受注,Ordered
+order.status_invoiced,請求書発行,Invoice Issued
+order.status_paid,入金確認済・受注確定,Payment Confirmed & Order Confirmed
+order.status_shipped,発送済,Shipped
+order.status_delivered,納品完了,Delivery Completed
+order.status_completed,完了,Completed
+order.status_lost,失注,Lost
+order.status_cancelled,キャンセル,Cancelled
+order.status_payment_confirmed,入金確認済,Payment Confirmed
+order.status_order_confirmed,受注確定,Order Confirmed

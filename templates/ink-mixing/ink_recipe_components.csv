@@ -1,0 +1,5 @@
+id,recipe_id,ink_product_id,amount
+1,inkr_000001,3,100
+2,inkr_000001,5,5
+3,inkr_000002,50,50
+4,inkr_000002,4,50

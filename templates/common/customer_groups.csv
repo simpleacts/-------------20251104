@@ -1,0 +1,3 @@
+id,name,description,payment_terms
+cgrp_00001,一般,通常の顧客グループ,post-payment
+cgrp_00002,パートナー,提携企業向けの顧客グループ,pre-payment

@@ -1,0 +1,67 @@
+<?php
+// api/save_theme_settings.php
+// WARNING: This script modifies files on the server. Ensure proper permissions and security checks are in place.
+
+// --- ERROR HANDLING & SETUP ---
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+// --- MAIN LOGIC ---
+try {
+    // --- TODO: AUTHENTICATION ---
+    // In a real application, you MUST add authentication/authorization here.
+    // For example, check for a valid admin session token.
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception('Invalid request method. Only POST is allowed.', 405);
+    }
+
+    // Define the target file path.
+    $target_dir = dirname(__DIR__) . '/templates';
+    $target_file = $target_dir . '/theme_settings.csv';
+
+    // --- SECURITY CHECKS ---
+    if (!is_dir($target_dir) || !is_writable($target_dir)) {
+        throw new Exception('Server permission error: Target directory is not writable.', 500);
+    }
+    if (!file_exists($target_file) || !is_writable($target_file)) {
+        throw new Exception('Server permission error: Target file is not writable.', 500);
+    }
+
+    // --- GET AND SAVE DATA ---
+    $new_content = file_get_contents('php://input');
+    if ($new_content === false) {
+        throw new Exception('Could not read request body.', 400);
+    }
+    
+    if (trim($new_content) === '') {
+        throw new Exception('Cannot save empty content.', 400);
+    }
+
+    $result = file_put_contents($target_file, $new_content, LOCK_EX);
+    
+    if ($result === false) {
+        throw new Exception('Failed to write to file.', 500);
+    }
+
+    // --- SUCCESS RESPONSE ---
+    http_response_code(200);
+    echo json_encode(['success' => true, 'message' => 'Theme settings saved successfully.']);
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("save_theme_settings.php Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'テーマ設定ファイルの保存中にエラーが発生しました。', 'error' => $e->getMessage()]);
+}
+
+?>

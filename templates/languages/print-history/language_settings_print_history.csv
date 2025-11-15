@@ -1,0 +1,5 @@
+key,ja,en
+title,印刷履歴登録,Print History
+description,印刷履歴登録ツールのUIテキストです。,UI text for the Print History tool.
+empty_state,表示する項目がありません。,No entries available.
+

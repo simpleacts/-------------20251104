@@ -1,0 +1,4 @@
+id,model_name,display_name,status,description
+gem_flash,"gemini-2.5-flash","Gemini 2.5 Flash","active","高速・効率的なタスク向け"
+gem_pro,"gemini-2.5-pro","Gemini 2.5 Pro","active","高度な推論・複雑なタスク向け"
+gem_flash_latest,"gemini-flash-latest","Gemini Flash (Latest)","preview","最新のFlashモデル（プレビュー版）"

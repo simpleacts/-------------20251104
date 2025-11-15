@@ -1,0 +1,7 @@
+id,code,name,unit_type,sort_order
+wvu_001,g,g,weight,1
+wvu_002,kg,kg,weight,2
+wvu_003,ml,ml,volume,3
+wvu_004,L,L,volume,4
+wvu_005,gallon,gallon,volume,5
+

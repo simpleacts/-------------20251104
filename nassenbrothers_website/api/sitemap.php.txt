@@ -1,0 +1,88 @@
+<?php
+// --- ERROR HANDLING ---
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/xml; charset=UTF-8');
+
+require_once __DIR__ . '/db_connect.php';
+
+function create_url_entry($loc, $lastmod, $changefreq, $priority) {
+    echo '  <url>' . PHP_EOL;
+    echo '    <loc>' . htmlspecialchars($loc) . '</loc>' . PHP_EOL;
+    if ($lastmod) {
+        echo '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL;
+    }
+    echo '    <changefreq>' . $changefreq . '</changefreq>' . PHP_EOL;
+    echo '    <priority>' . $priority . '</priority>' . PHP_EOL;
+    echo '  </url>' . PHP_EOL;
+}
+
+
+try {
+    // 設定ファイルを読み込む (APP_BASE_URLを取得するため)
+    $config_path = __DIR__ . '/../templates/server_config.csv';
+    $config = [];
+    if (($handle = fopen($config_path, "r")) !== FALSE) {
+        fgetcsv($handle); // Skip header
+        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+            if (count($data) == 2) $config[trim($data[0])] = trim($data[1]);
+        }
+        fclose($handle);
+    }
+    $baseUrl = $config['APP_BASE_URL'] ?? '';
+
+    $pdo = get_db_connection();
+
+    // XMLの開始
+    echo '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
+    echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
+
+    // --- 静的ページの追加 ---
+    $today = date('Y-m-d');
+    $staticPages = [
+        ['path' => '/', 'changefreq' => 'weekly', 'priority' => '1.0', 'lastmod' => $today],
+        ['path' => '/estimator', 'changefreq' => 'monthly', 'priority' => '0.8', 'lastmod' => null],
+        ['path' => '/how-to-use', 'changefreq' => 'monthly', 'priority' => '0.7', 'lastmod' => null],
+        ['path' => '/printing-info', 'changefreq' => 'monthly', 'priority' => '0.7', 'lastmod' => null],
+        ['path' => '/gallery', 'changefreq' => 'weekly', 'priority' => '0.8', 'lastmod' => $today],
+        ['path' => '/articles', 'changefreq' => 'weekly', 'priority' => '0.9', 'lastmod' => $today],
+        ['path' => '/privacy-policy', 'changefreq' => 'yearly', 'priority' => '0.3', 'lastmod' => null],
+        ['path' => '/my-page', 'changefreq' => 'monthly', 'priority' => '0.5', 'lastmod' => null],
+    ];
+
+    foreach ($staticPages as $page) {
+        create_url_entry($baseUrl . $page['path'], $page['lastmod'], $page['changefreq'], $page['priority']);
+    }
+    
+    // --- 商品ページの追加 (DBから取得) ---
+    $stmt = $pdo->query("SELECT id, updated_at FROM products_master WHERE is_published = 1");
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $lastmod = date('Y-m-d', strtotime($row['updated_at']));
+        create_url_entry($baseUrl . '/product/' . $row['id'], $lastmod, 'monthly', '0.9');
+    }
+    
+    // --- ギャラリー詳細ページの追加 (DBから取得) ---
+    $stmt = $pdo->query("SELECT id, updated_at FROM gallery_images");
+     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $lastmod = date('Y-m-d', strtotime($row['updated_at']));
+        create_url_entry($baseUrl . '/gallery/' . $row['id'], $lastmod, 'monthly', '0.7');
+    }
+    
+    // --- 記事ページの追加 (DBから取得) ---
+    $stmt = $pdo->query("SELECT slug, published_date FROM articles WHERE is_published = 1");
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $lastmod = date('Y-m-d', strtotime($row['published_date']));
+        create_url_entry($baseUrl . '/articles/' . $row['slug'], $lastmod, 'yearly', '0.8');
+    }
+
+
+    // XMLの終了
+    echo '</urlset>' . PHP_EOL;
+
+} catch (Exception $e) {
+    http_response_code(500);
+    error_log("Sitemap generation failed: " . $e->getMessage());
+}
+
+?>

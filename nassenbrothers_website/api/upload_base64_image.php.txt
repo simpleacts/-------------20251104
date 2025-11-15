@@ -1,0 +1,88 @@
+<?php
+// api/upload_base64_image.php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+try {
+    // --- TODO: AUTHENTICATION ---
+    // In a real application, you MUST add authentication/authorization here.
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception('Invalid request method.', 405);
+    }
+    
+    $json_data = file_get_contents('php://input');
+    $data = json_decode($json_data, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE || !isset($data['imageData']) || empty($data['imageData'])) {
+        throw new Exception('Invalid JSON or missing imageData.', 400);
+    }
+
+    $imageData = $data['imageData'];
+
+    // --- Decode Base64 Image ---
+    // Expected format: data:image/jpeg;base64,.....
+    if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $type)) {
+        $imageData = substr($imageData, strpos($imageData, ',') + 1);
+        $type = strtolower($type[1]); // jpg, png, gif
+
+        if (!in_array($type, ['jpg', 'jpeg', 'png', 'gif'])) {
+            throw new Exception('Invalid image type.', 400);
+        }
+        $imageData = base64_decode($imageData);
+        if ($imageData === false) {
+            throw new Exception('Base64 decode failed.', 400);
+        }
+    } else {
+        throw new Exception('Did not match data URI with image data.', 400);
+    }
+
+    // --- File Handling ---
+    $upload_dir_relative = '/images/articles/';
+    $upload_dir_absolute = dirname(__DIR__) . $upload_dir_relative;
+
+    if (!is_dir($upload_dir_absolute)) {
+        if (!mkdir($upload_dir_absolute, 0755, true)) {
+            throw new Exception('Upload directory creation failed.', 500);
+        }
+    }
+    if (!is_writable($upload_dir_absolute)) {
+        throw new Exception('Server write permission error.', 500);
+    }
+
+    $extension = ($type === 'jpeg') ? 'jpg' : $type;
+    $new_file_name = 'generated_' . uniqid() . '.' . $extension;
+    $destination = $upload_dir_absolute . $new_file_name;
+    
+    // Use a relative path from the web root for the client
+    $file_path_for_client = '.' . $upload_dir_relative . $new_file_name;
+
+    if (file_put_contents($destination, $imageData) === false) {
+        throw new Exception('Failed to save the file.', 500);
+    }
+
+    // --- Success Response ---
+    http_response_code(200);
+    echo json_encode([
+        'success' => true,
+        'message' => 'Upload successful.',
+        'filePath' => $file_path_for_client
+    ]);
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("Base64 Image Upload Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+}
+
+?>

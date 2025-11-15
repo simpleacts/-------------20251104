@@ -1,0 +1,71 @@
+key,value
+"A. Global Styles",
+font_family_base,"system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif"
+font_family_heading,"system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif"
+font_size_base,16px
+base_line_height,1.75
+base_letter_spacing,normal
+link_color,var(--secondary-color)
+link_color_hover,#3730a3
+link_text_decoration,none
+link_text_decoration_hover,underline
+focus_ring_color,#4f46e580
+focus_ring_width,3px
+focus_ring_offset,2px
+selection_bg_color,var(--secondary-color)
+selection_text_color,#ffffff
+scrollbar_thumb_color,#a3a3a3
+scrollbar_track_color,#f5f5f5
+"B. Layout and Spacing",
+site_max_width,1536px
+container_padding_x,1rem
+spacing_unit_base,8px
+section_padding_y_sm,48px
+section_padding_y_lg,96px
+grid_column_gap,24px
+grid_row_gap,24px
+divider_color,var(--border-color-default)
+divider_thickness,1px
+"C. Color Theme",
+primary_color,#111827
+secondary_color,#4338ca
+accent_color,#dc2626
+background_color_base,#F9FAFB
+background_color_subtle,#f3f4f6
+surface_color,#FFFFFF
+text_color_base,#1F2937
+text_color_secondary,#6B7280
+text_color_heading,#111827
+border_color_base,#E5E7EB
+"D. Component Styles",
+base_border_radius,0.5rem
+shadow_sm,0 1px 2px 0 rgb(0 0 0 / 0.05)
+shadow_base,0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)
+shadow_md,0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)
+shadow_lg,0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)
+button_primary_bg_color,var(--primary-color)
+button_primary_text_color,#ffffff
+button_primary_bg_color_hover,#1f2937
+form_input_bg_color,#ffffff
+form_input_text_color,var(--text-color-base)
+form_input_border_color,var(--border-color-base)
+form_input_border_color_focus,var(--secondary-color)
+card_bg_color,var(--surface-color)
+card_border,1px solid var(--border-color-base)
+card_shadow,var(--shadow-base)
+"E. Content Source",
+homepage_hero_image,background.mp4
+homepage_hero_poster,background_poster.jpg
+"F. Feature Flags",
+enable_gallery_page,TRUE
+enable_partner_login,TRUE
+show_promo_banner,TRUE
+promo_banner_text,【期間限定】夏割キャンペーン実施中！全品10%OFF！
+promo_banner_link,#/campaign/summer2024
+promo_banner_bg_color,var(--accent-color)
+"G. Coming Soon Page",
+enable_coming_soon_page,FALSE
+coming_soon_page_title,"ただいま準備中です"
+coming_soon_page_message,"新しいコンテンツを準備しております。公開まで今しばらくお待ちください。"
+"H. SEO Settings",
+site_base_url,https://www.nassenbrothers.com

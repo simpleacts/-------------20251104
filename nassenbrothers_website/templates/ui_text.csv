@@ -1,0 +1,415 @@
+key,value
+"A. Global & Common",
+common.loading,読み込み中...
+common.error.loadingFailed,データの読み込みに失敗しました
+common.error.reload,再読み込み
+common.search,検索
+common.cancel,キャンセル
+common.save,保存する
+common.edit,編集
+common.delete,削除
+common.add,追加
+common.confirm,確認
+common.close,閉じる
+common.back,戻る
+common.or,または
+common.yes,はい
+common.no,いいえ
+common.required,"<span class=""text-accent text-xs"">*必須</span>"
+common.na,-
+common.free,無料
+common.yen,"¥{{price}}"
+common.itemCount,"{{count}}枚"
+common.showDetails,詳細情報
+scrollToTop.ariaLabel,ページトップに戻る
+metadata.name,捺染兄弟
+metadata.description,オリジナルTシャツを、簡単に見積もり。高品質なTシャツやアパレルに、あなたのデザインをプリント。小ロットから大口注文まで、ウェブで完結。
+"B. Header",
+header.home.ariaLabel,ホームに戻る
+header.mobileMenu.open.ariaLabel,メインメニューを開く
+header.mobileMenu.title,メニュー
+"C. Footer (from theme_settings)",
+footer.copyright,© 2024 Nassen Brothers Inc.
+"D. Home Page",
+home.hero.title,想いをカタチに、一枚から。
+home.hero.subtitle,高品質なオリジナルTシャツを、ウェブで簡単に見積もり・注文。
+home.estimatorButton.text,簡単見積もりスタート
+home.search.title,商品を探す
+home.search.placeholder,品番または商品名で検索 (例: 5001)
+home.search.ariaLabel,商品を検索
+home.search.button.ariaLabel,検索
+home.suggestions.notFound,商品が見つかりません。
+home.suggestions.history.clear,検索履歴を消去
+home.suggestions.history.empty,検索履歴はありません。
+home.suggestions.history.removeAriaLabel,"履歴「{{item}}」を削除"
+home.category.title,カテゴリーから選ぶ
+home.category.wip,(準備中)
+"E. Estimator Page & Modals",
+estimator.title,お見積もり
+estimator.title.section1,1. 商品を使用リストに登録
+estimator.title.section2,2. プリント位置、印刷色数、オプションの登録
+estimator.title.section3,"3. 現在の内容で見積書を作成 <span class=""text-sm font-normal text-accent"">(デザインデータ未確認)</span>"
+estimator.title.section4,4. 見積もりを保存してメールで送る
+estimator.totalItemsHeader,"合計: {{count}}枚"
+estimator.editButton.label,数量を修正
+estimator.editButton.done,完了
+estimator.editButton.cancel,キャンセル
+estimator.emptyOrderList.message,Tシャツが追加されていません。
+estimator.addItemButton.label,商品を登録する
+estimator.addDesignButton.label,プリント内容を登録する
+estimator.emptyDesignList.message,プリントするデザインが登録されていません。
+estimator.provisionalPdf.description,デザインデータ入稿前の概算見積書をPDFでダウンロードできます。内容に修正がない場合はこの見積もりが最終的な金額となりますが、あくまで未確定のものとしてご確認ください。
+estimator.provisionalPdf.button.label,PDFダウンロード (デザインデータ未確認)
+estimator.provisionalPdf.button.loading,生成中...
+estimator.saveAndSend.description,現在の見積もり内容をメールで送信して保存できます。後からマイページで確認したり、同じ内容で再注文する際に便利です。
+estimator.saveAndSend.subject.label,"件名 <span class=""text-accent text-xs"">*必須</span>"
+estimator.saveAndSend.subject.placeholder,例：〇〇イベント用Tシャツ
+estimator.saveAndSend.email.label,"メールアドレス <span class=""text-accent text-xs"">*必須</span>"
+estimator.saveAndSend.email.placeholder,メールアドレス
+estimator.saveAndSend.button.label,メールで送信
+estimator.saveAndSend.button.loading,送信中...
+estimator.saveAndSend.success,見積もりを保存・送信しました。受信トレイをご確認ください。
+estimator.saveAndSend.errorPrefix,エラー
+estimator.saveAndSend.error.missingEmail,メールアドレスを入力してください。
+estimator.saveAndSend.error.missingSubject,件名を入力してください。
+estimator.reset.button,入力内容をリセット
+estimator.reset.ariaLabel,すべての入力内容をクリアし、保存されたデータを削除します
+estimator.reset.confirm,入力内容をすべてリセットして、保存されたデータも削除します。よろしいですか？
+estimator.partner.welcome,"ようこそ、{{name}} 様"
+estimator.partner.logout,ログアウト
+estimator.reorder.title,追加注文モード
+estimator.reorder.description,"見積もりID「{{id}}」の追加注文として作成中です。版代は無料になります。デザインの変更はできません。"
+estimator.saveStatus.saving,自動保存中...
+estimator.saveStatus.saved,サーバーに保存済
+estimator.saveStatus.error,保存失敗
+estimator.saveStatus.idle,入力内容は自動で保存されます
+estimator.admin.title,管理者モード
+estimator.admin.bringInMode,持ち込みモード（本体代を持ち込み手数料に設定）
+estimator.admin.overrideQuantity.label,プリント対象枚数 (管理者用)
+estimator.admin.overrideQuantity.placeholder,空欄の場合は注文リストの合計枚数
+estimator.admin.overrideQuantity.description,持ち込み商品などがある場合、ここにプリントする合計枚数を入力してください。版代とプリント代の計算にのみ使用されます。
+estimator.notification.restored,前回の入力内容を復元しました。
+estimator.notification.adminEnabled,管理者モードが有効になりました
+estimator.notification.adminDisabled,管理者モードが無効になりました
+estimator.backToMyPage,マイページに戻る
+"F. Print Design Form Modal",
+printDesignForm.title.new,新規デザインを追加
+printDesignForm.title.edit,デザインを編集
+printDesignForm.section.basic,基本設定
+printDesignForm.location.label,プリント箇所
+printDesignForm.location.placeholder,箇所を選択...
+printDesignForm.size.label,プリントサイズ
+printDesignForm.size.unavailable,(選択不可)
+printDesignForm.colors.label,総色数
+printDesignForm.plateType.label,版の種類
+printDesignForm.plateType.normal,通常版
+printDesignForm.plateType.decomposition,分解版
+printDesignForm.section.options,オプション
+printDesignForm.specialInk.label,"特殊インク ({{count}} / {{total}} 色)"
+printDesignForm.specialInk.empty,特殊インクはありません。
+printDesignForm.specialInk.add,特殊インクを追加
+printDesignForm.specialInk.type.ariaLabel,"特殊インク {{index}} の種類"
+printDesignForm.specialInk.count.ariaLabel,"特殊インク {{index}} の色数"
+printDesignForm.specialInk.remove.ariaLabel,"特殊インク {{index}} を削除"
+printDesignForm.error.noLocation,プリント箇所を選択してください。
+printDesignForm.error.noColors,色数は1以上で入力してください。
+printDesignForm.error.duplicate,同じ「プリント箇所」と「プリントサイズ」の組み合わせのデザインは既に追加されています。
+printDesignForm.error.inkCount,特殊インクの合計色数が、総色数を超えることはできません。
+"G. Product Selection Modal",
+productSelectionModal.title,Tシャツを選択
+productSelectionModal.privilegedMode.info,"現在「{{brand}}」の製品のみ選択できます。他のブランドを追加する場合は、一度注文リストをクリアしてください。"
+productSelectionModal.search.label,品番または商品名で検索
+productSelectionModal.search.placeholder,"例: 5001, Tシャツ 厚手"
+productSelectionModal.clearSelection,選択クリア
+productSelectionModal.brand.label,ブランド
+productSelectionModal.brand.placeholder,ブランドを選択
+productSelectionModal.brand.unavailable,(選択不可)
+productSelectionModal.product.label,商品
+productSelectionModal.product.placeholder,商品を選択
+productSelectionModal.selectedProduct.label,選択中の商品
+productSelectionModal.color.label,色
+productSelectionModal.color.outOfStock,(在庫なし)
+productSelectionModal.size.label,サイズ
+productSelectionModal.quantity.label,枚数
+productSelectionModal.addItemButton,リストに追加
+productSelectionModal.error.invalidSelection,サイズを選択し、1以上の枚数を入力してください。
+productSelectionModal.error.outOfStock,選択された商品は在庫切れです。
+"H. Partner Login Modal",
+partnerLoginModal.title,パートナーコード入力
+partnerLoginModal.description,割り当てられたパートナーコードを入力してください。
+partnerLoginModal.code.label,パートナーコード
+partnerLoginModal.error.invalidCode,無効なパートナーコードです。
+partnerLoginModal.submitButton,ロック解除
+partnerLoginModal.submitButton.loading,""
+"I. Cost Summary",
+costSummary.title,お見積もり結果
+costSummary.perShirtLabel,1枚あたりの金額 (税込)
+costSummary.breakdownTitle,内訳
+costSummary.tshirtCostLabel,Tシャツ本体代
+costSummary.tshirtCostBringInLabel,持ち込み手数料
+costSummary.tshirtCostBringInHelp,Tシャツをお持ち込みいただく際の手数料です。商品の定価の5%を基準に算出し、10円未満を切り上げて計算されます。
+costSummary.printCostLabel,プリント代
+costSummary.printCostHelp,プリント代はご注文の合計枚数とデザインの色数によって決まります。枚数が多いほど1枚あたりの単価は安くなります。特殊インクや大判サイズ、特定の素材（裏起毛など）には追加料金がかかります。
+costSummary.setupCostLabel,版代
+costSummary.setupCostHelp,版代はプリントに使用する「版」を作成するための初期費用です。デザインの色数ごとに1つの版が必要となり、プリントサイズや版の種類によって価格が異なります。
+costSummary.subtotalLabel,小計 (税抜)
+costSummary.shippingCostLabel,送料
+costSummary.taxLabel,消費税 (10%)
+costSummary.totalLabel,合計金額 (税込)
+costSummary.notes.line1,※ デザイン内容と印刷仕様に問題がない場合、このお見積もり金額が正式なご請求金額となります。
+costSummary.notes.line2,※ 上記金額には、Tシャツ本体、プリント代、版代、消費税、送料が含まれています。
+costSummary.notes.line3,※ 税抜{{price}}円以上のご注文で送料無料となります。
+costSummary.details.basePrint,基本プリント代
+costSummary.details.itemSurcharge,商品特性による追加料金 (裏起毛など)
+costSummary.details.locationSurcharge,ポケット位置による追加料金
+costSummary.details.sizeSurcharge,大判サイズによる追加料金
+costSummary.details.inkSurcharge,特殊インクによる追加料金
+costSummary.details.plateSurcharge,分解版による追加料金
+costSummary.details.setupCostDesign,"デザイン{{index}}: {{group}} {{label}} ({{size}}, {{colors}}色)"
+costSummary.details.setupCostLocationUnselected,未選択
+costSummary.helpTooltip.ariaLabel,詳細情報
+"J. Product Detail Page",
+productDetail.backButton,商品一覧に戻る
+productDetail.error.title,エラー
+productDetail.error.message,商品が見つかりませんでした。
+productDetail.error.button,商品一覧に戻る
+productDetail.partNumber,品番: {{code}}
+productDetail.janCode,JAN: {{code}}
+productDetail.stock.title,サイズ・在庫情報
+productDetail.stock.updateTime,"更新日時: {{timestamp}}"
+productDetail.stock.legend.title,在庫目安:
+productDetail.stock.legend.full,◎: 100枚以上
+productDetail.stock.legend.sufficient,〇: 10-99枚
+productDetail.stock.legend.few,△: 1-9枚
+productDetail.stock.legend.none,×: 在庫なし
+productDetail.stock.legend.unknown,?: 情報なし
+productDetail.color.title,カラーを選択
+productDetail.color.selectedPrefix,：
+productDetail.color.zoom.ariaLabel,"{{color}} の画像を拡大表示する"
+productDetail.image.zoom.ariaLabel,画像を拡大表示
+productDetail.image.zoom.tooltip,クリックして拡大
+productDetail.image.thumbnail.alt,"商品サムネイル {{index}}"
+productDetail.simulation.title,Tシャツ1枚あたりの参考単価 (税込)
+productDetail.simulation.note1,※Tシャツ本体代、プリント代、版代がすべて含まれた、1枚あたりの参考価格です。
+productDetail.simulation.note2,※送料は含まれておりません。税抜{{price}}円以上のご注文で送料無料となります。
+productDetail.simulation.note3,※計算には最も安価な「{{color}} / {{size}}サイズ」の本体価格(税抜¥{{price}})を使用しています。
+productDetail.simulation.table.header,印刷パターン
+productDetail.simulation.table.quantity,"{{count}}枚"
+productDetail.simulation.footer,※正式な価格は「このTシャツで見積もりを作成」ボタンからご確認ください。
+productDetail.estimatorButton,このTシャツで見積もりを作成
+"K. Search Results Page",
+searchResults.title,商品検索
+searchResults.placeholder,品番または商品名で検索 (例: 5001)
+searchResults.ariaLabel,商品を検索
+searchResults.submit.ariaLabel,検索
+searchResults.count,"{{count}}件の商品が見つかりました"
+searchResults.filter.brand.label,ブランド
+searchResults.filter.brand.all,すべてのブランド
+searchResults.filter.category.label,カテゴリ
+searchResults.filter.category.all,すべてのカテゴリ
+searchResults.filter.reset,絞り込みをリセット
+searchResults.filter.tags.label,タグで絞り込む
+searchResults.filter.tags.all,すべて
+searchResults.empty.title,条件に一致する商品がありません
+searchResults.empty.message,絞り込み条件を変更してお試しください。
+productCard.details,詳細・見積もりへ
+"L. Gallery Pages",
+gallery.title,ギャラリー
+gallery.subtitle,これまでの印刷実績の一部をご紹介します。
+gallery.filter.label,絞り込み:
+gallery.filter.all,すべて
+gallery.empty.title,画像が見つかりませんでした
+gallery.empty.message,別の条件でお試しください。
+galleryDetail.backButton,ギャラリー一覧に戻る
+galleryDetail.error.title,エラー
+galleryDetail.error.message,実績が見つかりませんでした。
+galleryDetail.error.button,ギャラリーに戻る
+galleryDetail.id,実績ID: {{id}}
+galleryDetail.thumbnail.alt,"実績サムネイル {{index}}"
+"M. Static Content Pages",
+howToUse.title,ご利用ガイド
+howToUse.subtitle,オリジナルTシャツのお見積もり・ご注文は簡単6ステップ！
+howToUse.step1.title,Tシャツを選ぶ
+howToUse.step1.description,まずはベースとなるTシャツやアイテムを選びます。「Tシャツを追加する」ボタンから、豊富なラインナップの中からお好きな商品を検索し、色・サイズ・枚数を入力してリストに追加してください。複数の商品を組み合わせることも可能です。
+howToUse.step2.title,プリントデザインを登録
+howToUse.step2.description,次に、プリントしたいデザインの詳細を登録します。「デザインを追加する」ボタンから、プリントしたい箇所（正面、背面、袖など）、プリントサイズ、使用する色数を入力してください。金・銀などの特殊インクもここで指定できます。
+howToUse.step3.title,お客様情報を入力
+howToUse.step3.description,送料の計算や、正式な見積書の発行のためにお客様の情報を入力します。お名前、ご連絡先、そして商品の納品先となるご住所をご記入ください。メールアドレスを入力すると、作成中の見積もりが自動で保存され、後からいつでも作業を再開できます。
+howToUse.step4.title,デザインデータを入稿
+howToUse.step4.description,プリントに使用するデザインデータをご入稿いただきます。まず、お見積もりページに表示されている「管理ID」をコピーしてください。次に「データ便の入稿サイトを開く」ボタンから外部サイトへ移動し、メッセージ欄にコピーした管理IDを貼り付けてデータを送信してください。送信完了後、お見積もりページに戻り「データ便でデザインを入稿しました」にチェックを入れます。
+howToUse.step5.title,見積書を発行
+howToUse.step5.description,すべての情報が入力されると、リアルタイムで計算されたお見積もり金額が確定します。内容を確認し、「印刷プレビュー」や「メールで送信」機能を使って、見積書を保存・共有できます。
+howToUse.step6.title,注文依頼をする
+howToUse.step6.description,お見積もり内容に問題がなければ、「注文依頼をする」ボタンを押して、正式に注文依頼を送信します。担当者が見積内容とデザインデータを確認後、折り返しご連絡いたします。
+howToUse.start,さっそく見積もりを始めましょう！
+howToUse.startButton,お見積もりページへ
+printingInfo.title,プリントについて
+printingInfo.subtitle,高品質なシルクスクリーンプリントで、お客様のデザインを形にします。
+printingInfo.section1.title,プリント料金の仕組み
+printingInfo.section1.p1,プリント料金は、大きく分けて「版代」と「プリント代」の2つの要素で構成されます。これはTシャツ本体の価格とは別に必要となる料金です。
+printingInfo.section1.h3_1,1. 版代 (初期費用)
+printingInfo.section1.p2,シルクスクリーンプリントで使用する「版（スクリーン）」を作成するための費用です。デザインの色数ごとに1版ずつ必要となり、プリントサイズによって価格が異なります。一度作成すれば、再注文時には不要です。
+printingInfo.section1.table.header1,プリントサイズ・版の種類
+printingInfo.section1.table.header2,料金 (1色あたり / 税抜)
+printingInfo.section1.table.plateType.normal,通常版
+printingInfo.section1.table.plateType.decomposition,分解版
+printingInfo.section1.h3_2,2. プリント代 (1枚あたり)
+printingInfo.section1.p3,Tシャツ1枚あたりにかかるプリント作業の料金です。この料金はご注文の合計枚数とデザインの色数によって決まり、<strong>枚数が多いほど1枚あたりの単価は安くなります。</strong>お見積もりページでは、枚数を変更するとリアルタイムで単価が変動するのをご確認いただけます。
+printingInfo.section1.p4,その他、特殊なインクの使用や、裏起毛素材へのプリントなど、特定の条件で追加料金が発生する場合があります。
+printingInfo.section2.title,対応プリント箇所
+printingInfo.section2.p1,Tシャツの様々な位置にプリントが可能です。代表的なプリント箇所は以下の通りです。お見積もりページでは、全ての選択肢からお選びいただけます。
+printingInfo.section2.image.alt,プリント箇所
+printingInfo.section3.title,特殊インクについて
+printingInfo.section3.p1,通常のインクに加えて、デザインを際立たせる特殊インクもご利用いただけます。特殊インクを使用する場合、1枚あたりのプリント代に以下の追加料金がかかります。
+printingInfo.section3.specialInk.silver.description,キラキラと輝く、高級感のあるメタリックなインクです。
+printingInfo.section3.specialInk.gold.description,キラキラと輝く、高級感のあるメタリックなインクです。
+printingInfo.section3.specialInk.foam.description,プリント部分が立体的に膨らむ、ユニークな質感のインクです。
+printingInfo.section3.specialInk.luminous.description,暗闇で光る特殊なインク。イベントTシャツなどに最適です。
+printingInfo.section4.title,デザインデータの入稿
+printingInfo.section4.p1,お客様が作成したデザインデータをご提出いただくことで、プリント作業を進めます。より美しい仕上がりのため、できるだけ高解像度のデータをご用意ください。
+printingInfo.section4.li1,<strong>対応ファイル形式:</strong> Adobe Illustrator (.ai), Photoshop (.psd), PDF (.pdf), PNG, JPEG
+printingInfo.section4.li2,<strong>入稿方法:</strong>
+printingInfo.section4.li2_1,10MB以下のファイル: お見積もりページの入稿フォームから直接アップロード
+printingInfo.section4.li2_2,10MB以上のファイル: データ便などのファイル転送サービスを利用してご提出
+printingInfo.section4.p2,詳しい入稿手順は、「ご利用ガイド」ページでもご確認いただけます。
+printingInfo.start,準備ができたら、さっそく見積もりへ！
+printingInfo.start.description,選んだTシャツとデザインで、あなただけのオリジナルアイテムの価格を確認しましょう。
+printingInfo.startButton,お見積もりページへ
+privacyPolicy.title,プライバシーポリシー
+privacyPolicy.lastUpdated,最終更新日: 2024年7月29日
+privacyPolicy.p1,捺染兄弟（以下、「当社」といいます。）は、本ウェブサイト上で提供するサービス（以下、「本サービス」といいます。）における、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下、「本ポリシー」といいます。）を定めます。
+privacyPolicy.s1.title,第1条（収集する個人情報）
+privacyPolicy.s1.p1,当社は、本サービスの提供にあたり、以下の個人情報を収集することがあります。
+privacyPolicy.s1.li1,氏名、メールアドレス、電話番号、住所など、お客様から直接ご提供いただく情報
+privacyPolicy.s1.li2,見積もり作成時にお客様が入力された商品リスト、デザインに関する情報
+privacyPolicy.s1.li3,お客様が見積もり作成のためにご入稿されたデザインデータ
+privacyPolicy.s2.title,第2条（個人情報の利用目的）
+privacyPolicy.s2.p1,当社が個人情報を収集・利用する目的は、以下のとおりです。
+privacyPolicy.s2.li1,お客様が見積もり内容を後から確認できるよう、見積もりの保存および復元機能を提供するため
+privacyPolicy.s2.li2,お客様からのお問い合わせに対応するため（本人確認を行うことを含む）
+privacyPolicy.s2.li3,ご注文いただいた商品の発送、代金決済、アフターサービスなど、取引を円滑に遂行するため
+privacyPolicy.s2.li4,上記の利用目的に付随する目的
+privacyPolicy.s3.title,第3条（個人情報の管理）
+privacyPolicy.s3.p1,当社は、お客様の個人情報を正確かつ最新の状態に保ち、個人情報への不正アクセス・紛失・破損・改ざん・漏洩などを防止するため、セキュリティシステムの維持・管理体制の整備等の必要な措置を講じ、安全対策を実施し個人情報の厳重な管理を行います。
+privacyPolicy.s4.title,第4条（個人情報の第三者提供）
+privacyPolicy.s4.p1,当社は、お客様ご本人の同意なく、個人情報を第三者に提供いたしません。ただし、法令に基づく場合など、正当な理由がある場合を除きます。
+privacyPolicy.s5.title,第5条（個人情報の保持期間）
+privacyPolicy.s5.p1,当社は、お客様の個人情報を以下の通り目的別に適切な期間保持し、期間経過後は速やかに削除いたします。
+privacyPolicy.s5.li1,"<strong>ご注文いただいたお客様の情報</strong><br />ご注文いただいたお客様の個人情報、ご注文内容、およびデザインデータは、商法等の関連法令に基づく保管義務、ならびに追加注文時の利便性向上のため、最終のご注文日から原則として5年間保持いたします。保持期間経過後は、適切に削除いたします。"
+privacyPolicy.s5.li2,"<strong>お見積もりのみでご注文に至らなかったお客様の情報</strong><br />お見積もりのご依頼のみでご注文に至らなかったお客様の個人情報およびご入稿いただいたデザインデータは、お客様のプライバシー保護を考慮し、お見積もり発行日から3ヶ月が経過した時点で適切に削除いたします。"
+privacyPolicy.s6.title,第6条（ユーザーの権利）
+privacyPolicy.s6.p1,お客様は、当社が保有するご自身の個人情報について、開示、訂정、追加、削除、利用停止を求めることができます。ご希望される場合は、下記のお問い合わせ先までご連絡ください。ご本人様であることを確認の上、速やかに対応いたします。
+privacyPolicy.s7.title,第7条（お問い合わせ窓口）
+privacyPolicy.s7.p1,本ポリシーに関するお問い合わせは、下記の窓口までお願いいたします。
+privacyPolicy.s7.contact.name,捺染兄弟
+privacyPolicy.s7.contact.email,メールアドレス: support@example.com
+privacyPolicy.s7.contact.phone,（お電話でのお問い合わせは現在受け付けておりません）
+privacyPolicy.s8.title,第8条（プライバシーポリシーの変更）
+privacyPolicy.s8.p1,本ポリシーの内容は、ユーザーに通知することなく、変更することができるものとします。変更後のプライバシーポリシーは、本ウェブサイトに掲載したときから効力を生じるものとします。
+"O. MyPage",
+myPage.title,マイページ
+myPage.nav.mobile.ariaLabel,ナビゲーション
+myPage.dashboard.welcome,"ようこそ、{{name}} 様"
+myPage.dashboard.description,こちらでお客様の情報やご注文状況を確認できます。
+myPage.dashboard.newQuote.title,新規お見積もり
+myPage.dashboard.newQuote.description,新しいデザインでオリジナルTシャツを作成します。
+myPage.dashboard.newQuote.button,見積もりを作成
+myPage.dashboard.customerInfo.title,お客様情報
+myPage.dashboard.customerInfo.description,お客様の連絡先や商品の基本配送先などを確認・編集します。
+myPage.dashboard.customerInfo.button,情報を確認・編集
+myPage.dashboard.addressBook.title,配送先アドレス帳
+myPage.dashboard.addressBook.description,商品の配送先を複数登録・管理できます。
+myPage.dashboard.addressBook.button,アドレス帳を見る
+myPage.dashboard.estimates.title,検討中の見積もり
+myPage.dashboard.estimates.description,作成途中の見積もりや、確定済みの見積もりを確認できます。
+myPage.dashboard.estimates.button,見積もり一覧へ
+myPage.dashboard.invoices.title,ご依頼中案件の請求書
+myPage.dashboard.invoices.description,発行済みの請求書の確認やダウンロードができます。
+myPage.dashboard.invoices.button,請求書一覧へ
+myPage.dashboard.status.title,進行状況ステータス
+myPage.dashboard.status.description,ご注文の受付から発送までの現在の状況を確認できます。
+myPage.dashboard.status.button,進行状況を確認
+myPage.dashboard.shipping.title,出荷業者と追跡番号
+myPage.dashboard.shipping.description,発送済みの商品の配送会社や追跡番号を確認できます。
+myPage.dashboard.shipping.button,発送詳細へ
+myPage.dashboard.history.title,過去の案件と書類のダウンロード
+myPage.dashboard.history.description,完了したご注文履歴の確認や、同じ内容での再注文ができます。各種書類（見積書、納品書、請求書、領収書）のダウンロードもこちらから行えます。
+myPage.dashboard.history.button,履歴を見る
+myPage.customerInfo.title,お客様情報
+myPage.customerInfo.billing.title,ご請求先情報
+myPage.customerInfo.shipping.title,配送先情報
+myPage.customerInfo.company.label,会社名
+myPage.customerInfo.name.label,お名前
+myPage.customerInfo.name.value,"{{kanji}} ({{kana}})"
+myPage.customerInfo.email.label,メールアドレス
+myPage.customerInfo.phone.label,電話番号
+myPage.customerInfo.address.label,ご住所
+myPage.customerInfo.address.zip,〒{{zip}}
+myPage.customerInfo.modal.title,お客様情報の編集
+myPage.customerInfo.modal.nameKanji.label,お名前 (漢字)
+myPage.customerInfo.modal.nameKana.label,お名前 (カナ)
+myPage.customerInfo.modal.zipCode.label,郵便番号
+myPage.customerInfo.modal.address1.label,住所1 (都道府県・市区町村)
+myPage.customerInfo.modal.address2.label,住所2 (番地・建物名)
+myPage.customerInfo.modal.useSeparateAddress,ご請求先と別の住所へ配送する
+myPage.addressBook.title,配送先アドレス帳
+myPage.addressBook.add,新しいお届け先を追加
+myPage.addressBook.empty,登録されているお届け先はありません。
+myPage.addressBook.modal.title.new,新しいお届け先を追加
+myPage.addressBook.modal.title.edit,お届け先の編集
+myPage.addressBook.modal.name.label,名称 (例: 自宅, 事務所)
+myPage.addressBook.delete.confirm,この配送先を削除してもよろしいですか？
+myPage.customerInfo.save.success,お客様情報を更新しました。
+myPage.estimates.title,検討中の見積もり
+myPage.estimates.header.subject,件名
+myPage.estimates.header.id,見積もりID
+myPage.estimates.header.date,作成日
+myPage.estimates.header.amount,金額 (税込)
+myPage.estimates.header.actions,アクション
+myPage.estimates.action.submit,発注する
+myPage.estimates.action.submit.alert,"注文ID: {{id}} を発注します。"
+myPage.estimates.action.pdf,PDF
+myPage.estimates.action.email,メール
+myPage.estimates.empty,保存されている見積もりはありません。
+myPage.status.title,進行状況ステータス
+myPage.status.header.orderId,注文ID
+myPage.status.header.subject,件名
+myPage.status.header.date,ご注文日
+myPage.status.header.status,ステータス
+myPage.status.step.ordered,注文受付
+myPage.status.step.dataConfirmed,データ確認
+myPage.status.step.paymentConfirmed,ご入金確認
+myPage.status.step.inProduction,作業中
+myPage.status.step.shipped,発送
+myPage.status.empty,現在進行中の案件はありません。
+myPage.invoices.title,ご依頼中案件の請求書
+myPage.invoices.header.id,請求書ID
+myPage.invoices.empty,発行済みの請求書はありません。
+myPage.shipping.title,出荷業者と追跡番号
+myPage.shipping.header.shippingDate,発送日
+myPage.shipping.header.carrier,配送会社
+myPage.shipping.header.tracking,追跡番号
+myPage.shipping.empty,発送対象の案件はありません。
+myPage.history.title,過去の案件と書類のダウンロード
+myPage.history.header.completedDate,完了日
+myPage.history.action.reorder,再度注文
+myPage.history.action.download.quote,見積書
+myPage.history.action.download.deliveryNote,納品書
+myPage.history.action.download.invoice,請求書
+myPage.history.action.download.receipt,領収書
+myPage.history.empty,過去の案件はありません。
+"P. Image Preview Modal",
+imagePreview.titleSuffix,"画像 {{index}}"
+imagePreview.reset,リセット
+imagePreview.prevAriaLabel,前の画像へ
+imagePreview.nextAriaLabel,次の画像へ
+imagePreview.pagination,"{{current}} / {{total}}"
+"Q. Printable Estimate Modal",
+printableEstimate.title,印刷プレビュー
+printableEstimate.savePdf.ariaLabel,見積書をPDF形式で保存する
+printableEstimate.savePdf.loading,生成中...
+printableEstimate.print.ariaLabel,見積書を印刷する
+printableEstimate.close.ariaLabel,プレビューを閉じる
+printableEstimate.zoom.in,拡大
+printableEstimate.zoom.out,縮小
+printableEstimate.zoom.reset,元のサイズに戻す

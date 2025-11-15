@@ -1,0 +1,9 @@
+constraint_type,constraint_id,allowed_print_sizes
+location,leftSleeve,"10x10"
+location,rightSleeve,"10x10"
+location,backCollar,"10x10"
+location,frontPocketTop,"10x10"
+location,frontPocketCenter,"10x10"
+tag,t_tote_s,"10x10"
+tag,t_tote_m,"10x10,30x40"
+tag,t_tote_l,"10x10,30x40,35x50"

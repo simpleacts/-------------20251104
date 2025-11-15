@@ -1,0 +1,5 @@
+key,ja,en
+title,生産スケジューラ,Production Scheduler
+description,生産スケジューラのUIテキストです。,UI text for the Production Scheduler.
+empty_state,表示する項目がありません。,No entries available.
+

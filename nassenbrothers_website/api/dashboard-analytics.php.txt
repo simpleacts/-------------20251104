@@ -1,0 +1,117 @@
+<?php
+// api/dashboard-analytics.php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+require_once __DIR__ . '/db_connect.php';
+
+try {
+    // --- TODO: AUTHENTICATION ---
+    
+    $startDate = $_GET['startDate'] ?? date('Y-m-01');
+    $endDate = $_GET['endDate'] ?? date('Y-m-t');
+
+    $pdo = get_db_connection();
+
+    // --- Summary Data ---
+    $summary_stmt = $pdo->prepare("
+        SELECT
+            IFNULL(SUM(total_cost_in_tax), 0) as totalRevenue,
+            COUNT(id) as totalOrders,
+            SUM(CASE WHEN quote_status = '見積もり' THEN 1 ELSE 0 END) as quoteCount,
+            SUM(CASE WHEN quote_status = '受注' AND shipping_status != '発送完了' THEN 1 ELSE 0 END) as inProgressCount,
+            SUM(CASE WHEN shipping_status = '発送完了' THEN 1 ELSE 0 END) as completedCount
+        FROM quotes
+        WHERE ordered_at BETWEEN ? AND ? OR (quote_status = '見積もり' AND created_at BETWEEN ? AND ?)
+    ");
+    $summary_stmt->execute([$startDate . ' 00:00:00', $endDate . ' 23:59:59', $startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+    $summary = $summary_stmt->fetch(PDO::FETCH_ASSOC);
+
+    // --- Cost Calculation (more complex) ---
+    $cost_stmt = $pdo->prepare("
+        SELECT SUM(qi.quantity * pp.purchasePrice) as totalCost
+        FROM quotes q
+        JOIN quote_items qi ON q.id = qi.quote_id
+        JOIN products_master pm ON qi.product_id = pm.id
+        JOIN colors c ON c.brand_id = pm.brand_id AND c.name = qi.color
+        JOIN product_prices pp ON pp.productId = pm.id AND pp.size = qi.size AND pp.colorType = c.colorType
+        WHERE q.ordered_at BETWEEN ? AND ?
+    ");
+    $cost_stmt->execute([$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+    $totalCost = (float)$cost_stmt->fetchColumn();
+
+    $summary['totalRevenue'] = (float)$summary['totalRevenue'];
+    $summary['totalCost'] = $totalCost;
+    $summary['totalProfit'] = $summary['totalRevenue'] - $summary['totalCost'];
+    $summary['profitMargin'] = $summary['totalRevenue'] > 0 ? ($summary['totalProfit'] / $summary['totalRevenue']) * 100 : 0;
+
+    // --- Time Series Data ---
+    $date_format = (strtotime($endDate) - strtotime($startDate)) > (31 * 24 * 60 * 60) ? '%Y-%m' : '%Y-%m-%d';
+    
+    $timeseries_stmt = $pdo->prepare("
+        SELECT
+            DATE_FORMAT(ordered_at, ?) as date,
+            IFNULL(SUM(total_cost_in_tax), 0) as revenue
+        FROM quotes
+        WHERE ordered_at BETWEEN ? AND ?
+        GROUP BY date
+        ORDER BY date ASC
+    ");
+    $timeseries_stmt->execute([$date_format, $startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+    $revenue_data = $timeseries_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+    $costseries_stmt = $pdo->prepare("
+         SELECT
+            DATE_FORMAT(q.ordered_at, ?) as date,
+            SUM(qi.quantity * pp.purchasePrice) as cost
+        FROM quotes q
+        JOIN quote_items qi ON q.id = qi.quote_id
+        JOIN products_master pm ON qi.product_id = pm.id
+        JOIN colors c ON c.brand_id = pm.brand_id AND c.name = qi.color
+        JOIN product_prices pp ON pp.productId = pm.id AND pp.size = qi.size AND pp.colorType = c.colorType
+        WHERE q.ordered_at BETWEEN ? AND ?
+        GROUP BY date
+        ORDER BY date ASC
+    ");
+     $costseries_stmt->execute([$date_format, $startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+    $cost_data = $costseries_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+    // Combine data
+    $timeSeries = [];
+    $all_dates = array_unique(array_merge(array_keys($revenue_data), array_keys($cost_data)));
+    sort($all_dates);
+
+    foreach ($all_dates as $date) {
+        $revenue = (float)($revenue_data[$date] ?? 0);
+        $cost = (float)($cost_data[$date] ?? 0);
+        $timeSeries[] = [
+            'date' => $date,
+            'revenue' => $revenue,
+            'cost' => $cost,
+            'profit' => $revenue - $cost
+        ];
+    }
+    
+    echo json_encode([
+        'success' => true,
+        'data' => [
+            'summary' => $summary,
+            'timeSeries' => $timeSeries
+        ]
+    ]);
+
+} catch (Exception $e) {
+    http_response_code(500);
+    error_log("Dashboard Analytics Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => '分析データの取得に失敗しました。', 'error' => $e->getMessage()]);
+}
+?>

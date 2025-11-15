@@ -1,0 +1,18 @@
+key,ja,en
+customers.id,顧客ID,Customer ID
+customers.company_name,会社名,Company Name
+customers.name_kanji,氏名,Name
+customers.name_kana,氏名(カナ),Name (Kana)
+customers.email,メールアドレス,Email
+customers.phone,電話番号,Phone
+customers.zip_code,郵便番号,Zip Code
+customers.address1,住所1,Address 1
+customers.address2,住所2,Address 2
+customers.created_at,登録日時,Created At
+customers.updated_at,更新日時,Updated At
+customers.customer_group_id,顧客グループ,Customer Group
+customers.internal_notes,内部メモ,Internal Notes
+customers.status,ステータス,Status
+customer_groups.id,ID,ID
+customer_groups.name,グループ名,Group Name
+customer_groups.description,説明,Description

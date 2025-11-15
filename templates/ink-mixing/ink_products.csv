@@ -1,0 +1,6 @@
+id,series_id,product_type,color_name,color_code,hex_value,unit_cost,unit_volume,unit_measure
+1,1,base,ホワイト,,#FFFFFF,2000,1000,g
+2,1,base,クリア,,#FFFFFF00,1800,1000,g
+3,4,color,スカーレットレッド,RIO-1000,#FF2400,15000,3785,gallon
+4,4,color,レモンイエロー,RIO-2000,#FFF44F,15000,3785,gallon
+5,4,color,ジェットブラック,RIO-8000,#0A0A0A,15000,3785,gallon

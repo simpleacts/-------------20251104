@@ -1,0 +1,4 @@
+id,label_id,condition_type,condition_value,sort_order
+rule_1,label_2,subject_contains,請求書,10
+rule_2,label_2,from_address_contains,accounting@,20
+rule_3,label_3,subject_contains,デザイン,10

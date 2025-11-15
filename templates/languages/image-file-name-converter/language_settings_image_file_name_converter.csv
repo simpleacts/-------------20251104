@@ -1,0 +1,35 @@
+key,ja,en
+file_converter.title,ファイル名一括変換,Bulk File Name Converter
+file_converter.description,複数の画像ファイル名をルールに基づいて一括で変更し、ZIPファイルとしてダウンロードします。,Bulk rename multiple image files based on rules and download them as a ZIP file.
+file_converter.rename_operations,リネーム操作,Rename Operations
+file_converter.preset,プリセット,Preset
+file_converter.select_preset,プリセットを選択...,Select Preset...
+file_converter.new_preset_name,新規プリセット名,New Preset Name
+file_converter.save,保存,Save
+file_converter.add_rule,ルールを追加,Add Rule
+file_converter.rule_replace,置換,Replace
+file_converter.rule_prefix,接頭辞,Prefix
+file_converter.rule_suffix,接尾辞,Suffix
+file_converter.rule_case,大/小文字,Case
+file_converter.rule_type_replace,テキストの置換,Text Replacement
+file_converter.rule_type_prefix,接頭辞を追加,Add Prefix
+file_converter.rule_type_suffix,接尾辞を追加,Add Suffix
+file_converter.rule_type_case,大文字/小文字の変更,Change Case
+file_converter.search_string,検索する文字列,Search String
+file_converter.replace_string,置換後の文字列,Replace String
+file_converter.use_regex,正規表現,Use Regex
+file_converter.case_sensitive,大文字/小文字を区別,Case Sensitive
+file_converter.add_text,追加するテキスト,Text to Add
+file_converter.lowercase,すべて小文字,All Lowercase
+file_converter.uppercase,すべて大文字,All Uppercase
+file_converter.title_case,タイトルケース,Title Case
+file_converter.file_upload,ファイルアップロード,File Upload
+file_converter.preview,プレビュー,Preview
+file_converter.compressing,圧縮中...,Compressing...
+file_converter.download_zip,ZIPダウンロード,Download ZIP
+file_converter.original_filename,元のファイル名,Original File Name
+file_converter.new_filename,変換後のファイル名,New File Name
+file_converter.zip_error,ZIPファイルの生成に失敗しました。,Failed to generate ZIP file.
+file_converter.preset_name_required,プリセット名を入力してください。,Please enter a preset name.
+file_converter.preset_saved,プリセットを保存しました。,Preset saved successfully.
+

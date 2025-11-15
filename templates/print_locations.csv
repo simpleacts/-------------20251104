@@ -1,0 +1,16 @@
+﻿locationId,groupName,label
+frontCenter,正面,中央
+frontLeftChest,正面,左胸
+frontRightChest,正面,右胸
+frontLeftBottom,正面,左下
+frontRightBottom,正面,右下
+frontPocketTop,正面,ポケット上部
+frontPocketCenter,正面,ポケット中央
+backCenter,背面,中央
+backCollar,背面,背中えり下
+backLeftShouldder,背面,左肩
+backRightShoulder,背面,右肩
+backLeftBottom,背面,左下
+backRightBottom,背面,右下
+leftSleeve,袖,左袖
+rightSleeve,袖,右袖

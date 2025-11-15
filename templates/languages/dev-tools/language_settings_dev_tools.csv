@@ -1,0 +1,30 @@
+key,ja,en
+dev_tools.title,開発ツール,Developer Tools
+dev_tools.description,アプリケーションの動作モードや設定を変更します。,Change application behavior modes and settings.
+app_mode.title,動作モード設定,App Mode Settings
+app_mode.current_mode,現在のモード:,Current Mode:
+app_mode.live,ライブ,Live
+app_mode.csv_debug,CSVデバッグ,CSV Debug
+app_mode.switch_to_live_confirm,「ライブモード」に切り替えますか？\n\nこれにより、サーバー上の本番データベースに接続します。\nローカル開発環境など、接続が許可されていない環境からはアクセスできず、画面が読み込めなくなる可能性があります。\n\nよろしいですか？,Switch to \Live Mode\?\n\nThis will connect to the production database on the server.\nFrom environments where connections are not allowed, such as local development environments, access may not be possible and the screen may not load.\n\nAre you sure?
+app_mode.switched,モードを「{mode}」に切り替えました。ページを再読み込みして変更を適用します。,Switched to \"{mode}\" mode. Reload the page to apply changes.
+csv_rewrite.title,DBからCSVへの書き戻し,DB to CSV Rewrite
+csv_rewrite.encoding_label,CSVファイルの文字コード,CSV File Encoding
+csv_rewrite.shift_jis,Shift_JIS (Windows標準),Shift_JIS (Windows Standard)
+csv_rewrite.utf8,UTF-8,UTF-8
+csv_rewrite.encoding_note,CSVファイルが文字化けする場合に切り替えてください。,Switch if CSV files are garbled.
+csv_rewrite.encoding_set,CSV文字コードを「{encoding}」に設定しました。ページを再読み込みして変更を適用します。,CSV encoding set to \"{encoding}\". Reload the page to apply changes.
+csv_rewrite.description,現在のメモリ上のデータベース状態（UIでの変更を含む）を元に、プロジェクト内のCSVファイルを更新するためのAIプロンプトを生成します。,Generate an AI prompt to update CSV files in the project based on the current database state in memory (including UI changes).
+csv_rewrite.apply_button,現在の変更をCSVに反映...,Apply Current Changes to CSV...
+cache.title,キャッシュ管理 (危険な操作),Cache Management (Dangerous Operation)
+cache.description,アプリケーションの動作がおかしい場合や、データの変更が反映されない場合に、ブラウザに保存されているキャッシュを強制的に削除します。,Forcefully delete cached data stored in the browser when the application behaves strangely or data changes are not reflected.
+cache.clear_confirm,アプリケーションのキャッシュ（localStorage）をすべて削除します。\nこれにより、次回読み込み時にサーバーまたはCSVから最新のデータが再取得されます。\n\nよろしいですか？,Delete all application cache (localStorage).\nThis will cause the latest data to be re-fetched from the server or CSV on the next load.\n\nAre you sure?
+cache.cleared,キャッシュをクリアしました。アプリケーションを再読み込みします。,Cache cleared. Reloading the application.
+cache.clear_failed,キャッシュのクリアに失敗しました。,Failed to clear cache.
+cache.clearing,クリア中...,Clearing...
+cache.clear_button,キャッシュをクリアして再読み込み,Clear Cache and Reload
+app_mode.live_mode_option,ライブモード (PHP API),Live Mode (PHP API)
+app_mode.csv_debug_mode_option,CSVデバッグモード (ローカルCSV),CSV Debug Mode (Local CSV)
+app_mode.live_description,ライブモード: サーバー上の実際のデータベースと通信します。本番環境での通常の動作モードです。,Live Mode: Communicates with the actual database on the server. Normal operation mode for production.
+app_mode.csv_debug_description,CSVデバッグモード: プロジェクト内のCSVファイルを直接読み込みます。初期データの構築や確認に最適です。,CSV Debug Mode: Directly loads CSV files in the project. Ideal for building and verifying initial data.
+app_mode.switch_warning,注意: モードを切り替えると、アプリケーションが自動的に再読み込みされます。,Note: Switching modes will automatically reload the application.
+

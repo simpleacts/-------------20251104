@@ -1,0 +1,11 @@
+key,ja,en
+tools.module-list,モジュールカタログ,Module Catalog
+module.title,モジュール一覧,Module List
+module.description,モジュールの説明,Module Description
+module.type,モジュールタイプ,Module Type
+module.category,カテゴリー,Category
+module.search,検索,Search
+module.filter,フィルター,Filter
+module.details,詳細,Details
+module.close,閉じる,Close
+

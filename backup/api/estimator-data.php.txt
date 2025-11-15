@@ -1,0 +1,437 @@
+<?php
+/**
+ * Estimator Tool - Direct Database Access API
+ * 見積作成ツール専用API
+ * ツール名: estimator
+ */
+
+header('Content-Type: application/json; charset=utf-8');
+// CORS: Restrict in production
+$allowed_origins = [
+    'http://localhost', 'http://localhost:3000', 'http://127.0.0.1', 'http://127.0.0.1:3000',
+];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origin, $allowed_origins)) {
+    header("Access-Control-Allow-Origin: {$origin}");
+} else {
+    header('Access-Control-Allow-Origin: *'); // Development only
+}
+header('Access-Control-Allow-Methods: GET');
+header('Access-Control-Allow-Headers: Content-Type');
+
+require_once 'db_connect.php';
+require_once 'schema_utils.php';
+
+$tool_name = 'estimator';
+error_log("[{$tool_name}-data.php] Request received");
+
+/**
+ * Validates and sanitizes table name to prevent SQL injection
+ * Only allows alphanumeric characters, underscores, and hyphens
+ */
+function validateTableName($tableName) {
+    if (!preg_match('/^[a-zA-Z0-9_-]+$/', $tableName)) {
+        throw new InvalidArgumentException("Invalid table name: '{$tableName}' contains invalid characters");
+    }
+    return $tableName;
+}
+
+/**
+ * Fetches table data directly from database
+ * @param PDO $pdo Database connection
+ * @param string $tableName Table name (validated)
+ * @param bool $lightweight If true, fetch only essential columns for large tables
+ * @return array Array of rows from the table
+ */
+function fetchDirectTable($pdo, $tableName, $lightweight = false) {
+    try {
+        $safeTableName = validateTableName($tableName);
+        
+        // Check if table exists using schema_utils function (more reliable)
+        if (!tableExists($pdo, $safeTableName)) {
+            error_log("[estimator-data.php] Table '{$safeTableName}' does not exist in database");
+            return [];
+        }
+        
+        // Full data fetch - table name is validated and whitelisted, so safe to use
+        $stmt = $pdo->query("SELECT * FROM `{$safeTableName}`");
+        
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        error_log("[estimator-data.php] Fetched " . count($rows) . " rows from table '{$safeTableName}'");
+        
+        // Filter out completely empty rows (all values are null, undefined, or empty strings)
+        $filteredRows = array_filter($rows, function($row) {
+            if (!$row || !is_array($row)) {
+                return false;
+            }
+            
+            // Check if at least one field has a meaningful value
+            $hasValidValue = false;
+            foreach ($row as $value) {
+                if ($value === null || $value === '') {
+                    continue;
+                }
+                if (is_string($value) && trim($value) !== '') {
+                    $hasValidValue = true;
+                    break;
+                }
+                if (is_bool($value) || is_numeric($value)) {
+                    $hasValidValue = true;
+                    break;
+                }
+            }
+            
+            return $hasValidValue;
+        });
+        
+        $filteredCount = count($filteredRows);
+        if ($filteredCount !== count($rows)) {
+            error_log("[estimator-data.php] Filtered " . (count($rows) - $filteredCount) . " empty rows from table '{$safeTableName}'");
+        }
+        
+        return array_values($filteredRows);
+    } catch (InvalidArgumentException $e) {
+        error_log("[estimator-data.php] Invalid table name error: " . $e->getMessage());
+        throw $e;
+    } catch (PDOException $e) {
+        error_log("[estimator-data.php] Error fetching table '{$tableName}': " . $e->getMessage());
+        throw $e;
+    }
+}
+
+/**
+ * メーカー依存テーブルのリスト
+ */
+function isManufacturerDependentTable($tableName) {
+    $manufacturerDependentTables = [
+        'product_sizes', 'product_color_sizes',
+        'products_master', 'product_details', 'product_tags',
+        // 注意: product_prices, product_colors, skusは非推奨（stockテーブルから取得）
+        // 注意: colors, sizes, incoming_stockは削除（stockテーブルから直接取得）
+        // 注意: brandsは削除（共通テーブルtemplates/common/brands.csvで全メーカーのブランドを一括管理、detailsテーブルにbrandフィールドを追加）
+        'stock', 'importer_mappings', 'tags'
+    ];
+    return in_array($tableName, $manufacturerDependentTables);
+}
+
+/**
+ * メーカーIDを含むテーブル名を生成
+ * 新しい命名規則: {manufacturerId}_{tableName} (例: manu_0001_brands)
+ */
+function getManufacturerTableName($baseTableName, $manufacturerId) {
+    // ファイル名の変換を考慮
+    $fileName = $baseTableName;
+    if ($baseTableName === 'product_details') {
+        $fileName = 'details';
+    } else if ($baseTableName === 'stock') {
+        $fileName = 'stock';
+    } else if ($baseTableName === 'tags') {
+        $fileName = 'tags';
+    }
+    // 注意: brandsは削除（共通テーブルに変更）
+    return "{$manufacturerId}_{$fileName}";
+}
+
+/**
+ * メーカー別テーブル名からベーステーブル名を抽出
+ * @param string $tableName テーブル名（例: 'products_master_manu_0001'）
+ * @return array ['baseTableName' => string, 'manufacturerId' => string|null]
+ */
+// 新しい命名規則: {manufacturerId}_{tableName} (例: manu_0001_brands)
+function parseManufacturerTableName($tableName) {
+    $manufacturerDependentTables = [
+        'product_sizes', 'product_color_sizes',
+        'products_master', 'product_details', 'product_tags',
+        // 注意: product_prices, product_colors, skusは非推奨（stockテーブルから取得）
+        // 注意: colors, sizes, incoming_stockは削除（stockテーブルから直接取得）
+        // 注意: brandsは削除（共通テーブルtemplates/common/brands.csvで全メーカーのブランドを一括管理）
+        'stock', 'importer_mappings', 'tags'
+    ];
+    
+    // まず、manu_で始まる形式をチェック（新しい命名規則）
+    if (strpos($tableName, 'manu_') === 0) {
+        // manu_0001_brands 形式から brands と manu_0001 を抽出
+        foreach ($manufacturerDependentTables as $baseTableName) {
+            // ファイル名の変換を考慮
+            $fileName = $baseTableName;
+            if ($baseTableName === 'product_details') {
+                $fileName = 'details';
+            } else if ($baseTableName === 'stock') {
+                $fileName = 'stock';
+            } else if ($baseTableName === 'tags') {
+                $fileName = 'tags';
+            }
+            // 注意: brandsは削除（共通テーブルに変更）
+            
+            $suffix = '_' . $fileName;
+            if (substr($tableName, -strlen($suffix)) === $suffix) {
+                $manufacturerId = substr($tableName, 0, strlen($tableName) - strlen($suffix));
+                return ['baseTableName' => $baseTableName, 'manufacturerId' => $manufacturerId];
+            }
+        }
+    } else {
+        // 後方互換性のため、古い命名規則（{tableName}_{manufacturerId}）もサポート
+        foreach ($manufacturerDependentTables as $baseTableName) {
+            $prefix = $baseTableName . '_';
+            if (strpos($tableName, $prefix) === 0) {
+                $manufacturerId = substr($tableName, strlen($prefix));
+                // manufacturerIdに`manu_`プレフィックスが含まれている場合は除去
+                if (strpos($manufacturerId, 'manu_') === 0) {
+                    $manufacturerId = substr($manufacturerId, 5); // 'manu_'の長さは5
+                }
+                return ['baseTableName' => $baseTableName, 'manufacturerId' => $manufacturerId];
+            }
+        }
+    }
+    
+    return ['baseTableName' => $tableName, 'manufacturerId' => null];
+}
+
+/**
+ * メーカー一覧を取得
+ * @param PDO $pdo Database connection
+ * @return array Array of manufacturers
+ */
+function fetchManufacturers($pdo) {
+    try {
+        $stmt = $pdo->query("SELECT * FROM `manufacturers`");
+        $manufacturers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // メーカーIDが有効なもののみをフィルタ
+        $manufacturers = array_filter($manufacturers, function($m) {
+            return isset($m['id']) && $m['id'] !== 'undefined' && trim($m['id']) !== '';
+        });
+        return array_values($manufacturers);
+    } catch (PDOException $e) {
+        error_log("[estimator-data.php] Error fetching manufacturers: " . $e->getMessage());
+        return [];
+    }
+}
+
+
+// --- API Routing ---
+$table_names_req = $_GET['tables'] ?? null;
+$lightweight = isset($_GET['lightweight']) && $_GET['lightweight'] === 'true';
+
+if (!$table_names_req) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Request parameter "tables" not specified.']);
+    exit();
+}
+
+// Whitelist of tables for Estimator Tool
+// Based on getEstimatorEssentialTables() and getEstimatorLazyTables()
+$all_tables_whitelist = [
+    // 基本設定
+    'settings', 'color_settings', 'layout_settings', 'behavior_settings',
+    // マスタデータ
+    // 注意: colors, sizesは削除済み（stockテーブルから取得）
+    // 注意: brandsは遅延読み込みに移動（商品選択時に必要に応じて読み込む）
+    'stock', 'customer_groups', 'tags', 'categories', 'manufacturers', 'payment_methods', 'free_input_item_types',
+    // 価格・コスト設定
+    'plate_costs', 'special_ink_costs', 'additional_print_costs_by_size',
+    'additional_print_costs_by_location', 'additional_print_costs_by_tag',
+    'print_pricing_tiers', 'shipping_costs',
+    // 組み合わせ・制約
+    'print_cost_combination', 'plate_cost_combination',
+    'category_print_locations', 'print_size_constraints', 'print_locations',
+    // 会社情報・その他
+    'company_info', 'partner_codes', 'prefectures',
+    // 価格ルール
+    'pricing_rules', 'pricing_assignments', 'volume_discount_schedules',
+    // 追加オプション
+    'additional_options',
+    // DTF関連
+    'dtf_consumables', 'dtf_equipment', 'dtf_labor_costs',
+    'dtf_electricity_rates', 'dtf_printers', 'dtf_print_speeds', 'dtf_press_time_costs',
+    // PDF関連
+    'pdf_templates', 'pdf_item_display_configs',
+    // 商品データはstockテーブルから取得されるため、削除
+    // 注意: products_master, product_details, product_tagsは削除済み（stockテーブルから取得）
+    // 注意: product_prices, product_colors, skusは非推奨（stockテーブルから取得）
+    // 顧客データ（遅延読み込み）
+    'customers',
+    // ブランドデータ（遅延読み込み）
+    'brands'
+];
+
+try {
+    $requested_tables_raw = explode(',', $table_names_req);
+    $db = [];
+    $tables_to_fetch = in_array('all', $requested_tables_raw) ? $all_tables_whitelist : $requested_tables_raw;
+    
+    // メーカー一覧を取得（メーカー別テーブルを取得するために必要）
+    $manufacturers = [];
+    if (in_array('manufacturers', $tables_to_fetch) || in_array('all', $requested_tables_raw)) {
+        $manufacturers = fetchManufacturers($pdo);
+    } else {
+        // manufacturersテーブルがリクエストされていなくても、メーカー依存テーブルがある場合は取得
+        $hasManufacturerDependentTable = false;
+        foreach ($tables_to_fetch as $table) {
+            $parsed = parseManufacturerTableName($table);
+            if (isManufacturerDependentTable($parsed['baseTableName'])) {
+                $hasManufacturerDependentTable = true;
+                break;
+            }
+        }
+        if ($hasManufacturerDependentTable) {
+            $manufacturers = fetchManufacturers($pdo);
+        }
+    }
+
+    // Direct database queries - no intermediate layer
+    // Security: All table names are validated against whitelist before use
+    foreach($tables_to_fetch as $table) {
+        $table = trim($table);
+        
+        // メーカー別テーブル名が直接リクエストされた場合の処理
+        $parsed = parseManufacturerTableName($table);
+        $baseTableName = $parsed['baseTableName'];
+        $isManufacturerTableName = $parsed['manufacturerId'] !== null;
+        
+        // Security: Whitelist check - ベーステーブル名またはメーカー別テーブル名をチェック
+        if (!in_array($baseTableName, $all_tables_whitelist)) {
+            error_log("[estimator-data.php] SECURITY: Attempted access to non-whitelisted table: '{$table}' (base: '{$baseTableName}')");
+            continue;
+        }
+        
+        try {
+            // Additional validation: Ensure table name contains only safe characters
+            if (!preg_match('/^[a-zA-Z0-9_-]+$/', $table)) {
+                error_log("[estimator-data.php] SECURITY: Invalid characters in table name: '{$table}'");
+                continue;
+            }
+            
+            // テーブルの存在確認（データベースから直接確認）
+            if (!tableExists($pdo, $table)) {
+                error_log("[estimator-data.php] Table '{$table}' does not exist in database");
+                $db[$table] = ['schema' => [], 'data' => []];
+                continue;
+            }
+            
+            // メーカー別テーブル名が直接リクエストされた場合
+            if ($isManufacturerTableName) {
+                // 直接取得
+                try {
+                    $rawRows = fetchDirectTable($pdo, $table, $lightweight);
+                    $schema = fetchTableSchema($pdo, $table);
+                    $db[$table] = [
+                        'schema' => $schema,
+                        'data' => $rawRows
+                    ];
+                    error_log("[estimator-data.php] Fetched manufacturer table '{$table}' with " . count($rawRows) . " rows, " . count($schema) . " columns");
+                } catch (PDOException $e) {
+                    // メーカー別テーブルが存在しない場合は空配列を返す
+                    $db[$table] = ['schema' => [], 'data' => []];
+                    error_log("[estimator-data.php] Manufacturer table '{$table}' does not exist, returning empty array");
+                }
+            } elseif (isManufacturerDependentTable($baseTableName)) {
+                // ベーステーブル名がリクエストされた場合、すべてのメーカー別テーブルを取得
+                // また、ベーステーブル名（例: 'brands'）もdbオブジェクトに追加して、すべてのメーカー別テーブルのデータをまとめる
+                $allManufacturerData = [];
+                $allManufacturerSchemas = [];
+                
+                // manufacturersテーブルからメーカーIDを取得してメーカー別テーブルを取得
+                if (empty($manufacturers)) {
+                    error_log("[estimator-data.php] ERROR: manufacturers table is empty, cannot fetch manufacturer-dependent table '{$baseTableName}'");
+                    $db[$baseTableName] = ['schema' => [], 'data' => []];
+                    continue;
+                }
+                
+                // manufacturersテーブルからメーカーIDを取得
+                foreach ($manufacturers as $manufacturer) {
+                    $manufacturerId = $manufacturer['id'] ?? null;
+                    if (!$manufacturerId || $manufacturerId === 'undefined' || trim($manufacturerId) === '') {
+                        continue;
+                    }
+                    
+                    // 新しい命名規則: manu_0001_brands (getManufacturerTableNameを使用)
+                    $manufacturerTableName = getManufacturerTableName($baseTableName, $manufacturerId);
+                    // テーブルの存在確認
+                    if (!tableExists($pdo, $manufacturerTableName)) {
+                        error_log("[estimator-data.php] Manufacturer table '{$manufacturerTableName}' does not exist in database, skipping");
+                        continue;
+                    }
+                    
+                    try {
+                        $manufacturerRows = fetchDirectTable($pdo, $manufacturerTableName, $lightweight);
+                        $schema = fetchTableSchema($pdo, $manufacturerTableName);
+                        
+                        // メーカー別テーブルを個別に追加
+                        $db[$manufacturerTableName] = [
+                            'schema' => $schema,
+                            'data' => $manufacturerRows
+                        ];
+                        
+                        // ベーステーブル用にデータをまとめる
+                        $allManufacturerData = array_merge($allManufacturerData, $manufacturerRows);
+                        if (empty($allManufacturerSchemas) && !empty($schema)) {
+                            $allManufacturerSchemas = $schema;
+                        }
+                        
+                        error_log("[estimator-data.php] Fetched manufacturer table '{$manufacturerTableName}' with " . count($manufacturerRows) . " rows, " . count($schema) . " columns");
+                    } catch (PDOException $e) {
+                        // メーカー別テーブルが存在しない場合は空配列を返す
+                        $db[$manufacturerTableName] = ['schema' => [], 'data' => []];
+                        error_log("[estimator-data.php] Manufacturer table '{$manufacturerTableName}' error: " . $e->getMessage());
+                    }
+                }
+                
+                // ベーステーブル名（例: 'brands'）もdbオブジェクトに追加
+                // これにより、フロントエンドがdatabase['brands']をチェックできる
+                $db[$baseTableName] = [
+                    'schema' => $allManufacturerSchemas,
+                    'data' => $allManufacturerData
+                ];
+                error_log("[estimator-data.php] Added base table '{$baseTableName}' with " . count($allManufacturerData) . " rows (aggregated from manufacturer tables)");
+            } else {
+                // メーカー非依存テーブルはそのまま取得
+                $rawRows = fetchDirectTable($pdo, $table, $lightweight);
+                $schema = fetchTableSchema($pdo, $table);
+                $db[$table] = [
+                    'schema' => $schema,
+                    'data' => $rawRows
+                ];
+                
+                // Debug: Log loading results
+                if (empty($rawRows)) {
+                    error_log("[estimator-data.php] Table '{$table}' returned empty array (no rows or all rows filtered), but schema has " . count($schema) . " columns");
+                } else {
+                    error_log("[estimator-data.php] Successfully loaded " . count($rawRows) . " rows from table '{$table}' with " . count($schema) . " columns");
+                }
+            }
+        } catch (InvalidArgumentException $e) {
+            error_log("[estimator-data.php] Error loading table '{$table}': " . $e->getMessage());
+            $db[$table] = ['schema' => [], 'data' => []]; // Return empty array on invalid table name
+        } catch (PDOException $e) {
+            // If a table doesn't exist or has other errors, log and return empty array
+            $errorCode = $e->getCode();
+            $errorMessage = $e->getMessage();
+            
+            error_log("[estimator-data.php] Error loading table '{$table}': Code {$errorCode}, Message: {$errorMessage}");
+            
+            if ($e->getCode() == '42S02') { // SQLSTATE[42S02]: Base table or view not found
+                $db[$table] = ['schema' => [], 'data' => []];
+                error_log("[estimator-data.php] Table '{$table}' not found, returning empty array");
+            } else {
+                $db[$table] = ['schema' => [], 'data' => []];
+                error_log("[estimator-data.php] Table '{$table}' error (not 42S02), returning empty array");
+            }
+        } catch (Exception $e) {
+            error_log("[estimator-data.php] Unexpected error loading table '{$table}': " . $e->getMessage());
+            $db[$table] = ['schema' => [], 'data' => []];
+        }
+    }
+    
+    echo json_encode($db, JSON_UNESCAPED_UNICODE);
+
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Database query failed: ' . $e->getMessage()]);
+    exit();
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Server error: ' . $e->getMessage()]);
+    exit();
+}
+?>
+

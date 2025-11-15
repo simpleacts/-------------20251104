@@ -1,0 +1,4 @@
+id,name,film_width_mm,printable_width_mm,is_default
+1,OtterPro M30,300,280,true
+2,OtterPro S40,420,400,false
+3,OtterPro S60,600,580,false

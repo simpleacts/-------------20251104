@@ -1,0 +1,257 @@
+import { Database, Table, Column, Row } from '../../shared/types';
+import { parseCSV } from '../../shared/utils/csv';
+import { getCsvPath } from '../utils/csvPathResolver';
+import { MANUFACTURER_DEPENDENT_TABLES, getManufacturerTableName, isManufacturerDependentTable } from '../config/tableNames';
+
+export function inferSchema(rows: Row[], tableName?: string): Column[] {
+  if (rows.length === 0) return [];
+  
+  const firstRowWithData = rows.find(row => row && Object.keys(row).length > 0);
+  if (!firstRowWithData) return [];
+
+  const columnNames = Object.keys(firstRowWithData);
+  return columnNames.map(name => {
+    const id = name;
+    
+    // products_masterテーブルのcodeカラムは常にTEXT型として扱う（頭の0を保持するため）
+    if (tableName === 'products_master' && name === 'code') {
+      return { id, name, type: 'TEXT' as const };
+    }
+    
+    let hasNumber = false;
+    let hasString = false;
+    let hasBoolean = false;
+
+    for (const row of rows) {
+      const value = row[name];
+      if (value === null || typeof value === 'undefined') continue;
+
+      const type = typeof value;
+      if (type === 'number') {
+        hasNumber = true;
+      } else if (type === 'string' && value.trim() !== '') {
+        hasString = true;
+      } else if (type === 'boolean') {
+        hasBoolean = true;
+      }
+      
+      if (hasNumber && hasString) break;
+    }
+
+    let finalType: Column['type'] = 'TEXT';
+    if (hasNumber && !hasString && !hasBoolean) {
+        finalType = 'NUMBER';
+    } else if (hasBoolean && !hasString && !hasNumber) {
+        finalType = 'BOOLEAN';
+    } else {
+        finalType = 'TEXT';
+    }
+    
+    return { id, name, type: finalType };
+  });
+}
+
+const ALL_TABLE_NAMES = [
+    'settings', 'color_settings', 'layout_settings', 'behavior_settings', 'pagination_settings',
+    'plate_costs', 'special_ink_costs', 'additional_print_costs_by_size', 
+    'additional_print_costs_by_location', 'print_pricing_tiers', 'shipping_costs', 
+    'company_info', 'partner_codes', 'print_locations', 
+    'print_size_constraints', 'sizes', 'tags', 'categories', 'customers', 'brands', 'manufacturers',
+    'colors', 'products_master', 'product_details', 
+    'product_prices', 'product_price_groups', 'product_price_group_items',
+    'product_tags', 'product_colors', 'stock', 
+    'additional_print_costs_by_tag', 'print_cost_combination', 'plate_cost_combination', 
+    'category_print_locations', 'quotes', 'quote_items', 'quote_designs', 'quote_history',
+    'quote_status_master', 'payment_status_master', 'production_status_master', 
+    'shipping_status_master', 'data_confirmation_status_master', 'prefectures',
+    'print_pricing_schedules', 'category_pricing_schedules', 'customer_groups',
+    'shipping_carriers',
+    'pricing_rules', 'pricing_assignments', 'volume_discount_schedules',
+    'skus', 'incoming_stock', 'importer_mappings', 'filename_rule_presets',
+    'print_history', 'print_history_positions', 'print_history_images',
+    'print_location_metrics',
+    'ink_recipes', 'ink_recipe_components', 'ink_products', 'ink_series',
+    'ink_manufacturers', 'pantone_colors', 'dic_colors', 'ink_recipe_usage',
+    'users', 'roles', 'role_permissions',
+    'id_formats',
+    'dtf_consumables', 'dtf_equipment', 'dtf_labor_costs', 
+    'dtf_press_time_costs', 'dtf_electricity_rates', 'dtf_printers', 'dtf_print_speeds',
+    'gallery_images', 'gallery_tags',
+    'pdf_templates',
+    'pdf_item_display_configs',
+    'pdf_preview_zoom_configs',
+    'additional_options',
+    'app_logs',
+    'dev_locks',
+    'tool_migrations',
+    'tool_dependencies',
+    'dev_roadmap',
+    'dev_constitution',
+    'dev_guidelines_recommended',
+    'dev_guidelines_prohibited',
+    'task_master',
+    'quote_tasks',
+    'task_generation_rules',
+    'task_time_settings',
+    'bills',
+    'bill_items',
+    'invoice_parsing_templates',
+    'emails',
+    'email_attachments',
+    'email_accounts',
+    'google_api_settings',
+    'ai_settings',
+    'email_templates',
+    'email_general_settings',
+    'work_sessions',
+    'work_session_quotes',
+    'sql_export_presets',
+    'tool_visibility_settings',
+    'mobile_tool_mappings',
+    'language_settings',
+    'languages',
+    'icons',
+    'google_fonts',
+    'modules_core', 'modules_page_tool', 'modules_service', 'modules_other',
+    'modules_ui_atoms', 'modules_ui_molecules', 'modules_ui_organisms', 'modules_ui_modals'
+];
+
+/**
+ * Loads the entire database from local CSV files for debugging purposes.
+ * Supports manufacturer-specific folders for sizes and product_colors tables.
+ * @returns {Promise<Partial<Database>>} A promise that resolves to the database object.
+ */
+export const loadCsvDatabase = async (): Promise<Partial<Database>> => {
+    try {
+        const db: Database = {};
+        const encoding = localStorage.getItem('csvEncoding') || 'UTF-8';
+        
+        // メーカー非依存テーブルを読み込む
+        const independentTables = ALL_TABLE_NAMES.filter(
+            t => !isManufacturerDependentTable(t)
+        );
+
+        // 1. まずメーカー一覧を取得
+        let manufacturers: Row[] = [];
+        try {
+            const manufacturersResponse = await fetch('templates/common/manufacturers.csv');
+            if (manufacturersResponse.ok) {
+                const arrayBuffer = await manufacturersResponse.arrayBuffer();
+                const decoder = new TextDecoder(encoding);
+                const csvText = decoder.decode(arrayBuffer);
+                manufacturers = parseCSV(csvText, 'templates/common/manufacturers.csv');
+                // メーカーIDが有効なもののみをフィルタ
+                manufacturers = manufacturers.filter(m => m.id && m.id !== 'undefined' && String(m.id).trim() !== '');
+            } else {
+                // フォールバック: 直下のmanufacturers.csvを試す
+                const fallbackResponse = await fetch('templates/manufacturers.csv');
+                if (fallbackResponse.ok) {
+                    const arrayBuffer = await fallbackResponse.arrayBuffer();
+                    const decoder = new TextDecoder(encoding);
+                    const csvText = decoder.decode(arrayBuffer);
+                    manufacturers = parseCSV(csvText, 'templates/manufacturers.csv');
+                    manufacturers = manufacturers.filter(m => m.id && m.id !== 'undefined' && String(m.id).trim() !== '');
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to load manufacturers.csv, skipping manufacturer-specific files.', e);
+        }
+
+        // 2. メーカー非依存テーブルを読み込む（ツールごとのフォルダから読み込む）
+        const independentPromises = independentTables.map(async (tableName) => {
+            const csvPaths = getCsvPath(tableName);
+            let lastError: Error | null = null;
+            
+            // 複数のパスを試す（ツールフォルダ → 直下）
+            for (const csvPath of csvPaths) {
+                try {
+                    const response = await fetch(csvPath);
+                    if (response.ok) {
+                        const arrayBuffer = await response.arrayBuffer();
+                        const decoder = new TextDecoder(encoding);
+                        const csvText = decoder.decode(arrayBuffer);
+                        const data = parseCSV(csvText, csvPath);
+                        const schema = inferSchema(data, tableName);
+                        return { tableName, data, schema };
+                    }
+                } catch (e) {
+                    lastError = e instanceof Error ? e : new Error(String(e));
+                    // 次のパスを試す
+                    continue;
+                }
+            }
+            
+            // すべてのパスで失敗した場合
+            if (csvPaths.length === 1 || lastError) {
+                console.warn(`CSV file not found for table: ${tableName}. Tried paths: ${csvPaths.join(', ')}. Creating empty table.`);
+                return { tableName, data: [], schema: [] };
+            }
+            
+            return { tableName, data: [], schema: [] };
+        });
+
+        // 3. メーカー依存テーブルを読み込む（メーカーごとに分離）
+        const manufacturerDependentPromises: Promise<{ tableName: string; data: Row[]; schema: Column[] }>[] = [];
+            
+        for (const tableName of MANUFACTURER_DEPENDENT_TABLES) {
+            if (manufacturers.length === 0) {
+                console.warn(`No manufacturers found. Cannot load manufacturer-dependent table: ${tableName}.`);
+                continue;
+            }
+            
+            // 各メーカーごとにテーブルを読み込む
+            for (const manufacturer of manufacturers) {
+                const manufacturerId = manufacturer.id as string;
+                if (!manufacturerId || manufacturerId === 'undefined') {
+                    console.warn(`Invalid manufacturer ID found: ${manufacturerId}. Skipping.`);
+                    continue;
+                }
+                
+                const manufacturerTableName = getManufacturerTableName(tableName, manufacturerId);
+                // 新しいファイル名ルール: {tableName}_{manufacturerId}.csv
+                const csvPath = `templates/manufacturers/${manufacturerId}/${tableName}_${manufacturerId}.csv`;
+                
+                manufacturerDependentPromises.push(
+                    (async () => {
+                try {
+                            const response = await fetch(csvPath);
+                    if (response.ok) {
+                        const arrayBuffer = await response.arrayBuffer();
+                        const decoder = new TextDecoder(encoding);
+                        const csvText = decoder.decode(arrayBuffer);
+                                const data = parseCSV(csvText, csvPath);
+                                const schema = inferSchema(data, tableName);
+                                return { tableName: manufacturerTableName, data, schema };
+                    }
+                } catch (e) {
+                    // ファイルがない場合はスキップ（エラーを出さない）
+                            console.debug(`Manufacturer-specific file not found: ${csvPath}, skipping.`);
+                }
+                        // ファイルが存在しない場合は空のテーブルを作成
+                        return { tableName: manufacturerTableName, data: [], schema: [] };
+                    })()
+                );
+            }
+        }
+
+        // すべてのプロミスを実行
+        const allPromises = [...independentPromises, ...manufacturerDependentPromises];
+        const results = await Promise.all(allPromises);
+        
+        // 結果をデータベースに追加
+        results.forEach(result => {
+            if (result) {
+                db[result.tableName] = { 
+                    schema: result.schema || [], 
+                    data: result.data || [] 
+            };
+            }
+        });
+
+        return db;
+
+    } catch (error) {
+        console.error('Failed to load database from CSV files:', error);
+        throw error;
+    }
+};

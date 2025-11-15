@@ -1,0 +1,2 @@
+id,timestamp,level,message,stack_trace,user_id,context
+log_1722498600000,2024-08-01T10:00:00Z,INFO,Application initialized by user admin,,user_00001,"{""page"":""Login""}"

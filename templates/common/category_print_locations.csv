@@ -1,0 +1,5 @@
+id,category_id,allowed_location_ids
+1,cat_0001,"frontCenter,frontLeftChest,frontRightChest,frontLeftBottom,frontRightBottom,frontPocketTop,frontPocketCenter,backCenter,backCollar,backLeftBottom,backRightBottom,leftSleeve,rightSleeve"
+2,cat_0002,"frontCenter,frontLeftChest,frontRightChest,frontPocketTop,frontPocketCenter,backCenter,backCollar"
+3,cat_0003,"frontCenter,frontLeftChest,frontRightChest,backCenter,backCollar,leftSleeve,rightSleeve"
+4,cat_0004,"frontCenter,backCenter"

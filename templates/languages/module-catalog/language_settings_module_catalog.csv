@@ -1,0 +1,16 @@
+key,ja,en
+module_catalog.title,モジュールカタログ,Module Catalog
+module_catalog.description,アプリケーションを構成する全モジュールの一覧です。,A list of all modules that make up the application.
+module_catalog.category_core,コアモジュール,Core Modules
+module_catalog.category_page_tool,ページ・ツール,Pages & Tools
+module_catalog.category_service,サービス,Services
+module_catalog.category_ui_organisms,UI - Organisms,UI - Organisms
+module_catalog.category_ui_molecules,UI - Molecules,UI - Molecules
+module_catalog.category_ui_atoms,UI - Atoms,UI - Atoms
+module_catalog.category_ui_modals,UI - Modals,UI - Modals
+module_catalog.category_other,その他,Others
+module_catalog.file_path,ファイルパス,File Path
+module_catalog.japanese_name,日本語名,Japanese Name
+module_catalog.type,タイプ,Type
+module_catalog.description_header,説明,Description
+

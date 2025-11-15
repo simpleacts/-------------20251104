@@ -1,0 +1,259 @@
+
+<?php
+// --- ERROR HANDLING (for production) ---
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+require_once __DIR__ . '/db_connect.php';
+
+// --- ROBUST PHPMailer INCLUSION ---
+$phpmailer_path = __DIR__ . '/PHPMailer/src/';
+if (!file_exists($phpmailer_path . 'PHPMailer.php')) {
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=UTF-8');
+    }
+    die(json_encode([
+        'success' => false,
+        'message' => 'サーバーライブラリの設定エラーです。',
+        'error' => "PHPMailer library not found at: " . $phpmailer_path
+    ]));
+}
+require $phpmailer_path . 'Exception.php';
+require $phpmailer_path . 'PHPMailer.php';
+require $phpmailer_path . 'SMTP.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// --- HEADERS ---
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Max-Age: 3600");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+// --- MAIN LOGIC ---
+$pdo = null;
+try {
+    // 1. Get DB connection (this also loads config constants)
+    $pdo = get_db_connection();
+
+    // 2. Get Input Data
+    $json_data = file_get_contents('php://input');
+    if ($json_data === false) throw new Exception("Could not read input data.");
+    $data = json_decode($json_data, true);
+    if (json_last_error() !== JSON_ERROR_NONE) throw new Exception("Invalid JSON received: " . json_last_error_msg());
+
+    // 3. Save Order to DB within a Transaction
+    $pdo->beginTransaction();
+    save_order_to_db($data, $pdo);
+    $pdo->commit();
+
+    // 4. Send Emails
+    $customer_email = $data['customerInfo']['email'];
+    $estimateId = $data['estimateId'];
+    
+    $subject_customer = "【捺染兄弟】ご注文依頼ありがとうございます ({$estimateId})";
+    $subject_admin = "【捺染兄弟】WEBよりご注文依頼がありました ({$estimateId})";
+    
+    $body = generate_confirmation_email_body($data);
+
+    send_email($customer_email, $subject_customer, str_replace('{{GREETING}}', 'お客様へのご挨拶', $body));
+    send_email(ADMIN_EMAIL, $subject_admin, str_replace('{{GREETING}}', '管理者への通知', $body));
+
+    http_response_code(200);
+    echo json_encode(['success' => true, 'message' => 'Order submitted successfully.']);
+
+} catch (Exception $e) {
+    if ($pdo && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    http_response_code(500);
+    error_log("Order submission failed: " . $e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile());
+    echo json_encode(['success' => false, 'message' => 'ご注文依頼の処理中にエラーが発生しました。', 'error' => $e->getMessage()]);
+}
+
+/**
+ * Saves order data to the database using PDO and transactions.
+ * @param array $data The order data from the request.
+ * @param PDO $pdo The PDO database connection object.
+ * @throws Exception on database error.
+ */
+function save_order_to_db($data, $pdo) {
+    // 1. Upsert Customer
+    $customerInfo = $data['customerInfo'];
+    $stmt = $pdo->prepare("
+        INSERT INTO customers (
+            email, company_name, name_kanji, name_kana, phone, zip_code, address1, address2,
+            customer_group, has_separate_shipping_address, shipping_name, shipping_phone,
+            shipping_zip_code, shipping_address1, shipping_address2
+        ) 
+        VALUES (
+            :email, :company, :name_k, :name_n, :phone, :zip, :addr1, :addr2,
+            '捺染兄弟', :has_shipping, :s_name, :s_phone, :s_zip, :s_addr1, :s_addr2
+        )
+        ON DUPLICATE KEY UPDATE 
+            company_name = VALUES(company_name), name_kanji = VALUES(name_kanji), name_kana = VALUES(name_kana), 
+            phone = VALUES(phone), zip_code = VALUES(zip_code), address1 = VALUES(address1), address2 = VALUES(address2),
+            has_separate_shipping_address = VALUES(has_separate_shipping_address),
+            shipping_name = VALUES(shipping_name), shipping_phone = VALUES(shipping_phone),
+            shipping_zip_code = VALUES(shipping_zip_code), shipping_address1 = VALUES(shipping_address1),
+            shipping_address2 = VALUES(shipping_address2),
+            customer_group = '捺染兄弟',
+            updated_at = NOW()
+    ");
+    $stmt->execute([
+        ':email' => $customerInfo['email'],
+        ':company' => $customerInfo['companyName'],
+        ':name_k' => $customerInfo['nameKanji'],
+        ':name_n' => $customerInfo['nameKana'],
+        ':phone' => $customerInfo['phone'],
+        ':zip' => $customerInfo['zipCode'],
+        ':addr1' => $customerInfo['address1'],
+        ':addr2' => $customerInfo['address2'],
+        ':has_shipping' => ($customerInfo['hasSeparateShippingAddress'] ?? false) ? 1 : 0,
+        ':s_name' => $customerInfo['shippingName'],
+        ':s_phone' => $customerInfo['shippingPhone'],
+        ':s_zip' => $customerInfo['shippingZipCode'],
+        ':s_addr1' => $customerInfo['shippingAddress1'],
+        ':s_addr2' => $customerInfo['shippingAddress2']
+    ]);
+
+    $stmt_get_id = $pdo->prepare("SELECT id FROM customers WHERE email = ?");
+    $stmt_get_id->execute([$customerInfo['email']]);
+    $customer_id = $stmt_get_id->fetchColumn();
+    if (!$customer_id) throw new Exception("Failed to retrieve customer ID.");
+
+    // 2. Insert Quote
+    $cost = $data['cost'];
+    $orderDate = new DateTime($data['orderDate']);
+    $paymentDueDate = (clone $orderDate)->add(new DateInterval('P3D'))->format('Y-m-d');
+    
+    $stmt = $pdo->prepare("
+        INSERT INTO quotes (quote_code, customer_id, total_cost_ex_tax, shipping_cost, tax, total_cost_in_tax, notes, ordered_at, payment_due_date, data_confirmation_status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '確認済')
+    ");
+    $stmt->execute([
+        $data['estimateId'], $customer_id, $cost['totalCost'], $cost['shippingCost'], $cost['tax'],
+        $cost['totalCostWithTax'], $customerInfo['notes'], $data['orderDate'], $paymentDueDate
+    ]);
+    $quote_id = $pdo->lastInsertId();
+
+    // 3. Insert Quote Items
+    $stmt = $pdo->prepare("
+        INSERT INTO quote_items (quote_id, product_id, product_name, color, size, quantity, unit_price)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ");
+    foreach ($data['orderDetails'] as $item) {
+        $stmt->execute([
+            $quote_id, $item['productId'], $item['productName'], $item['color'],
+            $item['size'], $item['quantity'], $item['unitPrice']
+        ]);
+    }
+
+    // 4. Insert Quote Designs
+    $stmt = $pdo->prepare("
+        INSERT INTO quote_designs (quote_id, location, print_size, colors, plate_type, special_inks, file_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ");
+    foreach ($data['printDesigns'] as $design) {
+        $stmt->execute([
+            $quote_id, $design['location'], $design['size'], $design['colors'],
+            $design['plateType'], json_encode($design['specialInks'], JSON_UNESCAPED_UNICODE),
+            $design['fileUrl'] ?? null
+        ]);
+    }
+
+    // 5. Insert History
+    $stmt = $pdo->prepare("INSERT INTO quote_history (quote_id, event_type, notes) VALUES (?, '注文依頼', 'Webからの新規注文')");
+    $stmt->execute([$quote_id]);
+}
+
+/**
+ * Sends an email using PHPMailer.
+ * @param string $to Recipient's email address.
+ * @param string $subject Email subject.
+ * @param string $body HTML email body.
+ * @throws Exception on PHPMailer error.
+ */
+function send_email($to, $subject, $body) {
+    // These constants are defined in db_connect.php
+    $config_path = __DIR__ . '/../templates/server_config.csv';
+    $config = [];
+    if (($handle = fopen($config_path, "r")) !== FALSE) {
+        fgetcsv($handle);
+        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) { if (count($data) == 2) $config[trim($data[0])] = trim($data[1]); }
+        fclose($handle);
+    }
+
+    $mail = new PHPMailer(true);
+    try {
+        $mail->SMTPDebug = 0;
+        $mail->isSMTP();
+        $mail->Host       = $config['SMTP_HOST'];
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $config['SMTP_USER'];
+        $mail->Password   = $config['SMTP_PASSWORD'];
+        $mail->SMTPSecure = strtolower($config['SMTP_SECURE'] ?? 'true') === 'true' ? PHPMailer::ENCRYPTION_STARTTLS : false;
+        $mail->Port       = $config['SMTP_PORT'];
+        $mail->CharSet    = 'UTF-8';
+        $mail->setFrom($config['MAIL_FROM_ADDRESS'], $config['MAIL_FROM_NAME']);
+        $mail->addAddress($to);
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+        $mail->send();
+    } catch (Exception $e) {
+        error_log("PHPMailer Exception for '{$to}': " . $e->getMessage() . " | Mailer Error: {$mail->ErrorInfo}");
+        // Do not throw exception here to allow main process to succeed even if email fails
+    }
+}
+
+/**
+ * Generates the HTML body for confirmation emails.
+ * @param array $data The order data.
+ * @return string The HTML email body.
+ */
+function generate_confirmation_email_body($data) {
+    $customerInfo = $data['customerInfo'];
+    $cost = $data['cost'];
+    $estimateId = $data['estimateId'];
+    $addressee = htmlspecialchars(trim($customerInfo['companyName'] . ' ' . $customerInfo['nameKanji']));
+    
+    $greeting = '';
+    if ('{{GREETING}}' === 'お客様へのご挨拶') {
+        $greeting = $addressee . " 様<br><br>この度は、捺染兄弟にご注文依頼をいただき、誠にありがとうございます。<br>以下の内容でご注文依頼を承りました。<br><br>担当者が内容を確認後、2営業日以内に改めてご連絡いたしますので、今しばらくお待ちくださいませ。";
+    } else {
+        $greeting = "WEBサイトより以下の内容でご注文依頼がありました。";
+    }
+
+    ob_start();
+?>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ご注文依頼内容のご確認</title>
+<style>
+body{font-family:'Helvetica Neue','Helvetica','Arial','sans-serif','Meiryo';color:#333;line-height:1.6;font-size:14px;background-color:#f4f4f4;margin:0;padding:0;}
+.email-container{max-width:800px;margin:20px auto;background-color:#fff;border:1px solid #ddd;}
+.email-header{background-color:#000;color:#fff;padding:20px;text-align:center;}
+.email-header h1{margin:0;font-size:24px;} .email-body{padding:30px;} .email-footer{background-color:#f4f4f4;color:#888;text-align:center;padding:20px;font-size:12px;}
+.order-summary{margin-top:20px;} .order-summary h3{border-bottom:2px solid #000;padding-bottom:5px;} p{margin:0 0 10px;}
+</style></head><body><div class="email-container"><div class="email-header"><h1>ご注文依頼ありがとうございます</h1></div>
+<div class="email-body"><p><?php echo $greeting; ?></p><div class="order-summary"><h3>ご注文内容の概要</h3>
+<p><strong>ご注文ID:</strong> <?php echo htmlspecialchars($estimateId); ?></p>
+<p><strong>ご注文日時:</strong> <?php echo date("Y/m/d H:i", strtotime($data['orderDate'])); ?></p>
+<p><strong>合計金額 (税込):</strong> &yen; <?php echo number_format($cost['totalCostWithTax']); ?></p>
+<h3>お客様情報</h3><p><?php echo $addressee; ?><br><?php echo htmlspecialchars($customerInfo['email']); ?><br>
+〒<?php echo htmlspecialchars(substr($customerInfo['zipCode'],0,3).'-'.substr($customerInfo['zipCode'],3)); ?><br>
+<?php echo htmlspecialchars($customerInfo['address1'].$customerInfo['address2']); ?><br>
+TEL: <?php echo htmlspecialchars($customerInfo['phone']); ?></p></div>
+<?php if ('{{GREETING}}' === 'お客様へのご挨拶'): ?><p>ご注文内容の詳細につきましては、担当者からの連絡をお待ちください。<br>万が一、2営業日以内に連絡がない場合は、お手数ですが弊社までお問い合わせください。</p><?php endif; ?>
+</div><div class="email-footer"><p>このメールは自動送信されています。</p><p>捺染兄弟</p></div></div></body></html>
+<?php
+    return ob_get_clean();
+}
+?>

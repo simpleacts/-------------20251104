@@ -1,0 +1,8 @@
+id,quote_id,user_id,action,details,created_at
+qhis_00000001,quot_00000001,user_0001,見積作成,"{""from"":""Estimator""}",2024-08-01T10:00:00Z
+qhis_00000002,quot_00000002,user_0002,見積作成,"{""from"":""Estimator""}",2024-07-10T14:00:00Z
+qhis_00000003,quot_00000002,user_0002,ステータス変更,"{""field"":""quote_status"",""from"":""見積提出済"",""to"":""受注""}",2024-07-12T15:00:00Z
+qhis_00000004,quot_00000003,user_0002,見積作成,"{""from"":""Estimator""}",2024-06-05T18:00:00Z
+qhis_00000005,quot_00000003,user_0003,ステータス変更,"{""field"":""shipping_status"",""from"":""発送準備中"",""to"":""発送済""}",2024-06-20T16:00:00Z
+qhis_00000006,quot_00000004,user_0001,下書き作成,"{""from"":""Estimator""}",2024-08-02T11:30:00Z
+qhis_00000007,quot_00000005,user_0002,見積作成,"{""from"":""Estimator""}",2024-07-20T15:00:00Z

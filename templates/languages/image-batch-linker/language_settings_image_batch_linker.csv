@@ -1,0 +1,5 @@
+key,ja,en
+image_linker.title,商品画像一括紐付け,Bulk Image Linker
+image_linker.description,AIを使用して、商品画像と商品を自動で紐付けます。,Automatically link product images to products using AI.
+image_linker.open_tool,紐付けツールを開く,Open Linker Tool
+

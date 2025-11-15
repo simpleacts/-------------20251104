@@ -1,0 +1,38 @@
+key,ja,en
+id_manager.title,ID形式管理ツール,ID Format Manager
+id_manager.description,各テーブルのID形式（プレフィックス、桁数）を一括で管理・適用します。,Manage and apply ID formats (prefix, digits) for all tables in bulk.
+id_manager.tab_formats,フォーマット一覧,Format List
+id_manager.tab_settings,設定,Settings
+id_manager.save_success,ID形式の設定を保存しました。,ID format settings saved successfully.
+id_manager.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+id_manager.apply_confirm,本当にすべての既存IDを新しい形式に変換しますか？この操作は元に戻せません。,Are you sure you want to convert all existing IDs to the new format? This operation cannot be undone.
+id_manager.apply_complete,すべてのID形式の適用が完了しました。,All ID format applications have been completed.
+id_manager.apply_error,エラーが発生しました:,An error occurred:
+id_format_list.table,テーブル,Table
+id_format_list.prefix,プレフィックス,Prefix
+id_format_list.padding,桁数 (パディング),Digits (Padding)
+id_format_list.manufacturer_dependent,メーカー依存,Manufacturer Dependent
+id_format_list.example,生成例,Example
+id_format_editor.logic_title,ID生成ロジックの構成,ID Generation Logic Configuration
+id_format_editor.logic_description,このシステムでは、新しいデータが作成される際のID（主キー）の採番ルールをここで一元管理します。IDは主に2つのルールに基づいて生成されます。,This system centrally manages the numbering rules for IDs (primary keys) when new data is created. IDs are generated based on two main rules.
+id_format_editor.sequential_id,連番ベースID,Sequential ID
+id_format_editor.sequential_id_description,ほとんどのテーブルで使用される基本的なIDです。「プレフィックス」と、ゼロ埋めされた「連番」で構成されます。（例: `cust_000123`）,A basic ID used in most tables. Consists of a "prefix" and a zero-padded "sequential number". (Example: `cust_000123`)
+id_format_editor.date_based_id,日付ベースID,Date-based ID
+id_format_editor.date_based_id_description,案件(`quotes`)や請求書(`bills`)など、日付が重要な意味を持つテーブルで使用されます。「プレフィックス」＋「年月日」＋「その日の中での連番」で構成されます。（例: `quot_20240815_001`）,Used in tables where dates are important, such as quotes (`quotes`) and bills (`bills`). Consists of prefix + year month day + sequential number within that day. (Example: `quot_20240815_001`)
+id_format_editor.ai_assistant_title,AIアシスタントによるIDフォーマット設定,AI Assistant ID Format Settings
+id_format_editor.ai_placeholder,例: 「顧客IDのプレフィックスをCUST-にして、パディングを8桁にしてください」,Example: "Set customer ID prefix to CUST- and padding to 8 digits"
+id_format_editor.ai_button,AIでルールを生成,Generate Rules with AI
+id_format_editor.ai_parse_error,AIによる解析に失敗しました。,AI parsing failed.
+id_format_editor.ai_preview_title,AIによる変更案,AI Proposed Changes
+id_format_editor.cancel,キャンセル,Cancel
+id_format_editor.apply,適用,Apply
+id_format_editor.format_settings_title,IDフォーマット設定,ID Format Settings
+id_format_editor.save_settings,設定を保存,Save Settings
+id_format_editor.apply_to_existing,既存IDに適用,Apply to Existing IDs
+id_format_editor.applying,適用中...,Applying...
+id_format_editor.table_header,テーブル,Table
+id_format_editor.prefix_header,プレフィックス,Prefix
+id_format_editor.digits_header,桁数,Digits
+id_format_editor.manufacturer_header,メーカー依存,Manufacturer Dependent
+id_format_editor.actions_header,操作,Actions
+

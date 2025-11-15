@@ -1,0 +1,11 @@
+id,location_id,metric_key,metric_label,unit,sort_order
+1,frontCenter,from_collar,襟下から,cm,10
+2,frontCenter,from_center_x,センターから左右,cm,20
+3,leftSleeve,from_shoulder,肩の縫い目から,cm,10
+4,leftSleeve,from_hem,袖口から,cm,20
+5,backCollar,from_collar,襟下から,cm,10
+6,frontLeftChest,from_collar,襟下から,cm,10
+7,frontLeftChest,from_center_x,センターから左へ,cm,20
+8,frontRightChest,from_collar,襟下から,cm,10
+9,frontRightChest,from_center_x,センターから右へ,cm,20
+10,backCenter,from_collar,襟下から,cm,10

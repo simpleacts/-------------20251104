@@ -1,0 +1,4 @@
+id,companyName,nameKanji,nameKana,email,phone,zipCode,address1,address2,hasSeparateShippingAddress,shippingName,shippingPhone,shippingZipCode,shippingAddress1,shippingAddress2
+1,株式会社サンプル,山田 太郎,ヤマダ タロウ,sample-user@example.com,090-1234-5678,1000001,"東京都千代田区千代田1-1","サンプルビル 101号室",true,"山田 花子（配送先）",080-8765-4321,1500041,東京都渋谷区神南,イベント会場気付
+2,デザイン工房ABC,鈴木 花子,スズキ ハナコ,hanako.suzuki@example.com,06-9876-5432,5300001,"大阪府大阪市北区梅田","ABCビル 502",false,"","","","",""
+3,Simple ACTS Inc.,管理者,カンリシャ,info@simpleacts.co.jp,0533-00-0000,4411211,"愛知県豊川市","江島町稲場22-2",false,"","","","",""

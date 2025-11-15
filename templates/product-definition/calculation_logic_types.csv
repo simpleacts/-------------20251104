@@ -1,0 +1,11 @@
+id,code,name,description,sort_order
+calc_0001,per_quote,見積単位,見積ごとに計算,1
+calc_0002,per_item,商品単位,商品ごとに計算,2
+calc_0003,per_plate,版単位,版ごとに計算,3
+calc_0004,per_color,色数単位,色数ごとに計算,4
+calc_0005,per_design,デザイン単位,デザインごとに計算,5
+calc_0006,per_fix,固定,固定値,6
+calc_0007,custom_print_time,カスタム印刷時間,カスタム印刷時間で計算,7
+calc_0008,custom_press_time,カスタムプレス時間,カスタムプレス時間で計算,8
+calc_0009,custom_packing_time,カスタム梱包時間,カスタム梱包時間で計算,9
+

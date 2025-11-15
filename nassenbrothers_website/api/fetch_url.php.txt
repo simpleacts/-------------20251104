@@ -1,0 +1,118 @@
+<?php
+// api/fetch_url.php
+// Fetches the text content of a given URL to be used by the AI assistant.
+
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+try {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception('Invalid request method.', 405);
+    }
+
+    $json_data = file_get_contents('php://input');
+    $data = json_decode($json_data, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE || !isset($data['url'])) {
+        throw new Exception('Invalid JSON or missing URL parameter.', 400);
+    }
+
+    $url = $data['url'];
+
+    // --- Security Validation ---
+    if (!filter_var($url, FILTER_VALIDATE_URL)) {
+        throw new Exception('Provided URL is not valid.', 400);
+    }
+    $host = parse_url($url, PHP_URL_HOST);
+    if (filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+        // Blocks requests to private/reserved IP ranges to prevent SSRF attacks
+        // throw new Exception('Access to this resource is not allowed.', 403);
+    }
+
+
+    // --- Fetch Content using cURL ---
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // Follow redirects
+    curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15); // 15 second timeout
+    curl_setopt($ch, CURLOPT_USERAGENT, 'NassenBrothersAI-Crawler/1.0 (+https://www.nassenbrothers.com/bot.html)');
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); // It's important to verify SSL certs
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+
+    $html = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+
+    if ($html === false || $http_code >= 400) {
+        throw new Exception("Failed to fetch URL. HTTP Status: {$http_code}. Error: {$curl_error}", 502);
+    }
+
+    // --- Extract Text Content ---
+    if (empty($html)) {
+         throw new Exception('The fetched page is empty.', 422);
+    }
+
+    $doc = new DOMDocument();
+    // Suppress warnings from malformed HTML
+    @$doc->loadHTML('<?xml encoding="utf-8" ?>' . $html);
+
+    $title_tag = $doc->getElementsByTagName('title');
+    $title = $title_tag->length > 0 ? $title_tag->item(0)->textContent : 'No Title';
+    
+    // Attempt to find the main content area first
+    $xpath = new DOMXPath($doc);
+    $main_content_node = $xpath->query('//main | //article | //div[contains(@class, "content")] | //div[contains(@id, "content")]')->item(0);
+    $body_node = $main_content_node ?? $doc->getElementsByTagName('body')->item(0);
+
+    if (!$body_node) {
+        throw new Exception('Could not find body content in the page.', 422);
+    }
+    
+    // Remove script and style tags
+    $tags_to_remove = ['script', 'style', 'nav', 'footer', 'header', 'aside'];
+    foreach ($tags_to_remove as $tag_name) {
+        $nodes = $body_node->getElementsByTagName($tag_name);
+        for ($i = $nodes->length - 1; $i >= 0; $i--) {
+            $node = $nodes->item($i);
+            $node->parentNode->removeChild($node);
+        }
+    }
+
+    // Get text, normalize whitespace
+    $text_content = $body_node->textContent;
+    $text_content = preg_replace('/\s+/', ' ', $text_content);
+    $text_content = trim($text_content);
+
+    // Limit content size to prevent huge API requests
+    $max_length = 20000; // Approx 5k tokens
+    if (mb_strlen($text_content) > $max_length) {
+        $text_content = mb_substr($text_content, 0, $max_length);
+    }
+
+    // --- Success Response ---
+    http_response_code(200);
+    echo json_encode([
+        'success' => true,
+        'title' => trim($title),
+        'content' => $text_content
+    ]);
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("fetch_url.php Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+}
+?>

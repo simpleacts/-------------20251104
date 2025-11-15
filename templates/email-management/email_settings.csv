@@ -1,0 +1,13 @@
+key,value
+display_language,ja
+page_size,50
+undo_send_period,5
+default_reply_behavior,reply
+inbox_type,default
+reading_pane,off
+importance_markers,show
+vacation_responder_enabled,false
+vacation_start_date,
+vacation_end_date,
+vacation_subject,
+vacation_body,

@@ -1,0 +1,13 @@
+id,title,description,tags,imageCount
+g001,フロントプリントTシャツ,シンプルなロゴを胸元に配置した、王道のデザインです。,"gt_silkscreen,gt_tshirt,gt_simple",3
+g002,バックプリントパーカー,背面に大きなイラストを配置。インパクト抜群の一枚。,"gt_silkscreen,gt_parka,gt_cool",2
+g003,フルカラー転写トート,写真やグラデーションも鮮やかに表現できるフルカラー転写。,"gt_fullcolor,gt_tote,gt_cute",2
+g004,袖ワンポイント刺繍,袖口にさりげないワンポイント刺繍。高級感を演出します。,"gt_embroidery,gt_tshirt,gt_simple",1
+g005,かわいいキャラクターTシャツ,人気のキャラクターをかわいくプリント。イベントで目立つこと間違いなし。,"gt_silkscreen,gt_tshirt,gt_cute",1
+g006,クールなタイポグラフィ,メッセージ性の強いタイポグラフィデザイン。,"gt_silkscreen,gt_tshirt,gt_cool",1
+g007,多色刷りデザイン,複数の色を使ったカラフルなデザイン。シルクスクリーンの技術が光ります。,"gt_silkscreen,gt_tshirt,gt_cool,gt_cute",1
+g008,トートバッグロゴ,ショップのロゴなどをプリントしたオリジナルトートバッグ。,"gt_silkscreen,gt_tote,gt_simple",1
+g009,パーカー胸元プリント,パーカーの胸元にワンポイントデザイン。,"gt_silkscreen,gt_parka,gt_simple",1
+g010,刺繍キャップ,キャップへの立体的な刺繍ロゴ。,"gt_embroidery,gt_cool",1
+g011,イベントスタッフTシャツ,イベント用のスタッフTシャツ。視認性の高いデザイン。,"gt_silkscreen,gt_tshirt,gt_simple",1
+g012,全面プリント,Tシャツの全面にデザインを施したフルカラープリント。,"gt_fullcolor,gt_tshirt,gt_cool",1

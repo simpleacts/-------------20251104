@@ -1,0 +1,15 @@
+id,fileName,japaneseName,type,description,page,usage
+mod_086,components/icons.tsx,アイコン集,ui/atom,"アプリケーション全体で使用されるSVGアイコンを定義・エクスポートするファイルです。",,`import { PencilIcon } from ""./icons""` のようにインポートし、`<PencilIcon className=""w-5 h-5"" />` のようにコンポーネントとして使用します。
+mod_087,components/ui/Button.tsx,ボタン,ui/atom,"主要な操作に使用する汎用的なボタンコンポーネントです。",,
+mod_088,components/ui/Input.tsx,入力フィールド,ui/atom,"テキスト、数値、パスワードなどの基本的な入力フィールドです。",,
+mod_089,components/ui/Textarea.tsx,テキストエリア,ui/atom,"複数行のテキスト入力フィールドです。",,
+mod_090,components/ui/Select.tsx,セレクトボックス,ui/atom,"ドロップダウンリストから項目を選択するためのUIです。",,
+mod_091,components/ui/Checkbox.tsx,チェックボックス,ui/atom,"オン/オフを切り替えるためのチェックボックスです。",,
+mod_092,components/ui/RadioGroup.tsx,ラジオボタン,ui/atom,"複数の選択肢から一つを選ぶためのラジオボタンです。",,
+mod_093,components/ui/Label.tsx,ラベル,ui/atom,"入力フィールドなどのUI要素にラベルを付けるために使用します。",,
+mod_094,components/ui/Badge.tsx,バッジ,ui/atom,"ステータスなどを視覚的に示すための小さなラベルです。",,
+mod_095,components/ui/Separator.tsx,区切り線,ui/atom,"コンテンツを視覚的に区切るための線です。",,
+mod_096,components/ui/Skeleton.tsx,スケルトンローダー,ui/atom,"データ読み込み中に表示するプレースホルダーです。",,
+mod_097,components/ui/ProgressBar.tsx,プログレスバー,ui/atom,"複数ステップのウィザードなどで進捗状況を示すバーです。",,
+mod_098,components/ui/ToggleSwitch.tsx,トグルスイッチ,ui/atom,"設定のオン/オフを切り替えるためのスイッチです。",,
+mod_099,components/ui/Spinner.tsx,スピナー,ui/atom,"読み込み中を示すアニメーション付きアイコンです。",,

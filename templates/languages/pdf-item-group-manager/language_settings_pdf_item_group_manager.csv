@@ -1,0 +1,56 @@
+key,ja,en
+pdf_item_group.title,PDF明細項目管理,PDF Item Group Management
+pdf_item_group.description,PDF帳票の「グループ化された明細」ブロックに表示される項目を管理します。,Manage items displayed in the "Grouped Items" block of PDF documents.
+pdf_item_group.config_list,設定一覧,Configuration List
+pdf_item_group.select_config,設定を選択または新規作成してください。,Please select a configuration or create a new one.
+pdf_item_group.delete,削除,Delete
+pdf_item_group.save,保存,Save
+pdf_item_group.save_success,設定を保存しました。,Settings saved.
+pdf_item_group.save_failed,サーバーへの保存に失敗しました:,Failed to save to server:
+pdf_item_group.delete_confirm,この設定を削除しますか？,Are you sure you want to delete this configuration?
+pdf_item_group.delete_failed,サーバーからの削除に失敗しました:,Failed to delete from server:
+pdf_item_group.add_item,項目を追加,Add Item
+pdf_item_group.new_config,新規設定,New Configuration
+pdf_item_group.item_product_items,商品明細,Product Items
+pdf_item_group.item_product_items_desc,Tシャツ本体など、各商品の数量と単価を表示します。,Displays quantity and unit price for each product, such as T-shirt bodies.
+pdf_item_group.item_product_name,商品名,Product Name
+pdf_item_group.item_color,カラー,Color
+pdf_item_group.item_size,サイズ,Size
+pdf_item_group.item_print_costs,プリント代,Printing Costs
+pdf_item_group.item_print_costs_desc,シルクスクリーンやDTFなどのプリント料金を表示します。,Displays printing fees such as silk screen and DTF.
+pdf_item_group.item_setup_costs,製版代,Plate Costs
+pdf_item_group.item_setup_costs_desc,シルクスクリーン印刷に必要な版の料金を表示します。,Displays fees for plates required for silk screen printing.
+pdf_item_group.item_additional_options,追加オプション,Additional Options
+pdf_item_group.item_additional_options_desc,袋詰めやタグ付けなど、追加オプションの料金を表示します。,Displays fees for additional options such as bagging and tagging.
+pdf_item_group.item_print_and_setup,プリント・製版代一式,Print and Plate Costs Combined
+pdf_item_group.item_print_and_setup_desc,プリント代と製版代を合算して一つの項目として表示します。,Displays printing and plate costs combined as a single item.
+pdf_item_group.item_custom_items,カスタム項目,Custom Items
+pdf_item_group.item_custom_items_desc,任意のラベル、単価、数量を持つ項目です。見積もり時に手動で入力します。,Items with custom labels, unit prices, and quantities. Entered manually when creating estimates.
+pdf_item_group.item_sample_items,サンプル品,Sample Items
+pdf_item_group.item_sample_items_desc,サンプル品の料金を表示します。,Displays fees for sample items.
+pdf_item_group.item_product_discount,商品割引,Product Discount
+pdf_item_group.item_product_discount_desc,商品に対する割引額を表示します。,Displays discount amount for products.
+pdf_item_group.item_shipping,送料,Shipping
+pdf_item_group.item_shipping_desc,送料を表示します。,Displays shipping costs.
+pdf_item_group.item_product_amount,商品代金,Product Amount
+pdf_item_group.show_breakdown,詳細内訳を表示,Show Detailed Breakdown
+pdf_item_group.consolidation,まとめ方:,Consolidation Method:
+pdf_item_group.consolidation_none,なし (1行1アイテム),None (1 item per line)
+pdf_item_group.consolidation_color_price,品番・カラー・単価でまとめる,Group by Product Code, Color, and Price
+pdf_item_group.consolidation_price,品番・単価でまとめる,Group by Product Code and Price
+pdf_item_group.display_method,表示方法:,Display Method:
+pdf_item_group.display_lump_sum,プリント代一式で表示,Display as Lump Sum
+pdf_item_group.display_summary_item,1枚単価にまとめる (B),Summarize as Per-Item Price (B)
+pdf_item_group.display_summary_location,プリント箇所ごとにまとめる (A-2),Group by Print Location (A-2)
+pdf_item_group.display_detailed_location,プリント箇所ごとに詳細を表示 (A-1),Display Details per Print Location (A-1)
+pdf_item_group.display_setup_lump_sum,すべて合計して表示 (D),Display Total (D)
+pdf_item_group.display_setup_per_location,プリント箇所ごとに表示 (C),Display per Print Location (C)
+pdf_item_group.display_options_lump_sum,すべて合計して表示,Display Total
+pdf_item_group.display_options_per_option,オプション項目ごとに表示 (E),Display per Option Item (E)
+pdf_item_group.show_unit_price_breakdown,内訳に単価/金額を表示,Show Unit Price/Amount in Breakdown
+pdf_item_group.include_in_unit_price,単価に含める追加料金:,Additional Costs to Include in Unit Price:
+pdf_item_group.additional_cost_by_item,商品特性による追加料金,Additional Fee by Product Characteristics
+pdf_item_group.additional_cost_by_size,大判サイズ料金,Large Size Fee
+pdf_item_group.additional_cost_by_location,特殊箇所料金,Special Location Fee
+pdf_item_group.additional_cost_by_plate_type,分解版追加料金,Separated Plate Additional Fee
+

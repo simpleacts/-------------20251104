@@ -1,0 +1,317 @@
+<?php
+// --- ERROR HANDLING (for production) ---
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+
+require_once __DIR__ . '/db_connect.php';
+
+// --- HELPER FUNCTIONS ---
+function parse_key_value_csv($filepath) {
+    if (!file_exists($filepath) || !is_readable($filepath)) return [];
+    $data = [];
+    if (($handle = fopen($filepath, "r")) !== FALSE) {
+        fgetcsv($handle); // Skip header
+        while (($row = fgetcsv($handle, 2000, ",")) !== FALSE) {
+            // Handle header rows in the CSV like "A. Global Styles",
+            if (count($row) < 2 || empty($row[1])) continue;
+            
+            $key = trim(str_replace('"', '', $row[0]));
+            $value = trim($row[1]);
+             if (substr($value, 0, 1) == '"' && substr($value, -1) == '"') {
+                $value = substr($value, 1, -1);
+            }
+            $value = str_replace('""', '"', $value);
+            $data[$key] = $value;
+        }
+        fclose($handle);
+    }
+    return $data;
+}
+
+function parse_csv_to_assoc($filepath) {
+    if (!file_exists($filepath) || !is_readable($filepath)) return [];
+    $csv = array_map('str_getcsv', file($filepath));
+    if (count($csv) < 1) return [];
+    $header = array_shift($csv);
+    $data = [];
+    foreach ($csv as $row) {
+        if(count($header) == count($row)) {
+            $data[] = array_combine($header, $row);
+        }
+    }
+    return $data;
+}
+// --- END HELPER FUNCTIONS ---
+
+
+try {
+    $pdo = get_db_connection();
+
+    // 1. Products (基本情報と詳細情報をJOINで取得)
+    $stmt = $pdo->query("
+        SELECT p.*, pd.name, pd.variantName, pd.description, b.name as brand
+        FROM products_master p 
+        LEFT JOIN product_details pd ON p.id = pd.product_id
+        LEFT JOIN brands b ON p.brand_id = b.id
+        WHERE p.is_published = 1
+    ");
+    $products_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $product_map = [];
+    foreach ($products_raw as $p) {
+        $p['tags'] = [];
+        $p['colors'] = [];
+        $p['prices'] = [];
+        $product_map[$p['id']] = $p;
+    }
+
+    // 関連データを一括で取得 (N+1問題の回避)
+    $product_ids = array_keys($product_map);
+    if (!empty($product_ids)) {
+        $placeholders = implode(',', array_fill(0, count($product_ids), '?'));
+
+        // Product Tags
+        $stmt = $pdo->prepare("SELECT pt.product_id, pt.tag_id FROM product_tags pt WHERE pt.product_id IN ($placeholders)");
+        $stmt->execute($product_ids);
+        $tags_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($tags_raw as $row) {
+            if (isset($product_map[$row['product_id']])) {
+                $product_map[$row['product_id']]['tags'][] = $row['tag_id'];
+            }
+        }
+        
+        // Product Colors
+        $stmt = $pdo->prepare("SELECT pc.product_id, c.code FROM product_colors pc JOIN colors c ON pc.color_id = c.id WHERE pc.product_id IN ($placeholders)");
+        $stmt->execute($product_ids);
+        $colors_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($colors_raw as $row) {
+            if (isset($product_map[$row['product_id']])) {
+                $product_map[$row['product_id']]['colors'][] = $row['code'];
+            }
+        }
+
+        // Product Prices
+        $stmt = $pdo->prepare("SELECT * FROM product_prices WHERE productId IN ($placeholders)");
+        $stmt->execute($product_ids);
+        $prices_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($prices_raw as $row) {
+             if (isset($product_map[$row['productId']])) {
+                $product_map[$row['productId']]['prices'][] = [
+                    'color' => $row['colorType'],
+                    'size' => $row['size'],
+                    'listPrice' => (int)$row['listPrice'],
+                    'purchasePrice' => (int)$row['purchasePrice'],
+                    'price' => 0 // 後で計算
+                ];
+            }
+        }
+    }
+    
+    $brand_rates_stmt = $pdo->query("SELECT b.name, br.rate FROM brand_selling_price_rates br JOIN brands b ON br.brand_id = b.id");
+    $brand_rates_raw = $brand_rates_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    
+    // 販売価格を計算
+    foreach ($product_map as &$product) {
+        $rate = (float)($brand_rates_raw[$product['brand']] ?? $brand_rates_raw['Default'] ?? 0.5);
+        if(isset($product['prices']) && is_array($product['prices'])) {
+            foreach ($product['prices'] as &$price) {
+                $price['price'] = (int)ceil(round($price['listPrice'] * $rate) / 10) * 10;
+            }
+        }
+    }
+    unset($product);
+
+    // 2. Colors
+    $colors_stmt = $pdo->query("SELECT c.*, b.name as brand_name FROM colors c JOIN brands b ON c.brand_id = b.id");
+    $colors_by_brand = [];
+    while ($c = $colors_stmt->fetch(PDO::FETCH_ASSOC)) {
+        $colors_by_brand[$c['brand_name']][$c['code']] = [
+            'code' => $c['code'], 'name' => $c['name'], 'hex' => $c['hex'], 'type' => $c['colorType'],
+        ];
+    }
+
+    // 3. Sizes
+    $sizes_stmt = $pdo->query("
+        SELECT b.name as brand_name, s.sizeCode, s.sizeName
+        FROM sizes s
+        JOIN brands b ON s.brand_id = b.id
+    ");
+    $sizes_by_brand = [];
+    while ($s = $sizes_stmt->fetch(PDO::FETCH_ASSOC)) {
+        $sizes_by_brand[$s['brand_name']][$s['sizeCode']] = ['name' => $s['sizeName']];
+    }
+    
+    // 4. Stock
+    $stock_stmt = $pdo->query("SELECT productCode, colorCode, sizeCode, stockQuantity FROM stock");
+    $stock = [];
+    while ($s = $stock_stmt->fetch(PDO::FETCH_ASSOC)) {
+        $key = "{$s['productCode']}-{$s['colorCode']}-{$s['sizeCode']}";
+        $stock[$key] = (int)$s['stockQuantity'];
+    }
+    
+    // 5. Tags & Categories
+    $tags = $pdo->query("SELECT * FROM tags")->fetchAll(PDO::FETCH_ASSOC);
+    $categories = $pdo->query("SELECT * FROM categories")->fetchAll(PDO::FETCH_ASSOC);
+    
+    // 6. Gallery
+    $gallery_images_raw = $pdo->query("SELECT * FROM gallery_images")->fetchAll(PDO::FETCH_ASSOC);
+    $gallery_images = array_map(function($img){
+        $img['tags'] = array_filter(explode(',', $img['tags']));
+        $img['imageCount'] = (int)$img['imageCount'];
+        $img['is_published'] = (bool)$img['is_published'];
+        return $img;
+    }, $gallery_images_raw);
+    $gallery_tags = $pdo->query("SELECT * FROM gallery_tags")->fetchAll(PDO::FETCH_ASSOC);
+
+    // 7. Pricing
+    $settings = $pdo->query("SELECT `key`, `value` FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
+    $plate_costs_raw = $pdo->query("SELECT * FROM plate_costs")->fetchAll(PDO::FETCH_ASSOC);
+    $plate_costs = [];
+    foreach($plate_costs_raw as $pc) {
+        $plate_costs["{$pc['size']}-{$pc['plateType']}"] = [ 'cost' => (int)$pc['cost'], 'surchargePerColor' => (int)$pc['surchargePerColor'] ];
+    }
+    $special_ink_raw = $pdo->query("SELECT * FROM special_ink_costs")->fetchAll(PDO::FETCH_ASSOC);
+    $special_ink_costs = array_column(array_map('intval', $special_ink_raw), 'cost', 'type');
+    $special_ink_options = array_map(function($sic){ return ['type' => $sic['type'], 'cost' => (int)$sic['cost'], 'displayName' => $sic['displayName']]; }, $special_ink_raw);
+    
+    $shipping_costs_raw = $pdo->query("SELECT * FROM shipping_costs")->fetchAll(PDO::FETCH_ASSOC);
+    $shipping_costs = [];
+    foreach($shipping_costs_raw as $sc) {
+        $shipping_costs[$sc['region']] = [ 'cost' => (int)$sc['cost'], 'prefectures' => array_filter(explode(',', $sc['prefectures'])) ];
+    }
+    
+    $pricing_data = [
+        'brandSellingPriceRates' => array_map('floatval', $brand_rates_raw),
+        'plateCosts' => $plate_costs,
+        'specialInkOptions' => $special_ink_options,
+        'specialInkCosts' => $special_ink_costs,
+        'additionalPrintCostsBySize' => array_map('intval', $pdo->query("SELECT size, cost FROM additional_print_costs_by_size")->fetchAll(PDO::FETCH_KEY_PAIR)),
+        'additionalPrintCostsByLocation' => array_map('intval', $pdo->query("SELECT location, cost FROM additional_print_costs_by_location")->fetchAll(PDO::FETCH_KEY_PAIR)),
+        'additionalPrintCostsByTag' => array_map('intval', $pdo->query("SELECT tagId, cost FROM additional_print_costs_by_tag")->fetchAll(PDO::FETCH_KEY_PAIR)),
+        'printPricingTiers' => array_map(function($t){ return ['min'=>(int)$t['min'], 'max'=>(int)$t['max'], 'firstColor'=>(int)$t['firstColor'], 'additionalColor'=>(int)$t['additionalColor']]; }, $pdo->query("SELECT * FROM print_pricing_tiers ORDER BY min ASC")->fetchAll(PDO::FETCH_ASSOC)),
+        'shippingCosts' => $shipping_costs,
+        'shippingFreeThreshold' => (int)($settings['SHIPPING_FREE_THRESHOLD'] ?? 50000),
+        'bringInFeeRate' => (float)($settings['BRING_IN_FEE_RATE'] ?? 0.05),
+        'printCostCategoryCombinations' => $pdo->query("SELECT category_id, combination_id FROM print_cost_combination")->fetchAll(PDO::FETCH_KEY_PAIR),
+        'plateCostCategoryCombinations' => $pdo->query("SELECT category_id, combination_id FROM plate_cost_combination")->fetchAll(PDO::FETCH_KEY_PAIR),
+        'categoryPrintLocations' => array_reduce($pdo->query("SELECT * FROM category_print_locations")->fetchAll(PDO::FETCH_ASSOC), function ($c, $i) { $c[$i['category_id']] = array_filter(explode(',', $i['allowed_location_ids'])); return $c; }, []),
+        'printSizeConstraints' => array_map(function($i) { return ['type' => $i['constraint_type'], 'id' => $i['constraint_id'], 'sizes' => array_filter(explode(',', $i['allowed_print_sizes']))]; }, $pdo->query("SELECT * FROM print_size_constraints")->fetchAll(PDO::FETCH_ASSOC)),
+    ];
+    
+    // 8. Print Locations & Company Info
+    $print_locations = $pdo->query("SELECT * FROM print_locations")->fetchAll(PDO::FETCH_ASSOC);
+    $company_info_raw = $pdo->query("SELECT `key`, `value` FROM company_info")->fetchAll(PDO::FETCH_KEY_PAIR);
+    $company_info = [
+        'companyName' => $company_info_raw['COMPANY_NAME'] ?? '', 'zip' => $company_info_raw['COMPANY_ZIP'] ?? '', 'address' => $company_info_raw['COMPANY_ADDRESS'] ?? '',
+        'tel' => $company_info_raw['COMPANY_TEL'] ?? '', 'fax' => $company_info_raw['COMPANY_FAX'] ?? '', 'bankName' => $company_info_raw['BANK_NAME'] ?? '',
+        'bankBranchName' => $company_info_raw['BANK_BRANCH_NAME'] ?? '', 'bankAccountType' => $company_info_raw['BANK_ACCOUNT_TYPE'] ?? '',
+        'bankAccountNumber' => $company_info_raw['BANK_ACCOUNT_NUMBER'] ?? '', 'bankAccountHolder' => $company_info_raw['BANK_ACCOUNT_HOLDER'] ?? '',
+        'invoiceIssuerNumber' => $company_info_raw['INVOICE_ISSUER_NUMBER'] ?? '',
+    ];
+    
+    // 9. Partner Codes
+    $partner_codes_raw = $pdo->query("SELECT * FROM partner_codes")->fetchAll(PDO::FETCH_ASSOC);
+    $partner_codes = array_map(function($p){
+        return ['code' => $p['code'], 'partnerName' => $p['partnerName'], 'description' => $p['description'], 'rate' => isset($p['rate']) ? (float)$p['rate'] : null];
+    }, $partner_codes_raw);
+
+    // 10. Menus
+    $menus_raw = $pdo->query("SELECT id, name, path, parent_id, sort_order, icon FROM menus WHERE is_visible = 1 ORDER BY parent_id ASC, sort_order ASC")->fetchAll(PDO::FETCH_ASSOC);
+    // Fallback to CSV if database table is empty
+    if (empty($menus_raw)) {
+        $menus_raw = parse_csv_to_assoc(__DIR__ . '/../templates/menus.csv');
+    }
+    $menus = array_map(function($m){ 
+        return [
+            'id' => (int)$m['id'],
+            'name' => $m['name'],
+            'path' => $m['path'],
+            'parent_id' => !empty($m['parent_id']) ? (int)$m['parent_id'] : null,
+            'sort_order' => (int)$m['sort_order'],
+            'icon' => $m['icon'] ?? null,
+        ];
+    }, $menus_raw);
+    
+    // 11. Print Sizes and Size Order
+    $print_sizes = $pdo->query("SELECT sizeId, label FROM print_sizes")->fetchAll(PDO::FETCH_ASSOC);
+    $size_order_raw = $pdo->query("SELECT sizeName, sortOrder FROM size_order")->fetchAll(PDO::FETCH_ASSOC);
+    $size_order = array_map(function($s) {
+        return ['sizeName' => $s['sizeName'], 'sortOrder' => (int)$s['sortOrder']];
+    }, $size_order_raw);
+
+    // 12. Customers
+    $customers_raw = $pdo->query("SELECT * FROM customers")->fetchAll(PDO::FETCH_ASSOC);
+    $customers = array_map(function($c) {
+        return [
+            'id' => (string)$c['id'], 'companyName' => $c['company_name'], 'nameKanji' => $c['name_kanji'],
+            'nameKana' => $c['name_kana'], 'email' => $c['email'], 'phone' => $c['phone'], 'zipCode' => $c['zip_code'],
+            'address1' => $c['address1'], 'address2' => $c['address2'],
+            'hasSeparateShippingAddress' => $c['has_separate_shipping_address'] ? 'true' : 'false',
+            'shippingName' => $c['shipping_name'], 'shippingPhone' => $c['shipping_phone'],
+            'shippingZipCode' => $c['shipping_zip_code'], 'shippingAddress1' => $c['shipping_address1'],
+            'shippingAddress2' => $c['shipping_address2'],
+        ];
+    }, $customers_raw);
+
+
+    // Group products by brand
+    $products_by_brand = [];
+    foreach ($product_map as $product) {
+        if (!isset($products_by_brand[$product['brand']])) {
+            $products_by_brand[$product['brand']] = [];
+        }
+        $products_by_brand[$product['brand']][] = $product;
+    }
+
+    // --- Additional Data from Files ---
+    $templates_dir = __DIR__ . '/../templates';
+
+    $theme = parse_key_value_csv($templates_dir . '/theme_settings.csv');
+    $uiText = parse_key_value_csv($templates_dir . '/ui_text.csv');
+
+    $articles_raw = parse_csv_to_assoc($templates_dir . '/articles.csv');
+    $articles = array_map(function($a){
+        $a['tags'] = isset($a['tags']) ? array_filter(explode(',', $a['tags'])) : [];
+        $a['is_published'] = isset($a['is_published']) ? $a['is_published'] === '1' : false;
+        return $a;
+    }, $articles_raw);
+    $article_tags = parse_csv_to_assoc($templates_dir . '/article_tags.csv');
+
+    $pages_content_json = file_get_contents($templates_dir . '/pages_content.json');
+    $pagesContent = json_decode($pages_content_json, true);
+
+
+    // --- FINAL ASSEMBLY ---
+    $app_data = [
+        'products' => $products_by_brand,
+        'colors' => $colors_by_brand,
+        'sizes' => $sizes_by_brand,
+        'stock' => $stock,
+        'tags' => $tags,
+        'categories' => $categories,
+        'galleryImages' => $gallery_images,
+        'galleryTags' => $gallery_tags,
+        'pricing' => $pricing_data,
+        'printLocations' => $print_locations,
+        'companyInfo' => $company_info,
+        'partnerCodes' => $partner_codes,
+        'menus' => $menus,
+        'printSizes' => $print_sizes,
+        'sizeOrder' => $size_order,
+        'customers' => $customers,
+        'theme' => $theme,
+        'uiText' => $uiText,
+        'articles' => $articles,
+        'articleTags' => $article_tags,
+        'pagesContent' => $pagesContent,
+    ];
+    
+    echo json_encode($app_data, JSON_UNESCAPED_UNICODE);
+
+} catch (Exception $e) {
+    http_response_code(500);
+    error_log("app-data.php error: " . $e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile());
+    echo json_encode(['error' => 'サーバーでデータの読み込み中に問題が発生しました。', 'details' => $e->getMessage()]);
+}
+?>

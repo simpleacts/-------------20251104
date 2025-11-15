@@ -1,0 +1,37 @@
+key,ja,en
+backup.title,自動バックアップ設定,Automatic Backup Settings
+backup.description,データベースの自動バックアップの動作を制御します。,Control the behavior of automatic database backups.
+backup.target_heading,バックアップ対象について,About Backup Targets
+backup.target_description,現在設定されている自動バックアップは、アプリケーションが使用している<strong>データベース全体</strong>を対象としています。,The currently configured automatic backup targets the <strong>entire database</strong> used by the application.
+backup.target_details,具体的には、以下の情報がすべて含まれます。,Specifically, the following information is all included.
+backup.content_list,バックアップされる主な内容一覧,Main Backup Contents List
+backup.customer_info,顧客情報,Customer Information
+backup.customer_info_detail,顧客リスト、顧客グループ、連絡先など,Customer lists, customer groups, contact information, etc.
+backup.product_info,商品情報,Product Information
+backup.product_info_detail,商品マスター、価格、在庫数、カラーやサイズなどの商品定義,Product master, prices, inventory quantities, product definitions such as colors and sizes
+backup.quote_info,案件・見積情報,Quote & Order Information
+backup.quote_info_detail,過去の見積もり履歴、案件のステータス、デザイン情報、商品明細など,Past quote history, order status, design information, product details, etc.
+backup.pricing_settings,価格設定,Pricing Settings
+backup.pricing_settings_detail,プリント単価表、製版代、特殊インク代などの各種料金設定,Various pricing settings such as print pricing tables, plate costs, special ink costs
+backup.production_history,製造・履歴情報,Production & History Information
+backup.production_history_detail,印刷履歴、インクの配合レシピなど,Print history, ink mixing recipes, etc.
+backup.system_settings,システム設定,System Settings
+backup.system_settings_detail,ユーザーアカウント、権限設定、PDFテンプレート、会社の基本情報など,User accounts, permission settings, PDF templates, company basic information, etc.
+backup.summary,要するに、<strong>この管理画面で入力・設定したほぼすべてのデータ</strong>がバックアップの対象となります。,In summary, <strong>almost all data entered and configured in this management screen</strong> is subject to backup.
+backup.format_heading,バックアップの形式と目的,Backup Format and Purpose
+backup.format_description,データは、データベースを丸ごと復元できる「SQLファイル」という形式で圧縮して保存されます。これにより、万が一サーバーに問題が発生した場合でも、バックアップした時点の状態にシステム全体を正確に復元することが可能です。,Data is compressed and saved in a format called \"SQL file\" that can restore the entire database. This allows you to accurately restore the entire system to the state at the time of backup even if a problem occurs on the server.
+backup.excluded_heading,【重要】バックアップ対象外のもの,[Important] Items Excluded from Backup
+backup.excluded_description,お客様からアップロードされた<strong>画像ファイルそのもの</strong>（仕上がりイメージの元画像など）は、このデータベースバックアップには含まれません。画像ファイルのバックアップは、別途サーバーのファイルシステムレベルでご対応いただく必要があります。,<strong>Image files themselves</strong> uploaded by customers (such as source images for proof images) are not included in this database backup. Image file backups need to be handled separately at the server's file system level.
+backup.auto_enable,自動バックアップ,Automatic Backup
+backup.auto_enable_description,データベース全体の自動バックアップを有効または無効にします。,Enable or disable automatic backup of the entire database.
+backup.execution_time,実行時刻,Execution Time
+backup.execution_time_description,毎日この時刻にバックアップが実行されます。,Backup will be executed at this time every day.
+backup.retention_period,バックアップ保持期間,Backup Retention Period
+backup.retention_period_description,この日数を超えた古いバックアップは自動的に削除されます。,Backups older than this number of days will be automatically deleted.
+backup.server_settings,サーバー設定,Server Settings
+backup.server_settings_warning,重要：サーバーでのCronジョブ設定が必要です,Important: Cron job configuration on the server is required
+backup.server_settings_description,このツールはバックアップの動作を制御するだけで、自動実行の仕組みそのものではありません。サーバーのコントロールパネル（例: Xserverの「CRON設定」）で、以下のコマンドを<strong className=font-bold>1時間ごと</strong>に実行するように設定してください。,This tool only controls backup behavior and is not the automatic execution mechanism itself. Please configure your server's control panel (e.g., Xserver's \CRON Settings\) to execute the following command <strong className=font-bold>every hour</strong>.
+backup.server_settings_note,※ 上記コマンドのパスは、実際のサーバー環境に合わせて修正してください。,※ Please modify the path of the above command according to your actual server environment.
+backup.save_settings,設定を保存,Save Settings
+backup.save_success,設定を保存しました。次回のCronジョブ実行時からこの設定が適用されます。,Settings saved. These settings will be applied from the next Cron job execution.
+

@@ -1,0 +1,8 @@
+key,ja,en
+data_io.title,データ入出力,Data I/O
+data_io.description,各種データのインポート、エクスポート、バックアップを行います。,Import, export, and backup various data.
+data_io.tab_stock_import,在庫CSVインポート,Stock CSV Import
+data_io.tab_generic_import,汎用CSVインポート,Generic CSV Import
+data_io.tab_export_csv,CSVエクスポート,CSV Export
+data_io.tab_export_sql,SQLエクスポート,SQL Export
+

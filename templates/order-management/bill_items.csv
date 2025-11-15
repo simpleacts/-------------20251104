@@ -1,0 +1,5 @@
+id,bill_id,description,quantity,unit_price,amount
+bitem_000001,bill_000001,"United Athle 500101 (ホワイト/M)",100,300,30000
+bitem_000002,bill_000001,"United Athle 500101 (ブラック/L)",150,324,48600
+bitem_000003,bill_000002,"Printstar 00085 (ホワイト/M)",200,264,52800
+bitem_000004,bill_000003,"事務所家賃 (8月分)",1,120000,120000

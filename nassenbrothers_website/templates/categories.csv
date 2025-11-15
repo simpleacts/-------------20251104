@@ -1,0 +1,5 @@
+categoryId,categoryName,icon,sort_order
+c001,Tシャツ,fa-tshirt,10
+c002,ポロシャツ,fa-user-tie,20
+c003,スウェット・パーカー,fa-shirt,30
+c004,トートバッグ,fa-shopping-bag,40

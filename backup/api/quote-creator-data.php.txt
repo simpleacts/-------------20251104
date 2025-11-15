@@ -1,0 +1,343 @@
+<?php
+/**
+ * Quote Creator Tool - Direct Database Access API
+ * 見積作成ツール（新）専用API
+ * ツール名: quote-creator
+ */
+
+header('Content-Type: application/json; charset=utf-8');
+// CORS: Restrict in production
+$allowed_origins = [
+    'http://localhost', 'http://localhost:3000', 'http://127.0.0.1', 'http://127.0.0.1:3000',
+];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origin, $allowed_origins)) {
+    header("Access-Control-Allow-Origin: {$origin}");
+} else {
+    header('Access-Control-Allow-Origin: *'); // Development only
+}
+header('Access-Control-Allow-Methods: GET');
+header('Access-Control-Allow-Headers: Content-Type');
+
+require_once 'db_connect.php';
+require_once 'schema_utils.php';
+
+$tool_name = 'quote-creator';
+error_log("[{$tool_name}-data.php] Request received");
+
+/**
+ * Validates and sanitizes table name to prevent SQL injection
+ * Only allows alphanumeric characters, underscores, and hyphens
+ */
+function validateTableName($tableName) {
+    if (!preg_match('/^[a-zA-Z0-9_-]+$/', $tableName)) {
+        throw new InvalidArgumentException("Invalid table name: '{$tableName}' contains invalid characters");
+    }
+    return $tableName;
+}
+
+/**
+ * Fetches table data directly from database
+ * @param PDO $pdo Database connection
+ * @param string $tableName Table name (validated)
+ * @param bool $lightweight If true, fetch only essential columns for large tables
+ * @return array Array of rows from the table
+ */
+function fetchDirectTable($pdo, $tableName, $lightweight = false) {
+    try {
+        $safeTableName = validateTableName($tableName);
+        
+        // Check if table exists using schema_utils function (more reliable)
+        if (!tableExists($pdo, $safeTableName)) {
+            error_log("[quote-creator-data.php] Table '{$safeTableName}' does not exist in database");
+            return [];
+        }
+        
+        // Full data fetch - table name is validated and whitelisted, so safe to use
+        $stmt = $pdo->query("SELECT * FROM `{$safeTableName}`");
+        
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        error_log("[quote-creator-data.php] Fetched " . count($rows) . " rows from table '{$safeTableName}'");
+        
+        // Filter out completely empty rows (all values are null, undefined, or empty strings)
+        $filteredRows = array_filter($rows, function($row) {
+            if (!$row || !is_array($row)) {
+                return false;
+            }
+            
+            // Check if at least one field has a meaningful value
+            $hasValidValue = false;
+            foreach ($row as $value) {
+                if ($value === null || $value === '') {
+                    continue;
+                }
+                if (is_string($value) && trim($value) !== '') {
+                    $hasValidValue = true;
+                    break;
+                }
+                if (is_bool($value) || is_numeric($value)) {
+                    $hasValidValue = true;
+                    break;
+                }
+            }
+            
+            return $hasValidValue;
+        });
+        
+        $filteredCount = count($filteredRows);
+        if ($filteredCount !== count($rows)) {
+            error_log("[quote-creator-data.php] Filtered " . (count($rows) - $filteredCount) . " empty rows from table '{$safeTableName}'");
+        }
+        
+        return array_values($filteredRows);
+    } catch (InvalidArgumentException $e) {
+        error_log("[quote-creator-data.php] Invalid table name error: " . $e->getMessage());
+        throw $e;
+    } catch (PDOException $e) {
+        error_log("[quote-creator-data.php] Error fetching table '{$tableName}': " . $e->getMessage());
+        throw $e;
+    }
+}
+
+/**
+ * メーカー依存テーブルのリスト
+ */
+function isManufacturerDependentTable($tableName) {
+    $manufacturerDependentTables = [
+        'product_sizes', 'product_color_sizes',
+        'products_master', 'product_details', 'product_tags',
+        'stock', 'importer_mappings', 'tags'
+    ];
+    return in_array($tableName, $manufacturerDependentTables);
+}
+
+/**
+ * メーカーIDを含むテーブル名を生成
+ */
+function getManufacturerTableName($baseTableName, $manufacturerId) {
+    $fileName = $baseTableName;
+    if ($baseTableName === 'product_details') {
+        $fileName = 'details';
+    } else if ($baseTableName === 'stock') {
+        $fileName = 'stock';
+    } else if ($baseTableName === 'tags') {
+        $fileName = 'tags';
+    }
+    return "{$manufacturerId}_{$fileName}";
+}
+
+/**
+ * メーカー別テーブル名からベーステーブル名を抽出
+ */
+function parseManufacturerTableName($tableName) {
+    $manufacturerDependentTables = [
+        'product_sizes', 'product_color_sizes',
+        'products_master', 'product_details', 'product_tags',
+        'stock', 'importer_mappings', 'tags'
+    ];
+    
+    if (strpos($tableName, 'manu_') === 0) {
+        foreach ($manufacturerDependentTables as $baseTableName) {
+            $fileName = $baseTableName;
+            if ($baseTableName === 'product_details') {
+                $fileName = 'details';
+            } else if ($baseTableName === 'stock') {
+                $fileName = 'stock';
+            } else if ($baseTableName === 'tags') {
+                $fileName = 'tags';
+            }
+            
+            $suffix = '_' . $fileName;
+            if (substr($tableName, -strlen($suffix)) === $suffix) {
+                $manufacturerId = substr($tableName, 0, strlen($tableName) - strlen($suffix));
+                return ['baseTableName' => $baseTableName, 'manufacturerId' => $manufacturerId];
+            }
+        }
+    } else {
+        foreach ($manufacturerDependentTables as $baseTableName) {
+            $prefix = $baseTableName . '_';
+            if (strpos($tableName, $prefix) === 0) {
+                $manufacturerId = substr($tableName, strlen($prefix));
+                if (strpos($manufacturerId, 'manu_') === 0) {
+                    $manufacturerId = substr($manufacturerId, 5);
+                }
+                return ['baseTableName' => $baseTableName, 'manufacturerId' => $manufacturerId];
+            }
+        }
+    }
+    
+    return ['baseTableName' => $tableName, 'manufacturerId' => null];
+}
+
+/**
+ * メーカー一覧を取得
+ */
+function fetchManufacturers($pdo) {
+    try {
+        $stmt = $pdo->query("SELECT * FROM `manufacturers`");
+        $manufacturers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $manufacturers = array_filter($manufacturers, function($m) {
+            return isset($m['id']) && $m['id'] !== 'undefined' && trim($m['id']) !== '';
+        });
+        return array_values($manufacturers);
+    } catch (PDOException $e) {
+        error_log("[quote-creator-data.php] Error fetching manufacturers: " . $e->getMessage());
+        return [];
+    }
+}
+
+// --- API Routing ---
+$table_names_req = $_GET['tables'] ?? null;
+$lightweight = isset($_GET['lightweight']) && $_GET['lightweight'] === 'true';
+
+if (!$table_names_req) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Request parameter "tables" not specified.']);
+    exit();
+}
+
+// Whitelist of tables for Quote Creator Tool
+$all_tables_whitelist = [
+    'settings', 'color_settings', 'layout_settings', 'behavior_settings',
+    'stock', 'customer_groups', 'tags', 'categories', 'manufacturers', 'payment_methods', 'free_input_item_types',
+    'plate_costs', 'special_ink_costs', 'additional_print_costs_by_size',
+    'additional_print_costs_by_location', 'additional_print_costs_by_tag',
+    'print_pricing_tiers', 'shipping_costs',
+    'print_cost_combination', 'plate_cost_combination',
+    'category_print_locations', 'print_size_constraints', 'print_locations',
+    'company_info', 'partner_codes', 'prefectures',
+    'pricing_rules', 'pricing_assignments', 'volume_discount_schedules',
+    'additional_options',
+    'dtf_consumables', 'dtf_equipment', 'dtf_labor_costs',
+    'dtf_electricity_rates', 'dtf_printers', 'dtf_print_speeds', 'dtf_press_time_costs',
+    'pdf_templates', 'pdf_item_display_configs',
+    'customers',
+    'brands'
+];
+
+try {
+    $requested_tables_raw = explode(',', $table_names_req);
+    $db = [];
+    $tables_to_fetch = in_array('all', $requested_tables_raw) ? $all_tables_whitelist : $requested_tables_raw;
+    
+    // メーカー一覧を取得
+    $manufacturers = [];
+    if (in_array('manufacturers', $tables_to_fetch) || in_array('all', $requested_tables_raw)) {
+        $manufacturers = fetchManufacturers($pdo);
+    } else {
+        $hasManufacturerDependentTable = false;
+        foreach ($tables_to_fetch as $table) {
+            $parsed = parseManufacturerTableName($table);
+            if (isManufacturerDependentTable($parsed['baseTableName'])) {
+                $hasManufacturerDependentTable = true;
+                break;
+            }
+        }
+        if ($hasManufacturerDependentTable) {
+            $manufacturers = fetchManufacturers($pdo);
+        }
+    }
+
+    foreach($tables_to_fetch as $table) {
+        $table = trim($table);
+        
+        $parsed = parseManufacturerTableName($table);
+        $baseTableName = $parsed['baseTableName'];
+        $isManufacturerTableName = $parsed['manufacturerId'] !== null;
+        
+        if (!in_array($baseTableName, $all_tables_whitelist)) {
+            error_log("[quote-creator-data.php] SECURITY: Attempted access to non-whitelisted table: '{$table}' (base: '{$baseTableName}')");
+            continue;
+        }
+        
+        try {
+            if (!preg_match('/^[a-zA-Z0-9_-]+$/', $table)) {
+                error_log("[quote-creator-data.php] SECURITY: Invalid characters in table name: '{$table}'");
+                continue;
+            }
+            
+            if (!tableExists($pdo, $table)) {
+                error_log("[quote-creator-data.php] Table '{$table}' does not exist in database");
+                $db[$table] = ['schema' => [], 'data' => []];
+                continue;
+            }
+            
+            if ($isManufacturerTableName) {
+                try {
+                    $rawRows = fetchDirectTable($pdo, $table, $lightweight);
+                    $schema = fetchTableSchema($pdo, $table);
+                    $db[$table] = [
+                        'schema' => $schema,
+                        'data' => $rawRows
+                    ];
+                    error_log("[quote-creator-data.php] Fetched manufacturer table '{$table}' with " . count($rawRows) . " rows");
+                } catch (PDOException $e) {
+                    $db[$table] = ['schema' => [], 'data' => []];
+                    error_log("[quote-creator-data.php] Manufacturer table '{$table}' does not exist");
+                }
+            } elseif (isManufacturerDependentTable($baseTableName)) {
+                $allManufacturerData = [];
+                $allManufacturerSchemas = [];
+                
+                if (empty($manufacturers)) {
+                    error_log("[quote-creator-data.php] ERROR: manufacturers table is empty");
+                    $db[$baseTableName] = ['schema' => [], 'data' => []];
+                    continue;
+                }
+                
+                foreach ($manufacturers as $manufacturer) {
+                    $manufacturerId = $manufacturer['id'] ?? null;
+                    if (!$manufacturerId || $manufacturerId === 'undefined' || trim($manufacturerId) === '') {
+                        continue;
+                    }
+                    
+                    $manufacturerTableName = getManufacturerTableName($baseTableName, $manufacturerId);
+                    if (!tableExists($pdo, $manufacturerTableName)) {
+                        continue;
+                    }
+                    
+                    try {
+                        $manufacturerRows = fetchDirectTable($pdo, $manufacturerTableName, $lightweight);
+                        $schema = fetchTableSchema($pdo, $manufacturerTableName);
+                        
+                        $db[$manufacturerTableName] = [
+                            'schema' => $schema,
+                            'data' => $manufacturerRows
+                        ];
+                        
+                        $allManufacturerData = array_merge($allManufacturerData, $manufacturerRows);
+                        if (empty($allManufacturerSchemas) && !empty($schema)) {
+                            $allManufacturerSchemas = $schema;
+                        }
+                    } catch (PDOException $e) {
+                        $db[$manufacturerTableName] = ['schema' => [], 'data' => []];
+                    }
+                }
+                
+                $db[$baseTableName] = [
+                    'schema' => $allManufacturerSchemas,
+                    'data' => $allManufacturerData
+                ];
+            } else {
+                $rawRows = fetchDirectTable($pdo, $table, $lightweight);
+                $schema = fetchTableSchema($pdo, $table);
+                $db[$table] = [
+                    'schema' => $schema,
+                    'data' => $rawRows
+                ];
+            }
+        } catch (Exception $e) {
+            error_log("[quote-creator-data.php] Error loading table '{$table}': " . $e->getMessage());
+            $db[$table] = ['schema' => [], 'data' => []];
+        }
+    }
+    
+    echo json_encode($db, JSON_UNESCAPED_UNICODE);
+
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Server error: ' . $e->getMessage()]);
+    exit();
+}
+?>
+

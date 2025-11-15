@@ -1,0 +1,6 @@
+id,code,name,sort_order
+tu_001,day,日,1
+tu_002,hour,時間,2
+tu_003,minute,分,3
+tu_004,second,秒,4
+

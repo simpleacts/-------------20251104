@@ -1,0 +1,46 @@
+<?php
+// api/save_article_tags.php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+try {
+    // --- TODO: Add proper authentication ---
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception('Invalid request method.', 405);
+    }
+
+    $target_dir = dirname(__DIR__) . '/templates';
+    $target_file = $target_dir . '/article_tags.csv';
+
+    if (!is_dir($target_dir) || !is_writable($target_dir) || !file_exists($target_file) || !is_writable($target_file)) {
+        throw new Exception('Server permission error.', 500);
+    }
+
+    $new_content = file_get_contents('php://input');
+    if ($new_content === false || trim($new_content) === '') {
+        throw new Exception('Cannot save empty content.', 400);
+    }
+
+    if (file_put_contents($target_file, $new_content, LOCK_EX) === false) {
+        throw new Exception('Failed to write to file.', 500);
+    }
+
+    http_response_code(200);
+    echo json_encode(['success' => true, 'message' => 'Article tags saved successfully.']);
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("save_article_tags.php Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => '記事タグの保存に失敗しました。', 'error' => $e->getMessage()]);
+}
+?>

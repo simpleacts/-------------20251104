@@ -1,0 +1,87 @@
+<?php
+// api/login-request.php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { exit(0); }
+
+require_once __DIR__ . '/db_connect.php';
+$phpmailer_path = __DIR__ . '/PHPMailer/src/';
+require $phpmailer_path . 'Exception.php';
+require $phpmailer_path . 'PHPMailer.php';
+require $phpmailer_path . 'SMTP.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+try {
+    $pdo = get_db_connection();
+
+    $json_data = file_get_contents('php://input');
+    $data = json_decode($json_data, true);
+    if (json_last_error() !== JSON_ERROR_NONE || !isset($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+        throw new Exception('無効なメールアドレスです。', 400);
+    }
+    $email = $data['email'];
+
+    // Check if customer exists
+    $stmt = $pdo->prepare("SELECT id, name_kanji FROM customers WHERE email = ?");
+    $stmt->execute([$email]);
+    $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$customer) {
+        throw new Exception('ご指定のメールアドレスは登録されていません。', 404);
+    }
+    
+    // Generate secure one-time token
+    $token = bin2hex(random_bytes(32));
+    $expires_at = date('Y-m-d H:i:s', time() + 15 * 60); // 15 minutes validity
+
+    // Store token in the database
+    $stmt = $pdo->prepare("INSERT INTO login_tokens (user_email, token, expires_at) VALUES (?, ?, ?)");
+    $stmt->execute([$email, $token, $expires_at]);
+
+    // Send magic link email
+    load_server_config();
+    $callback_url = rtrim(APP_BASE_URL, '/') . '/#/login/callback?token=' . urlencode($token);
+    
+    $mail = new PHPMailer(true);
+    $mail->SMTPDebug = 0;
+    $mail->isSMTP();
+    $mail->Host       = SMTP_HOST;
+    $mail->SMTPAuth   = true;
+    $mail->Username   = SMTP_USER;
+    $mail->Password   = SMTP_PASSWORD;
+    $mail->SMTPSecure = SMTP_SECURE;
+    $mail->Port       = SMTP_PORT;
+    $mail->CharSet    = 'UTF-8';
+    $mail->setFrom(MAIL_FROM_ADDRESS, MAIL_FROM_NAME);
+    $mail->addAddress($email);
+    $mail->isHTML(true);
+    $mail->Subject = '【捺染兄弟】ログインURLのお知らせ';
+    $mail->Body    = "
+        <p>{$customer['name_kanji']} 様</p>
+        <p>捺染兄弟のマイページへのログインリクエストを受け付けました。</p>
+        <p>以下のリンクをクリックしてログインしてください。このリンクは15分間有効です。</p>
+        <p><a href='{$callback_url}'>{$callback_url}</a></p>
+        <p>このメールにお心当たりがない場合は、お手数ですがこのメールを破棄してください。</p>
+        <br>
+        <p>捺染兄弟</p>";
+
+    $mail->send();
+
+    http_response_code(200);
+    echo json_encode(['success' => true, 'message' => 'ログインリンクを送信しました。']);
+
+} catch (Exception $e) {
+    $code = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500;
+    http_response_code($code);
+    error_log("Login Request Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+}
+?>

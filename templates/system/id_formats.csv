@@ -1,0 +1,79 @@
+table_name,prefix,padding,description,is_manufacturer_dependent
+additional_options,opt_,6,追加オプションID,0
+app_logs,alog_,8,アプリログID,0
+category_print_locations,catloc_,6,カテゴリ印刷位置ID,0
+customer_groups,cgrp_,5,顧客グループID,0
+customers,cust_,6,顧客ID,0
+data_confirmation_status_master,dcsm_,4,データ確認ステータスマスターID,0
+dev_locks,dlck_,6,開発ロックID,0
+dev_roadmap,droad_,6,開発ロードマップID,0
+dev_constitution,dconst_,6,開発憲法ID,0
+dev_guidelines_recommended,dgrec_,6,開発ガイドライン（推奨）ID,0
+dev_guidelines_prohibited,dgpro_,6,開発ガイドライン（禁止）ID,0
+dic_colors,dicc_,6,DICカラーID,0
+email_accounts,acc_,4,メールアカウントID,0
+email_attachments,attc_,8,メール添付ファイルID,0
+email_labels,elbl_,4,メールラベルID,0
+email_label_ai_rules,elai_,6,メールラベルAIルールID,0
+emails,email_,8,メールID,0
+filename_rule_presets,fnrule_,6,ファイル名ルールプリセットID,0
+gallery_images,gimg_,6,ギャラリー画像ID,0
+gallery_tags,gtag_,4,ギャラリータグID,0
+gemini_models,gmod_,4,GeminiモデルID,0
+google_fonts,gfont_,4,GoogleフォントID,0
+importer_mappings,imap_,6,インポーターマッピングID,0
+incoming_stock,istk_,6,入荷在庫ID,0
+ink_manufacturers,inkm_,4,インクメーカーID,0
+ink_products,inkp_,6,インク製品ID,0
+ink_recipe_components,inkrc_,6,インクレシピコンポーネントID,0
+ink_recipe_usage,inkru_,6,インクレシピ使用ID,0
+ink_recipes,inkr_,6,インクレシピID,0
+ink_series,inks_,4,インクシリーズID,0
+invoice_parsing_templates,invtmpl_,6,インボイス解析テンプレートID,0
+languages,lang_,4,言語ID,0
+manufacturers,manu_,4,メーカーID,0
+pantone_colors,pant_,6,PantoneカラーID,0
+payment_status_master,psm_,4,支払ステータスマスターID,0
+pdf_item_display_configs,pdfitem_,6,PDF項目表示設定ID,0
+pdf_preview_zoom_configs,pdfzoom_,6,PDFプレビューズーム設定ID,0
+pdf_templates,pdftmpl_,6,PDFテンプレートID,0
+print_history,phis_,8,印刷履歴ID,0
+print_history_images,phimg_,6,印刷履歴画像ID,0
+print_history_positions,phpos_,6,印刷履歴位置ID,0
+production_status_master,prodsm_,4,生産ステータスマスターID,0
+products_master,prod_,8,商品マスターID,0
+quote_designs,qdes_,8,見積デザインID,0
+quote_history,qhis_,8,見積履歴ID,0
+quote_items,qitm_,8,見積商品ID,0
+quote_status_master,qsm_,4,見積ステータスマスターID,0
+quote_tasks,qtask_,6,見積タスクID,0
+quotes,quot_,14,"見積/案件ID (例: quot_YYYYMMDD_XXXXX)",0
+shipping_carriers,shipc_,4,配送業者ID,0
+shipping_status_master,ssm_,4,配送ステータスマスターID,0
+skus,sku_,8,SKUID,0
+sql_export_presets,sqlexp_,6,SQLエクスポートプリセットID,0
+task_generation_rules,tgen_,6,タスク生成ルールID,0
+task_master,task_,4,タスクマスターID,0
+task_time_settings,ttset_,6,タスク時間設定ID,0
+tool_migrations,tmig_,6,ツール移行ID,0
+work_session_quotes,wsq_,6,作業セッション見積ID,0
+work_sessions,wsess_,6,作業セッションID,0
+brands,brand_,4,ブランドID（メーカー依存: {prefix}_{manufacturer_id}_{番号}）,1
+categories,cat_,4,カテゴリーID,0
+colors,col_,4,カラーID（メーカー依存: {prefix}_{manufacturer_id}_{番号}）,1
+sizes,size_,4,サイズID（メーカー依存: {prefix}_{manufacturer_id}_{番号}）,1
+tags,tag_,4,タグID（メーカー依存: {prefix}_{manufacturer_id}_{番号}）,1
+users,user_,4,ユーザーID,0
+roles,role_,4,役割ID,0
+bills,bill_,14,"支払請求書ID (例: bill_YYYYMMDD_XXXXX)",0
+bill_items,bitem_,6,請求書項目ID,0
+product_prices,pprc_,8,商品価格ID,0
+color_libraries,cl_,3,カラーライブラリID,0
+color_library_types,clt_,3,カラーライブラリタイプID,0
+product_sizes,prdsz_,6,商品サイズ管理ID（メーカー依存: {prefix}_{manufacturer_id}_{番号}）,1
+product_color_sizes,pcolsz_,6,商品カラーサイズ展開ID（メーカー依存: {prefix}_{manufacturer_id}_{番号}）,1
+calculation_logic_types,calc_,4,計算ロジックタイプID,0
+time_units,tu_,4,時間単位ID,0
+ink_product_types,ipt_,4,インク製品タイプID,0
+weight_volume_units,wvu_,4,重量・体積単位ID,0
+free_input_item_types,fiit_,4,自由入力項目タイプID,0

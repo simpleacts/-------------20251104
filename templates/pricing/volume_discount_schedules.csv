@@ -1,0 +1,5 @@
+id,schedule_id,min_quantity,max_quantity,markup_multiplier
+1,umbrella_A,1,9,2.2
+2,umbrella_A,10,19,2
+3,umbrella_A,20,29,1.8
+4,umbrella_A,30,99999,1.5

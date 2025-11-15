@@ -1,0 +1,20 @@
+key,ja,en
+php_info.title,PHP情報ビューア,PHP Info Viewer
+php_info.description,サーバーのPHPバージョンと設定情報を確認します。,View the server's PHP version and configuration information.
+php_info.fetch_error,PHP情報の取得に失敗しました。,Failed to fetch PHP information.
+php_info.no_data,情報を取得できませんでした。,Could not retrieve information.
+php_info.tab_basic,基本情報,Basic Information
+php_info.tab_all_settings,全設定一覧,All Settings
+php_info.tab_phpinfo,phpinfo(),phpinfo()
+php_info.search_placeholder,設定を検索...,Search settings...
+php_info.setting_name,設定名,Setting Name
+php_info.local_value,ローカル値,Local Value
+php_info.global_value,グローバル値,Global Value
+php_info.warning,警告:,Warning:
+php_info.warning_message,この情報にはサーバー環境に関する機密情報が含まれる可能性があります。取り扱いには十分ご注意ください。,This information may contain sensitive information about the server environment. Please handle with care.
+php_info.php_version,PHP Version:,PHP Version:
+php_info.server_software,Server Software:,Server Software:
+php_info.max_execution_time,Max Execution Time:,Max Execution Time:
+php_info.memory_limit,Memory Limit:,Memory Limit:
+php_info.upload_max_filesize,Upload Max Filesize:,Upload Max Filesize:
+

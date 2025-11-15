@@ -1,0 +1,15 @@
+{
+    "name": "nassenbrothers/print-shop-back-office",
+    "version": "1.0.0",
+    "description": "Print Shop Back Office Application",
+    "require": {
+        "mpdf/mpdf": "^8.2"
+    },
+    "config": {
+        "platform": {
+            "php": "8.3.0"
+        },
+        "platform-check": false
+    }
+}
+

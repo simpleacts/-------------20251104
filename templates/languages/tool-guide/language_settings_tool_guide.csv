@@ -1,0 +1,8 @@
+key,ja,en
+tool_guide.title,使い方ガイド,Usage Guide
+tool_guide.description,各種ツールの目的と操作手順を解説します。,Explains the purpose and operation procedures of various tools.
+tool_guide.data_io,データ入出力,Data I/O
+tool_guide.filename_converter,ファイル名変換,File Name Converter
+tool_guide.image_linker,商品画像一括紐付け,Bulk Image Linker
+tool_guide.tool_dependency_manager,ツール依存性管理,Tool Dependency Manager
+
