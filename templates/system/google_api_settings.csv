@@ -1,5 +1,5 @@
 key,value
-API_KEY,"AIzaSyD-O1qv9Y7hx-4k5euU89ehVHULQ6yfMcw"
+API_KEY,""
 CLIENT_ID,"587626448510-r23tv5aelkaffuh4vlepiupgliqtvvo9.apps.googleusercontent.com"
 ROOT_FOLDER_ID,"1ghC91uNK9WJ6V6ME398A5wCW83lFYOOk"
 SCOPES,"https://www.googleapis.com/auth/drive.file,https://www.googleapis.com/auth/gmail.readonly,https://www.googleapis.com/auth/gmail.send"
