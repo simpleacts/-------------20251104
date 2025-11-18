@@ -1,15 +1,1 @@
 key,value
-APP_BASE_URL,http://localhost:8080
-SMTP_HOST,sv5074.xserver.jp
-SMTP_PORT,587
-SMTP_USER,contact@nassenbrothers.com
-SMTP_PASSWORD,fGy*CNs^Lvpw
-SMTP_SECURE,true
-MAIL_FROM_ADDRESS,contact@nassenbrothers.com
-MAIL_FROM_NAME,捺染兄弟
-ADMIN_EMAIL,contact@nassenbrothers.com
-DB_HOST,localhost
-DB_NAME,simpleacts_quotenassen
-DB_USER,simpleacts_quote
-DB_PASSWORD,JObZSnpkxytf9cIp
-DB_TYPE,MariaDB
